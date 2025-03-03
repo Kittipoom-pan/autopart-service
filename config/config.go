@@ -5,7 +5,7 @@ import (
 	"os"
 	"sync"
 
-	utils "github.com/Kittipoom-pan/autopart-service/pkg/utils"
+	"github.com/Kittipoom-pan/autopart-service/pkg/utils"
 	"github.com/joho/godotenv"
 )
 
@@ -32,7 +32,7 @@ var (
 	configInstance *Config
 )
 
-func GetConfig() *Config {
+func LoadConfigs() *Config {
 	once.Do(func() {
 		// Load .env file
 		if err := godotenv.Load("../.env"); err != nil {

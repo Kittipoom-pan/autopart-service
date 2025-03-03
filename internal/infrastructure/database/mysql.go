@@ -3,23 +3,19 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"sync"
 
 	"github.com/Kittipoom-pan/autopart-service/config"
 	_ "github.com/go-sql-driver/mysql"
 )
 
-type mysqlDatabase struct {
-	Db *sql.DB
-}
-
 var (
 	once       sync.Once
-	dbInstance *mysqlDatabase
+	dbInstance *sql.DB
+	dbErr      error
 )
 
-func NewMySQLDatabase(conf *config.Config) Database {
+func NewMySQLDatabase(conf *config.Config) (*sql.DB, error) {
 	once.Do(func() {
 		dsn := fmt.Sprintf(
 			"%s:%s@tcp(%s:%d)/%s?parseTime=true&charset=utf8mb4&loc=Local",
@@ -32,16 +28,19 @@ func NewMySQLDatabase(conf *config.Config) Database {
 
 		db, err := sql.Open("mysql", dsn)
 		if err != nil {
-			log.Fatalf("failed to connect database: %v", err)
+			dbErr = fmt.Errorf("can't open database connection: %w", err)
+			return
 		}
 
-		fmt.Println("Connected MySQL successfully.")
-		dbInstance = &mysqlDatabase{Db: db}
+		if err := db.Ping(); err != nil {
+			db.Close()
+			dbErr = fmt.Errorf("can't connect to database: %w", err)
+			return
+		}
+
+		fmt.Println("MySQL has been connected.")
+		dbInstance = db
 	})
 
-	return dbInstance
-}
-
-func (p *mysqlDatabase) GetDb() *sql.DB {
-	return dbInstance.Db
+	return dbInstance, dbErr
 }

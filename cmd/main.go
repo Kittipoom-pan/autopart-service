@@ -1,15 +1,21 @@
 package main
 
 import (
+	"log"
+
 	"github.com/Kittipoom-pan/autopart-service/config"
 	"github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database"
 	"github.com/Kittipoom-pan/autopart-service/internal/server"
 )
 
 func main() {
-	conf := config.GetConfig()
+	conf := config.LoadConfigs()
 
-	database.NewMySQLDatabase(conf)
+	db, err := database.NewMySQLDatabase(conf)
 
-	server.NewServer(conf).Start()
+	if err != nil {
+		log.Fatalf("Database connection failed: %v\n", err)
+	}
+
+	server.NewServer(conf, db).Start()
 }
