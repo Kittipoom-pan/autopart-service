@@ -1,21 +1,21 @@
 package server
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 
 	"github.com/Kittipoom-pan/autopart-service/config"
+	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"
 	"github.com/gofiber/fiber/v2"
 )
 
 type Server struct {
 	App *fiber.App
 	Cfg *config.Config
-	Db  *sql.DB
+	Db  *db.Queries
 }
 
-func NewServer(cfg *config.Config, db *sql.DB) *Server {
+func NewServer(cfg *config.Config, db *db.Queries) *Server {
 	return &Server{
 		App: fiber.New(),
 		Cfg: cfg,

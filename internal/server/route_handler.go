@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/Kittipoom-pan/autopart-service/internal/module/user"
+	user "github.com/Kittipoom-pan/autopart-service/internal/module/customer"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -9,8 +9,7 @@ import (
 func (s *Server) MapHandlers() error {
 	v1 := s.App.Group("/v1")
 
-	// Users routes
-	usersGroup := v1.Group("/users")
+	usersGroup := v1.Group("/customer")
 	user.SetupRoutes(usersGroup, s.Db)
 
 	// Products routes
