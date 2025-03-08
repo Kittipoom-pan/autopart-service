@@ -2,8 +2,7 @@ package entitie
 
 import "time"
 
-type Customer struct {
-	ID          uint32    `json:"id" db:"id"`
+type CustomerReq struct {
 	FirstName   string    `json:"first_name" db:"first_name"`
 	LastName    string    `json:"last_name" db:"last_name"`
 	Username    string    `json:"username" db:"username"`
