@@ -28,8 +28,6 @@ func (r *CustomerRepo) GetCustomerByID(ctx context.Context, id int) (*entitie.Cu
 		}
 		return nil, err
 	}
-	fmt.Sprintf(customer.Email)
-
 	return &entitie.Customer{
 		ID:          uint32(customer.CustomerID),
 		FirstName:   customer.FirstName.String,
