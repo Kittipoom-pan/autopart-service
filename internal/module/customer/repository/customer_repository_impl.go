@@ -6,17 +6,23 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Kittipoom-pan/autopart-service/internal/common"
 	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/entitie"
+	customerror "github.com/Kittipoom-pan/autopart-service/pkg/error"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 type CustomerRepo struct {
 	queries *db.Queries
+	logger  zerolog.Logger
 }
 
 func NewCustomerRepository(queries *db.Queries) CustomerRepository {
 	return &CustomerRepo{
 		queries: queries,
+		logger:  log.With().Str("component", "customer_repository").Logger(),
 	}
 }
 
@@ -24,9 +30,11 @@ func (r *CustomerRepo) GetCustomerByID(ctx context.Context, id int) (*entitie.Cu
 	customer, err := r.queries.GetCustomer(ctx, int32(id))
 	if err != nil {
 		if err == sql.ErrNoRows {
+			r.logger.Warn().Int("customer_id", id).Msg("customer not found in database")
 			return nil, nil
 		}
-		return nil, err
+		r.logger.Error().Err(err).Int("customer_id", id).Msg("failed to get customer from database")
+		return nil, customerror.NewAPIError(common.StatusError, "Database error: "+err.Error())
 	}
 	return &entitie.Customer{
 		ID:          uint32(customer.CustomerID),
@@ -61,12 +69,14 @@ func (r *CustomerRepo) CreateCustomer(ctx context.Context, customer *entitie.Cus
 
 	result, err := r.queries.CreateCustomer(ctx, params)
 	if err != nil {
-		return 0, fmt.Errorf("repository: failed to create customer: %w", err)
+		r.logger.Error().Err(err).Msg("failed to create customer in database")
+		return 0, customerror.NewAPIError(common.StatusError, fmt.Sprintf("repository: failed to create customer: %v", err))
 	}
 
 	customerID, err := result.LastInsertId()
 	if err != nil {
-		return 0, fmt.Errorf("repository: failed to retrieve customer ID: %w", err)
+		r.logger.Error().Err(err).Msg("failed to retrieve customer ID from database")
+		return 0, customerror.NewAPIError(common.StatusError, fmt.Sprintf("repository: failed to retrieve customer ID: %v", err))
 	}
 
 	return customerID, nil

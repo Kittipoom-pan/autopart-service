@@ -6,6 +6,7 @@ import (
 	"github.com/Kittipoom-pan/autopart-service/internal/common"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/entitie"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/usecase"
+	customerror "github.com/Kittipoom-pan/autopart-service/pkg/error"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -19,17 +20,19 @@ type CustomerController struct {
 func NewCustomerController(usecase usecase.CustomerUsecase) *CustomerController {
 	return &CustomerController{
 		usecase: usecase,
-		logger:  log.With().Str("component", "customer_controller").Logger(), // สร้าง logger instance
+		logger:  log.With().Str("component", "customer_controller").Logger(),
 	}
 }
 
 func (h *CustomerController) GetCustomer(c *fiber.Ctx) error {
 	idStr := c.Query("id")
+	h.logger.Debug().Str("customer_id", idStr).Msg("Get customer request")
 	if idStr == "" {
 		h.logger.Warn().Msg("id parameter is missing")
-		return c.Status(fiber.StatusBadRequest).JSON(common.BaseResponse{
-			Code:    common.StatusBadRequest,
-			Message: "id is required",
+		apiErr := customerror.InvalidRequestData(map[string]string{"id": "id is required"})
+		return c.Status(apiErr.Code).JSON(common.BaseResponse{
+			Code:    apiErr.Code,
+			Message: apiErr.Message,
 			Result:  nil,
 		})
 	}
@@ -37,30 +40,31 @@ func (h *CustomerController) GetCustomer(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("invalid id format")
-		return c.Status(fiber.StatusBadRequest).JSON(common.BaseResponse{
-			Code:    common.StatusBadRequest,
-			Message: "invalid id format",
+		apiErr := customerror.InvalidRequestData(map[string]string{"id": "invalid id format"})
+		return c.Status(apiErr.Code).JSON(common.BaseResponse{
+			Code:    apiErr.Code,
+			Message: apiErr.Message,
 			Result:  nil,
 		})
 	}
 
 	customer, err := h.usecase.GetCustomerByID(c.Context(), id)
 	if err != nil {
-		h.logger.Error().Err(err).Msg("failed to get customer")
-		return c.Status(common.StatusError).JSON(common.BaseResponse{
-			Code:    common.StatusError,
-			Message: "Failed to get customer: " + err.Error(),
-			Result:  nil,
-		})
-	}
+		if apiErr, ok := err.(customerror.APIError); ok {
+			return c.Status(apiErr.Code).JSON(common.BaseResponse{
+				Code:    apiErr.Code,
+				Message: apiErr.Message,
+				Result:  nil,
+			})
+		}
 
-	if customer == nil {
-		h.logger.Info().Int("customer_id", id).Msg("customer not found")
-		return c.Status(common.StatusNotFound).JSON(common.BaseResponse{
-			Code:    common.StatusNotFound,
-			Message: "Customer not found",
-			Result:  nil,
-		})
+		if notFoundErr, ok := err.(*customerror.NotFoundError); ok {
+			return c.Status(common.StatusNotFound).JSON(common.BaseResponse{
+				Code:    common.StatusNotFound,
+				Message: notFoundErr.Error(),
+				Result:  nil,
+			})
+		}
 	}
 
 	h.logger.Info().Int("customer_id", id).Msg("customer retrieved successfully")
@@ -73,21 +77,22 @@ func (h *CustomerController) GetCustomer(c *fiber.Ctx) error {
 
 func (h *CustomerController) CreateCustomer(c *fiber.Ctx) error {
 	customer := new(entitie.CustomerReq)
+	h.logger.Debug().Interface("customer_data", customer).Msg("Create customer request")
 	if err := c.BodyParser(customer); err != nil {
-		h.logger.Error().Err(err).Msg("failed to parse request body")
-		return c.Status(common.StatusError).JSON(common.BaseResponse{
-			Code:    common.StatusError,
-			Message: "Invalid request body: " + err.Error(),
+		apiErr := customerror.InvalidRequestData(map[string]string{"body": "failed to parse request body"})
+		return c.Status(apiErr.Code).JSON(common.BaseResponse{
+			Code:    apiErr.Code,
+			Message: apiErr.Message,
 			Result:  nil,
 		})
 	}
 
 	customerID, err := h.usecase.CreateCustomer(c.Context(), customer)
 	if err != nil {
-		h.logger.Error().Err(err).Msg("failed to create customer")
-		return c.Status(common.StatusError).JSON(common.BaseResponse{
-			Code:    common.StatusError,
-			Message: err.Error(),
+		apiErr := customerror.NewAPIError(common.StatusError, err.Error())
+		return c.Status(apiErr.Code).JSON(common.BaseResponse{
+			Code:    apiErr.Code,
+			Message: apiErr.Message,
 			Result:  nil,
 		})
 
