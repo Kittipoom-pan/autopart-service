@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"log"
 	"os"
 	"sync"
@@ -32,9 +33,10 @@ var (
 	configInstance *Config
 )
 
-func LoadConfigs() *Config {
+func LoadConfigs() (*Config, error) {
+	var loadErr error
+
 	once.Do(func() {
-		// Load .env file
 		if err := godotenv.Load("../.env"); err != nil {
 			log.Println("Warning: No .env file found")
 		}
@@ -52,7 +54,11 @@ func LoadConfigs() *Config {
 				MySqlPassword: os.Getenv("MYSQL_PASSWORD"),
 			},
 		}
+
+		if configInstance.Server.Host == "" || configInstance.Db.MySqlHost == "" {
+			loadErr = errors.New("missing required configuration values")
+		}
 	})
 
-	return configInstance
+	return configInstance, loadErr
 }

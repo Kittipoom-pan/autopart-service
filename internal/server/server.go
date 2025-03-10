@@ -2,11 +2,12 @@ package server
 
 import (
 	"fmt"
-	"log"
+	"os"
 
 	"github.com/Kittipoom-pan/autopart-service/config"
 	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"
 	"github.com/gofiber/fiber/v2"
+	"github.com/rs/zerolog/log"
 )
 
 type Server struct {
@@ -25,8 +26,8 @@ func NewServer(cfg *config.Config, db *db.Queries) *Server {
 
 func (s *Server) Start() {
 	if err := s.MapHandlers(); err != nil {
-		log.Fatalln(err.Error())
-		panic(err.Error())
+		log.Error().Err(err).Msg("Failed to map handlers")
+		os.Exit(1)
 	}
 
 	fiberConnURL := fmt.Sprintf("%s:%d", s.Cfg.Server.Host, s.Cfg.Server.Port)
@@ -34,7 +35,7 @@ func (s *Server) Start() {
 	log.Printf("Server has been started on %s", fiberConnURL)
 
 	if err := s.App.Listen(fiberConnURL); err != nil {
-		log.Fatalln(err.Error())
-		panic(err.Error())
+		log.Error().Err(err).Str("url", fiberConnURL).Msg("Failed to start server")
+		os.Exit(1)
 	}
 }
