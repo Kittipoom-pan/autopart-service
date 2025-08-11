@@ -7,11 +7,12 @@ CREATE TABLE customer (
   email VARCHAR(50) NOT NULL UNIQUE,
   password VARCHAR(150),
   birth_date DATE,
-  phone_number VARCHAR(13),
+  phone_number VARCHAR(13) UNIQUE,
   created_at TIMESTAMP NULL DEFAULT NULL,
   created_by VARCHAR(40),
   updated_at TIMESTAMP NULL DEFAULT NULL,
-  updated_by VARCHAR(40)
+  updated_by VARCHAR(40),
+  is_active TINYINT(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table: admin_user
@@ -24,7 +25,8 @@ CREATE TABLE admin_user (
   created_at TIMESTAMP NULL DEFAULT NULL,
   created_by VARCHAR(40),
   updated_at TIMESTAMP NULL DEFAULT NULL,
-  updated_by VARCHAR(40)
+  updated_by VARCHAR(40),
+  is_active TINYINT(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table: discount
@@ -73,7 +75,7 @@ CREATE TABLE part (
   description TEXT,
   price INT,
   quantity INT,
-  is_active BIT(1),
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP NULL DEFAULT NULL,
   created_by VARCHAR(40),
   updated_at TIMESTAMP NULL DEFAULT NULL,

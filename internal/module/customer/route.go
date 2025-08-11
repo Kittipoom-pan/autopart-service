@@ -1,4 +1,4 @@
-package user
+package customer
 
 import (
 	"time"
@@ -19,6 +19,9 @@ func SetupRoutes(router fiber.Router, db *db.Queries) {
 	usecase := usecase.NewCustomerUsecase(repo)
 	controller := controller.NewCustomerController(usecase)
 
-	router.Get("/", controller.GetCustomer)
+	router.Get("/", controller.GetAllCustomers)
+	router.Get("/:id", controller.GetCustomerByID)
 	router.Post("/", controller.CreateCustomer)
+	router.Put("/:id", controller.UpdateCustomer)
+	router.Delete("/:id", controller.DeleteCustomer)
 }

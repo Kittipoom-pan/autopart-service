@@ -5,4 +5,5 @@ const (
 	StatusBadRequest = 400
 	StatusNotFound   = 404
 	StatusError      = 500
+	StatusConflict   = 409
 )

@@ -12,3 +12,6 @@
 *.out
 .env
 go.work
+
+# ignore tmp folder
+tmp/

@@ -37,7 +37,7 @@ func LoadConfigs() (*Config, error) {
 	var loadErr error
 
 	once.Do(func() {
-		if err := godotenv.Load("../.env"); err != nil {
+		if err := godotenv.Load(".env"); err != nil {
 			log.Println("Warning: No .env file found")
 		}
 
