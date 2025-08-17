@@ -1,8 +1,9 @@
 package server
 
 import (
-	admin "github.com/Kittipoom-pan/autopart-service/internal/module/admin"
-	user "github.com/Kittipoom-pan/autopart-service/internal/module/customer"
+	"github.com/Kittipoom-pan/autopart-service/internal/middleware"
+	"github.com/Kittipoom-pan/autopart-service/internal/module/admin"
+	"github.com/Kittipoom-pan/autopart-service/internal/module/customer"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -10,11 +11,20 @@ import (
 func (s *Server) MapHandlers() error {
 	v1 := s.App.Group("/v1")
 
-	usersGroup := v1.Group("/customer")
-	user.SetupRoutes(usersGroup, s.Db)
+	// public routes (no authentication required)
+	customerPublic := v1.Group("/customer")
+	customer.SetupPublicRoutes(customerPublic, s.Db, s.Cfg)
+	// private routes (protected by JWT authentication)
+	customerPrivate := v1.Group("/customer")
+	customerPrivate.Use(middleware.JWTMiddleware(s.Cfg))
+	customer.SetupPrivateRoutes(customerPrivate, s.Db, s.Cfg)
 
-	adminGroup := v1.Group("/admin")
-	admin.SetupRoutes(adminGroup, s.Db)
+	adminPublic := v1.Group("/admin")
+	admin.SetupPublicRoutes(adminPublic, s.Db, s.Cfg)
+
+	adminPrivate := v1.Group("/admin")
+	adminPrivate.Use(middleware.JWTMiddleware(s.Cfg))
+	admin.SetupPrivateRoutes(adminPrivate, s.Db, s.Cfg)
 
 	// End point not found
 	s.App.Use(func(c *fiber.Ctx) error {

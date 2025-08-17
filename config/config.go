@@ -13,6 +13,7 @@ import (
 type Config struct {
 	Server *Server
 	Db     *Db
+	JWT    *JWT
 }
 
 type Server struct {
@@ -26,6 +27,11 @@ type Db struct {
 	MySqlDatabase string
 	MySqlUser     string
 	MySqlPassword string
+}
+
+type JWT struct {
+	Secret string
+	Expiry int
 }
 
 var (
@@ -52,6 +58,10 @@ func LoadConfigs() (*Config, error) {
 				MySqlDatabase: os.Getenv("MYSQL_DATABASE"),
 				MySqlUser:     os.Getenv("MYSQL_USER"),
 				MySqlPassword: os.Getenv("MYSQL_PASSWORD"),
+			},
+			JWT: &JWT{
+				Secret: os.Getenv("JWT_SECRET_KEY"),
+				Expiry: utils.GetEnvAsInt("JWT_EXPIRY", 3600), // default 1 hours
 			},
 		}
 
