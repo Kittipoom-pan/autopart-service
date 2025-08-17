@@ -42,7 +42,7 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) 
 }
 
 const getCustomer = `-- name: GetCustomer :one
-SELECT customer_id, first_name, last_name, username, email, password, birth_date, phone_number, is_active FROM customer WHERE customer_id = ? and is_active = 1
+SELECT customer_id, first_name, last_name, username, email, birth_date, phone_number, is_active FROM customer WHERE customer_id = ? and is_active = 1
 `
 
 type GetCustomerRow struct {
@@ -51,7 +51,6 @@ type GetCustomerRow struct {
 	LastName    sql.NullString
 	Username    string
 	Email       string
-	Password    sql.NullString
 	BirthDate   sql.NullTime
 	PhoneNumber sql.NullString
 	IsActive    bool
@@ -66,7 +65,6 @@ func (q *Queries) GetCustomer(ctx context.Context, customerID int32) (GetCustome
 		&i.LastName,
 		&i.Username,
 		&i.Email,
-		&i.Password,
 		&i.BirthDate,
 		&i.PhoneNumber,
 		&i.IsActive,
@@ -75,7 +73,7 @@ func (q *Queries) GetCustomer(ctx context.Context, customerID int32) (GetCustome
 }
 
 const listCustomers = `-- name: ListCustomers :many
-SELECT customer_id, first_name, last_name, username, email, password, birth_date, phone_number, is_active FROM customer WHERE is_active = 1 ORDER BY created_at
+SELECT customer_id, first_name, last_name, username, email, birth_date, phone_number, is_active FROM customer WHERE is_active = 1 ORDER BY created_at
 `
 
 type ListCustomersRow struct {
@@ -84,7 +82,6 @@ type ListCustomersRow struct {
 	LastName    sql.NullString
 	Username    string
 	Email       string
-	Password    sql.NullString
 	BirthDate   sql.NullTime
 	PhoneNumber sql.NullString
 	IsActive    bool
@@ -105,7 +102,6 @@ func (q *Queries) ListCustomers(ctx context.Context) ([]ListCustomersRow, error)
 			&i.LastName,
 			&i.Username,
 			&i.Email,
-			&i.Password,
 			&i.BirthDate,
 			&i.PhoneNumber,
 			&i.IsActive,

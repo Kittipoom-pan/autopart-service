@@ -7,53 +7,85 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
-const getAdminUser = `-- name: GetAdminUser :one
-SELECT admin_user_id, username, email, password, role, created_at, created_by, updated_at, updated_by, is_active FROM admin_user WHERE admin_user_id = ?
+const createAdmin = `-- name: CreateAdmin :execresult
+INSERT INTO admin_user (username, role, email, password, created_at, created_by)
+VALUES (?, ?, ?, ?, ?, ?)
 `
 
-func (q *Queries) GetAdminUser(ctx context.Context, adminUserID int32) (AdminUser, error) {
+type CreateAdminParams struct {
+	Username  string
+	Role      AdminUserRole
+	Email     sql.NullString
+	Password  string
+	CreatedAt sql.NullTime
+	CreatedBy sql.NullString
+}
+
+func (q *Queries) CreateAdmin(ctx context.Context, arg CreateAdminParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, createAdmin,
+		arg.Username,
+		arg.Role,
+		arg.Email,
+		arg.Password,
+		arg.CreatedAt,
+		arg.CreatedBy,
+	)
+}
+
+const getAdminUser = `-- name: GetAdminUser :one
+SELECT admin_user_id, username, role, email, is_active FROM admin_user WHERE admin_user_id = ? and is_active = 1
+`
+
+type GetAdminUserRow struct {
+	AdminUserID int32
+	Username    string
+	Role        AdminUserRole
+	Email       sql.NullString
+	IsActive    bool
+}
+
+func (q *Queries) GetAdminUser(ctx context.Context, adminUserID int32) (GetAdminUserRow, error) {
 	row := q.db.QueryRowContext(ctx, getAdminUser, adminUserID)
-	var i AdminUser
+	var i GetAdminUserRow
 	err := row.Scan(
 		&i.AdminUserID,
 		&i.Username,
-		&i.Email,
-		&i.Password,
 		&i.Role,
-		&i.CreatedAt,
-		&i.CreatedBy,
-		&i.UpdatedAt,
-		&i.UpdatedBy,
+		&i.Email,
 		&i.IsActive,
 	)
 	return i, err
 }
 
 const listAdminUsers = `-- name: ListAdminUsers :many
-SELECT admin_user_id, username, email, password, role, created_at, created_by, updated_at, updated_by, is_active FROM admin_user ORDER BY username
+SELECT admin_user_id, username, role, email, is_active FROM admin_user WHERE is_active = 1 ORDER BY created_at
 `
 
-func (q *Queries) ListAdminUsers(ctx context.Context) ([]AdminUser, error) {
+type ListAdminUsersRow struct {
+	AdminUserID int32
+	Username    string
+	Role        AdminUserRole
+	Email       sql.NullString
+	IsActive    bool
+}
+
+func (q *Queries) ListAdminUsers(ctx context.Context) ([]ListAdminUsersRow, error) {
 	rows, err := q.db.QueryContext(ctx, listAdminUsers)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []AdminUser
+	var items []ListAdminUsersRow
 	for rows.Next() {
-		var i AdminUser
+		var i ListAdminUsersRow
 		if err := rows.Scan(
 			&i.AdminUserID,
 			&i.Username,
-			&i.Email,
-			&i.Password,
 			&i.Role,
-			&i.CreatedAt,
-			&i.CreatedBy,
-			&i.UpdatedAt,
-			&i.UpdatedBy,
+			&i.Email,
 			&i.IsActive,
 		); err != nil {
 			return nil, err
@@ -67,4 +99,61 @@ func (q *Queries) ListAdminUsers(ctx context.Context) ([]AdminUser, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateAdmin = `-- name: UpdateAdmin :execresult
+UPDATE admin_user SET
+    username = ?,
+    password = ?,
+    email = ?,
+    role = ?,
+    updated_at = ?,
+    updated_by = ?
+WHERE admin_user_id = ? and is_active = 1
+`
+
+type UpdateAdminParams struct {
+	Username    string
+	Password    string
+	Email       sql.NullString
+	Role        AdminUserRole
+	UpdatedAt   sql.NullTime
+	UpdatedBy   sql.NullString
+	AdminUserID int32
+}
+
+func (q *Queries) UpdateAdmin(ctx context.Context, arg UpdateAdminParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, updateAdmin,
+		arg.Username,
+		arg.Password,
+		arg.Email,
+		arg.Role,
+		arg.UpdatedAt,
+		arg.UpdatedBy,
+		arg.AdminUserID,
+	)
+}
+
+const updateAdminIsActive = `-- name: UpdateAdminIsActive :execresult
+UPDATE admin_user SET
+    is_active = ?,
+    updated_at = ?,
+    updated_by = ?
+WHERE admin_user_id = ?
+`
+
+type UpdateAdminIsActiveParams struct {
+	IsActive    bool
+	UpdatedAt   sql.NullTime
+	UpdatedBy   sql.NullString
+	AdminUserID int32
+}
+
+func (q *Queries) UpdateAdminIsActive(ctx context.Context, arg UpdateAdminIsActiveParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, updateAdminIsActive,
+		arg.IsActive,
+		arg.UpdatedAt,
+		arg.UpdatedBy,
+		arg.AdminUserID,
+	)
 }

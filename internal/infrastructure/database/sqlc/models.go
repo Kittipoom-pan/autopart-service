@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"time"
 )
 
 type AdminUserRole string
@@ -326,10 +327,19 @@ type Address struct {
 	UpdatedBy    sql.NullString
 }
 
+type AdminToken struct {
+	ID          int32
+	AdminUserID int32
+	Token       string
+	ExpiresAt   time.Time
+	CreatedAt   time.Time
+	IsRevoked   sql.NullBool
+}
+
 type AdminUser struct {
 	AdminUserID int32
 	Username    string
-	Email       string
+	Email       sql.NullString
 	Password    string
 	Role        AdminUserRole
 	CreatedAt   sql.NullTime
@@ -390,6 +400,15 @@ type CustomerPaymentMethod struct {
 	CreatedBy               sql.NullString
 	UpdatedAt               sql.NullTime
 	UpdatedBy               sql.NullString
+}
+
+type CustomerToken struct {
+	ID         int32
+	CustomerID int32
+	Token      string
+	ExpiresAt  time.Time
+	CreatedAt  time.Time
+	IsRevoked  sql.NullBool
 }
 
 type Discount struct {
@@ -479,12 +498,4 @@ type StockMovement struct {
 	Remark          sql.NullString
 	CreatedAt       sql.NullTime
 	CreatedBy       sql.NullString
-}
-
-type Token struct {
-	ID         int32
-	CustomerID int32
-	Token      string
-	ExpiresAt  sql.NullTime
-	CreatedAt  sql.NullTime
 }

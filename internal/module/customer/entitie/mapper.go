@@ -1,10 +1,8 @@
 package entitie
 
 import (
-	"database/sql"
-	"time"
-
 	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"
+	"github.com/Kittipoom-pan/autopart-service/pkg/utils"
 )
 
 func MapDbCustomerToCustomerEntity(dbCustomer db.GetCustomerRow) *Customer {
@@ -14,7 +12,6 @@ func MapDbCustomerToCustomerEntity(dbCustomer db.GetCustomerRow) *Customer {
 		LastName:    dbCustomer.LastName.String,
 		Username:    dbCustomer.Username,
 		Email:       dbCustomer.Email,
-		Password:    dbCustomer.Password.String,
 		BirthDate:   dbCustomer.BirthDate.Time,
 		PhoneNumber: dbCustomer.PhoneNumber.String,
 	}
@@ -22,18 +19,15 @@ func MapDbCustomerToCustomerEntity(dbCustomer db.GetCustomerRow) *Customer {
 
 func MapCustomerToCustomerParam(customer *CustomerReq, createBy string) db.CreateCustomerParams {
 	return db.CreateCustomerParams{
-		FirstName:   sql.NullString{String: customer.FirstName, Valid: customer.FirstName != ""},
-		LastName:    sql.NullString{String: customer.LastName, Valid: customer.LastName != ""},
+		FirstName:   utils.StringToNullString(customer.FirstName),
+		LastName:    utils.StringToNullString(customer.LastName),
 		Username:    customer.Username,
 		Email:       customer.Email,
-		Password:    sql.NullString{String: customer.Password, Valid: customer.Password != ""},
-		BirthDate:   sql.NullTime{Time: customer.BirthDate, Valid: !customer.BirthDate.IsZero()},
-		PhoneNumber: sql.NullString{String: customer.PhoneNumber, Valid: customer.PhoneNumber != ""},
-		CreatedBy:   sql.NullString{String: createBy, Valid: createBy != ""},
-		CreatedAt: sql.NullTime{
-			Time:  time.Now(),
-			Valid: true,
-		},
+		Password:    utils.StringToNullString(customer.Password),
+		BirthDate:   utils.NullTime(customer.BirthDate),
+		PhoneNumber: utils.StringToNullString(customer.PhoneNumber),
+		CreatedBy:   utils.StringToNullString(createBy),
+		CreatedAt:   utils.NullTimeNow(),
 	}
 }
 
@@ -44,7 +38,6 @@ func MapDbCustomersToCustomerEntity(dbCustomer db.ListCustomersRow) *Customer {
 		LastName:    dbCustomer.LastName.String,
 		Username:    dbCustomer.Username,
 		Email:       dbCustomer.Email,
-		Password:    dbCustomer.Password.String,
 		BirthDate:   dbCustomer.BirthDate.Time,
 		PhoneNumber: dbCustomer.PhoneNumber.String,
 	}
@@ -53,31 +46,22 @@ func MapDbCustomersToCustomerEntity(dbCustomer db.ListCustomersRow) *Customer {
 func MapUpdateCustomerParams(id int, customer *CustomerReq, updatedBy string) db.UpdateCustomerParams {
 	return db.UpdateCustomerParams{
 		CustomerID:  int32(id),
-		FirstName:   sql.NullString{String: customer.FirstName, Valid: customer.FirstName != ""},
-		LastName:    sql.NullString{String: customer.LastName, Valid: customer.LastName != ""},
+		FirstName:   utils.StringToNullString(customer.FirstName),
+		LastName:    utils.StringToNullString(customer.LastName),
 		Username:    customer.Username,
 		Email:       customer.Email,
-		BirthDate:   sql.NullTime{Time: customer.BirthDate, Valid: !customer.BirthDate.IsZero()},
-		PhoneNumber: sql.NullString{String: customer.PhoneNumber, Valid: customer.PhoneNumber != ""},
-		UpdatedBy:   sql.NullString{String: updatedBy, Valid: updatedBy != ""},
-		UpdatedAt: sql.NullTime{
-			Time:  time.Now(),
-			Valid: true,
-		},
+		BirthDate:   utils.NullTime(customer.BirthDate),
+		PhoneNumber: utils.StringToNullString(customer.PhoneNumber),
+		UpdatedBy:   utils.StringToNullString(updatedBy),
+		UpdatedAt:   utils.NullTimeNow(),
 	}
 }
 
 func MapUpdateCustomerIsActiveParams(id int, isActive bool, updatedBy string) db.UpdateCustomerIsActiveParams {
 	return db.UpdateCustomerIsActiveParams{
-		IsActive: isActive,
-		UpdatedBy: sql.NullString{
-			String: updatedBy,
-			Valid:  updatedBy != "",
-		},
-		UpdatedAt: sql.NullTime{
-			Time:  time.Now(),
-			Valid: true,
-		},
+		IsActive:   isActive,
+		UpdatedBy:  utils.StringToNullString(updatedBy),
+		UpdatedAt:  utils.NullTimeNow(),
 		CustomerID: int32(id),
 	}
 }

@@ -3,11 +3,11 @@ CREATE TABLE customer (
   customer_id INT AUTO_INCREMENT PRIMARY KEY,
   first_name VARCHAR(40),
   last_name VARCHAR(40),
-  username VARCHAR(50) NOT NULL UNIQUE,
-  email VARCHAR(50) NOT NULL UNIQUE,
+  username VARCHAR(50) NOT NULL,
+  email VARCHAR(50) NOT NULL,
   password VARCHAR(150),
   birth_date DATE,
-  phone_number VARCHAR(13) UNIQUE,
+  phone_number VARCHAR(13),
   created_at TIMESTAMP NULL DEFAULT NULL,
   created_by VARCHAR(40),
   updated_at TIMESTAMP NULL DEFAULT NULL,
@@ -15,11 +15,15 @@ CREATE TABLE customer (
   is_active TINYINT(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE UNIQUE INDEX unique_active_phone ON customer (phone_number, is_active);
+CREATE UNIQUE INDEX unique_active_username ON customer (username, is_active);
+CREATE UNIQUE INDEX unique_active_email ON customer (email, is_active);
+
 -- Table: admin_user
 CREATE TABLE admin_user (
   admin_user_id INT AUTO_INCREMENT PRIMARY KEY,
-  username VARCHAR(40) NOT NULL UNIQUE,
-  email VARCHAR(60) NOT NULL UNIQUE,
+  username VARCHAR(40) NOT NULL,
+  email VARCHAR(60) NULL,
   password VARCHAR(150) NOT NULL,
   role ENUM('super_admin', 'staff') NOT NULL,
   created_at TIMESTAMP NULL DEFAULT NULL,
@@ -28,6 +32,9 @@ CREATE TABLE admin_user (
   updated_by VARCHAR(40),
   is_active TINYINT(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE UNIQUE INDEX unique_active_username ON admin_user (username, is_active);
+CREATE UNIQUE INDEX unique_active_email ON admin_user (email, is_active);
 
 -- Table: discount
 CREATE TABLE discount (
@@ -100,13 +107,25 @@ CREATE TABLE customer_payment_method (
   CONSTRAINT fk_cpm_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: token
-CREATE TABLE token (
+-- Table: admin_token
+CREATE TABLE admin_token (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  customer_id INT NOT NULL UNIQUE,
+  admin_user_id INT NOT NULL,
   token VARCHAR(255) NOT NULL UNIQUE,
-  expires_at TIMESTAMP NULL DEFAULT NULL,
-  created_at TIMESTAMP NULL DEFAULT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP NOT NULL,
+  is_revoked BOOLEAN DEFAULT FALSE,
+  CONSTRAINT fk_token_admin_user FOREIGN KEY (admin_user_id) REFERENCES admin_user(admin_user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table: customer_token
+CREATE TABLE customer_token (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  customer_id INT NOT NULL,
+  token VARCHAR(255) NOT NULL UNIQUE,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP NOT NULL,
+  is_revoked BOOLEAN DEFAULT FALSE,
   CONSTRAINT fk_token_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

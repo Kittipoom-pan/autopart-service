@@ -1,6 +1,7 @@
 package server
 
 import (
+	admin "github.com/Kittipoom-pan/autopart-service/internal/module/admin"
 	user "github.com/Kittipoom-pan/autopart-service/internal/module/customer"
 
 	"github.com/gofiber/fiber/v2"
@@ -12,8 +13,8 @@ func (s *Server) MapHandlers() error {
 	usersGroup := v1.Group("/customer")
 	user.SetupRoutes(usersGroup, s.Db)
 
-	// Products routes
-	// ...
+	adminGroup := v1.Group("/admin")
+	admin.SetupRoutes(adminGroup, s.Db)
 
 	// End point not found
 	s.App.Use(func(c *fiber.Ctx) error {
