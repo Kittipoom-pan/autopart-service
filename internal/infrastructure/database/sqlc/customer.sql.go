@@ -72,6 +72,23 @@ func (q *Queries) GetCustomer(ctx context.Context, customerID int32) (GetCustome
 	return i, err
 }
 
+const getCustomerByUsername = `-- name: GetCustomerByUsername :one
+SELECT customer_id, username, password FROM customer WHERE username = ? and is_active = 1
+`
+
+type GetCustomerByUsernameRow struct {
+	CustomerID int32
+	Username   string
+	Password   sql.NullString
+}
+
+func (q *Queries) GetCustomerByUsername(ctx context.Context, username string) (GetCustomerByUsernameRow, error) {
+	row := q.db.QueryRowContext(ctx, getCustomerByUsername, username)
+	var i GetCustomerByUsernameRow
+	err := row.Scan(&i.CustomerID, &i.Username, &i.Password)
+	return i, err
+}
+
 const listCustomers = `-- name: ListCustomers :many
 SELECT customer_id, first_name, last_name, username, email, birth_date, phone_number, is_active FROM customer WHERE is_active = 1 ORDER BY created_at
 `

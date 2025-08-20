@@ -25,7 +25,7 @@ func NewCustomerRepository(queries *db.Queries) CustomerRepository {
 	}
 }
 
-func (r *customerRepository) GetCustomerByID(ctx context.Context, id int) (*entitie.Customer, error) {
+func (r *customerRepository) GetCustomerByID(ctx context.Context, id int) (*entitie.CustomerRes, error) {
 	customer, err := r.queries.GetCustomer(ctx, int32(id))
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -36,7 +36,7 @@ func (r *customerRepository) GetCustomerByID(ctx context.Context, id int) (*enti
 		return nil, customerror.NewAPIError(common.StatusError, "Database error: "+err.Error())
 	}
 
-	return entitie.MapDbCustomerToCustomerEntity(customer), nil
+	return entitie.MapDbCustomerToCustomerRes(customer), nil
 }
 
 func (r *customerRepository) CreateCustomer(ctx context.Context, customer *entitie.CustomerReq) (int64, error) {
@@ -61,16 +61,16 @@ func (r *customerRepository) CreateCustomer(ctx context.Context, customer *entit
 	return customerID, nil
 }
 
-func (r *customerRepository) GetAllCustomers(ctx context.Context) ([]*entitie.Customer, error) {
+func (r *customerRepository) GetAllCustomers(ctx context.Context) ([]*entitie.CustomerRes, error) {
 	customers, err := r.queries.ListCustomers(ctx)
 	if err != nil {
 		r.logger.Error().Err(err).Msg("failed to list customers from database")
 		return nil, customerror.NewAPIError(common.StatusError, "Database error: "+err.Error())
 	}
 
-	var customerEntities []*entitie.Customer
+	var customerEntities []*entitie.CustomerRes
 	for _, customer := range customers {
-		customerEntities = append(customerEntities, entitie.MapDbCustomersToCustomerEntity(customer))
+		customerEntities = append(customerEntities, entitie.MapDbCustomersToCustomerRes(customer))
 	}
 	return customerEntities, nil
 }
@@ -122,4 +122,18 @@ func (r *customerRepository) DeleteCustomer(ctx context.Context, id int) error {
 		return customerror.NewNotFoundError("Customer")
 	}
 	return nil
+}
+
+func (r *customerRepository) GetCustomerByUsername(ctx context.Context, username string) (*entitie.Customer, error) {
+	customer, err := r.queries.GetCustomerByUsername(ctx, username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			r.logger.Warn().Str("username", username).Msg("customer not found in database")
+			return nil, customerror.NewNotFoundError("Customer")
+		}
+		r.logger.Error().Err(err).Str("username", username).Msg("failed to get customer from database")
+		return nil, customerror.NewAPIError(common.StatusError, "Database error: "+err.Error())
+	}
+
+	return entitie.MapDbCustomerToCustomerEntity(customer), nil
 }

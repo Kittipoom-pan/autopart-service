@@ -7,8 +7,8 @@ import (
 )
 
 type AdminUsecase interface {
-	GetAdminByID(ctx context.Context, id int) (*entitie.Admin, error)
-	GetAllAdmins(ctx context.Context) ([]*entitie.Admin, error)
+	GetAdminByID(ctx context.Context, id int) (*entitie.AdminRes, error)
+	GetAllAdmins(ctx context.Context) ([]*entitie.AdminRes, error)
 	CreateAdmin(ctx context.Context, user *entitie.AdminReq) (int64, error)
 	UpdateAdmin(ctx context.Context, id int, user *entitie.AdminReq) error
 	DeleteAdmin(ctx context.Context, id int) error

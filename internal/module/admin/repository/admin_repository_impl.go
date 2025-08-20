@@ -25,7 +25,7 @@ func NewAdminRepository(queries *db.Queries) AdminRepository {
 	}
 }
 
-func (r *adminRepository) GetAdminByID(ctx context.Context, id int) (*entitie.Admin, error) {
+func (r *adminRepository) GetAdminByID(ctx context.Context, id int) (*entitie.AdminRes, error) {
 	admin, err := r.queries.GetAdminUser(ctx, int32(id))
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -36,7 +36,7 @@ func (r *adminRepository) GetAdminByID(ctx context.Context, id int) (*entitie.Ad
 		return nil, adminror.NewAPIError(common.StatusError, "Database error: "+err.Error())
 	}
 
-	return entitie.MapDbAdminToAdminEntity(admin), nil
+	return entitie.MapDbAdminToAdminRes(admin), nil
 }
 
 func (r *adminRepository) CreateAdmin(ctx context.Context, admin *entitie.AdminReq) (int64, error) {
@@ -61,14 +61,14 @@ func (r *adminRepository) CreateAdmin(ctx context.Context, admin *entitie.AdminR
 	return adminID, nil
 }
 
-func (r *adminRepository) GetAllAdmins(ctx context.Context) ([]*entitie.Admin, error) {
+func (r *adminRepository) GetAllAdmins(ctx context.Context) ([]*entitie.AdminRes, error) {
 	admins, err := r.queries.ListAdminUsers(ctx)
 	if err != nil {
 		r.logger.Error().Err(err).Msg("failed to list admins from database")
 		return nil, adminror.NewAPIError(common.StatusError, "Database error: "+err.Error())
 	}
 
-	var adminEntities []*entitie.Admin
+	var adminEntities []*entitie.AdminRes
 	for _, admin := range admins {
 		adminEntities = append(adminEntities, entitie.MapDbAdminsToAdminEntity(admin))
 	}
@@ -122,4 +122,18 @@ func (r *adminRepository) DeleteAdmin(ctx context.Context, id int) error {
 		return adminror.NewNotFoundError("Admin")
 	}
 	return nil
+}
+
+func (r *adminRepository) GetAdminByUsername(ctx context.Context, username string) (*entitie.Admin, error) {
+	admin, err := r.queries.GetAdminByUsername(ctx, username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			r.logger.Warn().Str("username", username).Msg("admin not found in database")
+			return nil, adminror.NewNotFoundError("Admin")
+		}
+		r.logger.Error().Err(err).Str("username", username).Msg("failed to get admin from database")
+		return nil, adminror.NewAPIError(common.StatusError, "Database error: "+err.Error())
+	}
+
+	return entitie.MapDbAdminToAdminEntity(admin), nil
 }

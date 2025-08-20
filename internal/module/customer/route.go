@@ -12,7 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func SetupPrivateRoutes(router fiber.Router, db *db.Queries, cfg *config.Config) {
+func SetupPrivateRoutes(router fiber.Router, db *db.Queries, cfg *config.Config, auth fiber.Handler) {
 	router.Use(middleware.TimeoutMiddleware(3 * time.Second))
 
 	// create dependencies
@@ -20,21 +20,21 @@ func SetupPrivateRoutes(router fiber.Router, db *db.Queries, cfg *config.Config)
 	usecase := usecase.NewCustomerUsecase(repo)
 	controller := controller.NewCustomerController(usecase)
 
-	router.Get("/", controller.GetAllCustomers)
-	router.Get("/:id", controller.GetCustomerByID)
-	router.Post("/", controller.CreateCustomer)
-	router.Put("/:id", controller.UpdateCustomer)
-	router.Delete("/:id", controller.DeleteCustomer)
+	router.Get("/", auth, controller.GetAllCustomers)
+	router.Get("/:id", auth, controller.GetCustomerByID)
+	router.Put("/:id", auth, controller.UpdateCustomer)
+	router.Delete("/:id", auth, controller.DeleteCustomer)
 }
 
 func SetupPublicRoutes(router fiber.Router, db *db.Queries, cfg *config.Config) {
 	router.Use(middleware.TimeoutMiddleware(3 * time.Second))
 
-	// repo := repository.NewCustomerRepository(db)
-	// usecase := usecase.NewCustomerUsecase(repo, cfg)
-	// customerController := controller.NewCustomerController(usecase)
-	// authController := controller.NewAuthController(usecase) // สมมติว่ามี AuthController
+	repo := repository.NewCustomerRepository(db)
+	authUsecase := usecase.NewAuthUsecase(repo, cfg)
+	usecase := usecase.NewCustomerUsecase(repo)
+	customerController := controller.NewCustomerController(usecase)
+	authController := controller.NewAuthController(authUsecase, cfg)
 
-	// router.Post("/login", authController.Login)
-	// router.Post("/register", customerController.CreateCustomer) // การลงทะเบียนมักเป็น Public
+	router.Post("/login", authController.Login)
+	router.Post("/register", customerController.CreateCustomer)
 }

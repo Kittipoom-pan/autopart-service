@@ -12,7 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func SetupPrivateRoutes(router fiber.Router, db *db.Queries, cfg *config.Config) {
+func SetupPrivateRoutes(router fiber.Router, db *db.Queries, cfg *config.Config, auth fiber.Handler) {
 	router.Use(middleware.TimeoutMiddleware(3 * time.Second))
 
 	// create dependencies
@@ -20,20 +20,20 @@ func SetupPrivateRoutes(router fiber.Router, db *db.Queries, cfg *config.Config)
 	usecase := usecase.NewAdminUsecase(repo)
 	controller := controller.NewAdminController(usecase)
 
-	router.Get("/", controller.GetAllAdminUsers)
-	router.Get("/:id", controller.GetAdminByID)
-	//router.Post("/", controller.CreateAdmin)
-	router.Put("/:id", controller.UpdateAdmin)
-	router.Delete("/:id", controller.DeleteAdmin)
+	router.Get("/", auth, controller.GetAllAdminUsers)
+	router.Get("/:id", auth, controller.GetAdminByID)
+	router.Put("/:id", auth, controller.UpdateAdmin)
+	router.Delete("/:id", auth, controller.DeleteAdmin)
 }
 
 func SetupPublicRoutes(router fiber.Router, db *db.Queries, cfg *config.Config) {
 	router.Use(middleware.TimeoutMiddleware(3 * time.Second))
 
 	repo := repository.NewAdminRepository(db)
+	authUsecase := usecase.NewAuthUsecase(repo, cfg)
 	usecase := usecase.NewAdminUsecase(repo)
 	adminController := controller.NewAdminController(usecase)
-	authController := controller.NewAuthController(usecase, cfg)
+	authController := controller.NewAuthController(authUsecase, cfg)
 
 	router.Post("/login", authController.Login)
 	router.Post("/register", adminController.CreateAdmin)

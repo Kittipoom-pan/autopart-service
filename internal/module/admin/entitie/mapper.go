@@ -5,12 +5,21 @@ import (
 	"github.com/Kittipoom-pan/autopart-service/pkg/utils"
 )
 
-func MapDbAdminToAdminEntity(dbAdmin db.GetAdminUserRow) *Admin {
-	return &Admin{
+func MapDbAdminToAdminRes(dbAdmin db.GetAdminUserRow) *AdminRes {
+	return &AdminRes{
 		ID:       uint32(dbAdmin.AdminUserID),
 		Username: dbAdmin.Username,
 		Email:    dbAdmin.Email.String,
 		Role:     string(dbAdmin.Role),
+	}
+}
+
+func MapDbAdminToAdminEntity(dbAdmin db.GetAdminByUsernameRow) *Admin {
+	return &Admin{
+		ID:       uint32(dbAdmin.AdminUserID),
+		Username: dbAdmin.Username,
+		Role:     string(dbAdmin.Role),
+		Password: dbAdmin.Password,
 	}
 }
 
@@ -25,8 +34,8 @@ func MapAdminToAdminParam(admin *AdminReq, createBy string) db.CreateAdminParams
 	}
 }
 
-func MapDbAdminsToAdminEntity(dbAdmin db.ListAdminUsersRow) *Admin {
-	return &Admin{
+func MapDbAdminsToAdminEntity(dbAdmin db.ListAdminUsersRow) *AdminRes {
+	return &AdminRes{
 		ID:       uint32(dbAdmin.AdminUserID),
 		Username: dbAdmin.Username,
 		Email:    utils.NullStringToString(dbAdmin.Email),
@@ -52,5 +61,19 @@ func MapUpdateAdminIsActiveParams(id int, isActive bool, updatedBy string) db.Up
 		UpdatedBy:   utils.StringToNullString(updatedBy),
 		UpdatedAt:   utils.NullTimeNow(),
 		AdminUserID: int32(id),
+	}
+}
+
+func MapAdminToLoginRes(admin *Admin, token string, expiresIn int32) *LoginResponse {
+	userRes := &UserResponse{
+		ID:       int32(admin.ID),
+		Username: admin.Username,
+		Role:     string(admin.Role),
+	}
+
+	return &LoginResponse{
+		AccessToken: token,
+		ExpiresIn:   expiresIn,
+		User:        *userRes,
 	}
 }

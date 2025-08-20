@@ -35,6 +35,29 @@ func (q *Queries) CreateAdmin(ctx context.Context, arg CreateAdminParams) (sql.R
 	)
 }
 
+const getAdminByUsername = `-- name: GetAdminByUsername :one
+SELECT admin_user_id, username, password, role FROM admin_user WHERE username = ? and is_active = 1
+`
+
+type GetAdminByUsernameRow struct {
+	AdminUserID int32
+	Username    string
+	Password    string
+	Role        AdminUserRole
+}
+
+func (q *Queries) GetAdminByUsername(ctx context.Context, username string) (GetAdminByUsernameRow, error) {
+	row := q.db.QueryRowContext(ctx, getAdminByUsername, username)
+	var i GetAdminByUsernameRow
+	err := row.Scan(
+		&i.AdminUserID,
+		&i.Username,
+		&i.Password,
+		&i.Role,
+	)
+	return i, err
+}
+
 const getAdminUser = `-- name: GetAdminUser :one
 SELECT admin_user_id, username, role, email, is_active FROM admin_user WHERE admin_user_id = ? and is_active = 1
 `

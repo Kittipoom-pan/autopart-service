@@ -21,9 +21,9 @@ func GenerateToken(userID uint32, role string, cfg *config.Config) (string, erro
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Second * time.Duration(cfg.JWT.Expiry))),
 		},
 	}
-
+	secretKey := []byte(cfg.JWT.Secret)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(cfg.JWT.Secret)
+	tokenString, err := token.SignedString(secretKey)
 	if err != nil {
 		return "", err
 	}

@@ -1,6 +1,9 @@
 -- name: GetCustomer :one
 SELECT customer_id, first_name, last_name, username, email, birth_date, phone_number, is_active FROM customer WHERE customer_id = ? and is_active = 1;
 
+-- name: GetCustomerByUsername :one
+SELECT customer_id, username, password FROM customer WHERE username = ? and is_active = 1;
+
 -- name: ListCustomers :many
 SELECT customer_id, first_name, last_name, username, email, birth_date, phone_number, is_active FROM customer WHERE is_active = 1 ORDER BY created_at;
 

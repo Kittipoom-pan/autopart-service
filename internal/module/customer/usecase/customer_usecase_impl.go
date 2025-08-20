@@ -22,7 +22,7 @@ func NewCustomerUsecase(repo repository.CustomerRepository) CustomerUsecase {
 	}
 }
 
-func (u *customerUsecase) GetCustomerByID(ctx context.Context, id int) (*entitie.Customer, error) {
+func (u *customerUsecase) GetCustomerByID(ctx context.Context, id int) (*entitie.CustomerRes, error) {
 	u.logger.Info().Int("customer_id", id).Msg("GetCustomerByID started")
 
 	customer, err := u.repo.GetCustomerByID(ctx, id)
@@ -35,7 +35,7 @@ func (u *customerUsecase) GetCustomerByID(ctx context.Context, id int) (*entitie
 	return customer, nil
 }
 
-func (u *customerUsecase) GetAllCustomers(ctx context.Context) ([]*entitie.Customer, error) {
+func (u *customerUsecase) GetAllCustomers(ctx context.Context) ([]*entitie.CustomerRes, error) {
 	customers, err := u.repo.GetAllCustomers(ctx)
 	if err != nil {
 		u.logger.Error().Err(err).Msg("Failed to get all customers from repository")

@@ -5,8 +5,8 @@ import (
 	"github.com/Kittipoom-pan/autopart-service/pkg/utils"
 )
 
-func MapDbCustomerToCustomerEntity(dbCustomer db.GetCustomerRow) *Customer {
-	return &Customer{
+func MapDbCustomerToCustomerRes(dbCustomer db.GetCustomerRow) *CustomerRes {
+	return &CustomerRes{
 		ID:          uint32(dbCustomer.CustomerID),
 		FirstName:   dbCustomer.FirstName.String,
 		LastName:    dbCustomer.LastName.String,
@@ -14,6 +14,14 @@ func MapDbCustomerToCustomerEntity(dbCustomer db.GetCustomerRow) *Customer {
 		Email:       dbCustomer.Email,
 		BirthDate:   dbCustomer.BirthDate.Time,
 		PhoneNumber: dbCustomer.PhoneNumber.String,
+	}
+}
+
+func MapDbCustomerToCustomerEntity(dbCustomer db.GetCustomerByUsernameRow) *Customer {
+	return &Customer{
+		ID:       uint32(dbCustomer.CustomerID),
+		Username: dbCustomer.Username,
+		Password: dbCustomer.Password.String,
 	}
 }
 
@@ -31,8 +39,8 @@ func MapCustomerToCustomerParam(customer *CustomerReq, createBy string) db.Creat
 	}
 }
 
-func MapDbCustomersToCustomerEntity(dbCustomer db.ListCustomersRow) *Customer {
-	return &Customer{
+func MapDbCustomersToCustomerRes(dbCustomer db.ListCustomersRow) *CustomerRes {
+	return &CustomerRes{
 		ID:          uint32(dbCustomer.CustomerID),
 		FirstName:   dbCustomer.FirstName.String,
 		LastName:    dbCustomer.LastName.String,
@@ -63,5 +71,19 @@ func MapUpdateCustomerIsActiveParams(id int, isActive bool, updatedBy string) db
 		UpdatedBy:  utils.StringToNullString(updatedBy),
 		UpdatedAt:  utils.NullTimeNow(),
 		CustomerID: int32(id),
+	}
+}
+
+func MapCustomerToLoginRes(customer *Customer, token string, expiresIn int32) *LoginResponse {
+	userRes := &UserResponse{
+		ID:       int32(customer.ID),
+		Username: customer.Username,
+		Role:     "",
+	}
+
+	return &LoginResponse{
+		AccessToken: token,
+		ExpiresIn:   expiresIn,
+		User:        *userRes,
 	}
 }

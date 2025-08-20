@@ -22,7 +22,7 @@ func NewAdminUsecase(repo repository.AdminRepository) AdminUsecase {
 	}
 }
 
-func (u *adminUsecase) GetAdminByID(ctx context.Context, id int) (*entitie.Admin, error) {
+func (u *adminUsecase) GetAdminByID(ctx context.Context, id int) (*entitie.AdminRes, error) {
 	u.logger.Info().Int("admin_id", id).Msg("GetAdminByID started")
 
 	admin, err := u.repo.GetAdminByID(ctx, id)
@@ -35,7 +35,7 @@ func (u *adminUsecase) GetAdminByID(ctx context.Context, id int) (*entitie.Admin
 	return admin, nil
 }
 
-func (u *adminUsecase) GetAllAdmins(ctx context.Context) ([]*entitie.Admin, error) {
+func (u *adminUsecase) GetAllAdmins(ctx context.Context) ([]*entitie.AdminRes, error) {
 	admins, err := u.repo.GetAllAdmins(ctx)
 	if err != nil {
 		u.logger.Error().Err(err).Msg("Failed to get all admins from repository")

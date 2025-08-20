@@ -16,23 +16,18 @@ func (s *Server) MapHandlers() error {
 	customer.SetupPublicRoutes(customerPublic, s.Db, s.Cfg)
 	// private routes (protected by JWT authentication)
 	customerPrivate := v1.Group("/customer")
-	customerPrivate.Use(middleware.JWTMiddleware(s.Cfg))
-	customer.SetupPrivateRoutes(customerPrivate, s.Db, s.Cfg)
+	customer.SetupPrivateRoutes(customerPrivate, s.Db, s.Cfg, middleware.JWTMiddleware(s.Cfg))
 
 	adminPublic := v1.Group("/admin")
 	admin.SetupPublicRoutes(adminPublic, s.Db, s.Cfg)
 
 	adminPrivate := v1.Group("/admin")
-	adminPrivate.Use(middleware.JWTMiddleware(s.Cfg))
-	admin.SetupPrivateRoutes(adminPrivate, s.Db, s.Cfg)
+	admin.SetupPrivateRoutes(adminPrivate, s.Db, s.Cfg, middleware.JWTMiddleware(s.Cfg))
 
 	// End point not found
 	s.App.Use(func(c *fiber.Ctx) error {
-		return c.Status(fiber.ErrInternalServerError.Code).JSON(fiber.Map{
-			"status":      fiber.ErrInternalServerError.Message,
-			"status_code": fiber.ErrInternalServerError.Code,
-			"message":     "error, end point not found",
-			"result":      nil,
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"message": "Endpoint not found",
 		})
 	})
 
