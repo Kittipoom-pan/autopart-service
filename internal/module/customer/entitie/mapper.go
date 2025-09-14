@@ -75,15 +75,8 @@ func MapUpdateCustomerIsActiveParams(id int, isActive bool, updatedBy string) db
 }
 
 func MapCustomerToLoginRes(customer *Customer, token string, expiresIn int32) *LoginResponse {
-	userRes := &UserResponse{
-		ID:       int32(customer.ID),
-		Username: customer.Username,
-		Role:     "",
-	}
-
 	return &LoginResponse{
 		AccessToken: token,
 		ExpiresIn:   expiresIn,
-		User:        *userRes,
 	}
 }

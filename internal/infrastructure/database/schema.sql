@@ -65,13 +65,6 @@ CREATE TABLE part_brand (
   description VARCHAR(255)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: car_brand
-CREATE TABLE car_brand (
-  car_brand_id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(50) NOT NULL UNIQUE,
-  description VARCHAR(255)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 -- Table: part
 CREATE TABLE part (
   part_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -91,6 +84,32 @@ CREATE TABLE part (
   CONSTRAINT fk_part_part_brand FOREIGN KEY (part_brand_id) REFERENCES part_brand(part_brand_id),
   CONSTRAINT fk_part_part_type FOREIGN KEY (part_type_id) REFERENCES part_type(part_type_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table: compatible_car
+CREATE TABLE compatible_car (
+  compatible_id INT AUTO_INCREMENT PRIMARY KEY,
+  part_id INT NOT NULL,
+  car_model_id INT NOT NULL,
+  year_from YEAR,
+  year_to YEAR,
+  FOREIGN KEY (part_id) REFERENCES part(part_id),
+  FOREIGN KEY (car_model_id) REFERENCES car_model(car_model_id)
+);
+
+-- Table: car_brand
+CREATE TABLE car_brand (
+  car_brand_id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(50) NOT NULL UNIQUE,
+  description VARCHAR(255)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table:car_model
+CREATE TABLE car_model (
+  car_model_id INT AUTO_INCREMENT PRIMARY KEY,
+  car_brand_id INT NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  FOREIGN KEY (car_brand_id) REFERENCES car_brand(car_brand_id)
+);
 
 -- Table: customer_payment_method
 CREATE TABLE customer_payment_method (

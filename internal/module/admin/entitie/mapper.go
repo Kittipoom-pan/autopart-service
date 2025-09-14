@@ -65,15 +65,8 @@ func MapUpdateAdminIsActiveParams(id int, isActive bool, updatedBy string) db.Up
 }
 
 func MapAdminToLoginRes(admin *Admin, token string, expiresIn int32) *LoginResponse {
-	userRes := &UserResponse{
-		ID:       int32(admin.ID),
-		Username: admin.Username,
-		Role:     string(admin.Role),
-	}
-
 	return &LoginResponse{
 		AccessToken: token,
 		ExpiresIn:   expiresIn,
-		User:        *userRes,
 	}
 }

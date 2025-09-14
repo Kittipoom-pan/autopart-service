@@ -355,6 +355,12 @@ type CarBrand struct {
 	Description sql.NullString
 }
 
+type CarModel struct {
+	CarModelID int32
+	CarBrandID int32
+	Name       string
+}
+
 type Cart struct {
 	CartID     int32
 	CustomerID int32
@@ -371,6 +377,14 @@ type CartItem struct {
 	Quantity   sql.NullInt32
 	CreatedAt  sql.NullTime
 	UpdatedAt  sql.NullTime
+}
+
+type CompatibleCar struct {
+	CompatibleID int32
+	PartID       int32
+	CarModelID   int32
+	YearFrom     sql.NullInt16
+	YearTo       sql.NullInt16
 }
 
 type Customer struct {

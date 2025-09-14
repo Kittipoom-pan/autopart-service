@@ -37,5 +37,5 @@ func (h *AuthController) Login(c *fiber.Ctx) error {
 		return helper.RespondError(c, err)
 	}
 
-	return helper.RespondSuccess(c, fiber.StatusCreated, response, "")
+	return helper.RespondSuccess(c, fiber.StatusOK, response, "")
 }
