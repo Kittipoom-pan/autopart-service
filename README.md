@@ -8,13 +8,13 @@ migrate create -ext sql -dir migrations -seq <name>
 ### Database Migration (golang-migrate)
 
 ```bash
-migrate -path db/migrations -database "mysql://<user>:<password>@tcp(localhost:3306)/<dbname>" up
+migrate -path migrations -database "mysql://<user>:<password>@tcp(localhost:3306)/<dbname>" up
 
-migrate -path db/migrations -database "mysql://<user>:<password>@tcp(localhost:3306)/<dbname>" down
+migrate -path migrations -database "mysql://<user>:<password>@tcp(localhost:3306)/<dbname>" down
 
-migrate -path db/migrations -database "mysql://<user>:<password>@tcp(localhost:3306)/<dbname>" version
+migrate -path migrations -database "mysql://<user>:<password>@tcp(localhost:3306)/<dbname>" version
 
-migrate -path db/migrations -database "mysql://<user>:<password>@tcp(localhost:3306)/<dbname>" force <version>
+migrate -path migrations -database "mysql://<user>:<password>@tcp(localhost:3306)/<dbname>" force <version>
 ```
 ### Sqlc generate
 ```bash

@@ -359,6 +359,8 @@ type CarModel struct {
 	CarModelID int32
 	CarBrandID int32
 	Name       string
+	YearFrom   sql.NullInt16
+	YearTo     sql.NullInt16
 }
 
 type Cart struct {
@@ -439,6 +441,19 @@ type Discount struct {
 	UpdatedBy      sql.NullString
 }
 
+type Image struct {
+	ImageID       int64
+	ReferenceID   int32
+	ReferenceType string
+	ImageUrl      string
+	IsPrimary     bool
+	SortImage     sql.NullInt32
+	CreatedAt     sql.NullTime
+	CreatedBy     sql.NullString
+	UpdatedAt     sql.NullTime
+	UpdatedBy     sql.NullString
+}
+
 type Order struct {
 	OrderID                 int32
 	CustomerID              int32
@@ -464,10 +479,10 @@ type OrderItem struct {
 
 type Part struct {
 	PartID      int32
-	CarBrandID  int32
 	PartBrandID int32
 	PartTypeID  int32
 	Name        string
+	Sku         string
 	Description sql.NullString
 	Price       sql.NullInt32
 	Quantity    sql.NullInt32
@@ -486,6 +501,7 @@ type PartBrand struct {
 
 type PartType struct {
 	PartTypeID  int32
+	ParentID    sql.NullInt32
 	Name        string
 	Description sql.NullString
 }

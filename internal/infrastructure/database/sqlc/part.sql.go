@@ -7,60 +7,195 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
-const getPart = `-- name: GetPart :one
-SELECT part_id, car_brand_id, part_brand_id, part_type_id, name, description, price, quantity, is_active, created_at, created_by, updated_at, updated_by FROM part WHERE part_id = ?
+const createPart = `-- name: CreatePart :execresult
+INSERT INTO part (part_id, part_brand_id, part_type_id, sku, name, description, price, quantity, created_at, created_by)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
-func (q *Queries) GetPart(ctx context.Context, partID int32) (Part, error) {
-	row := q.db.QueryRowContext(ctx, getPart, partID)
-	var i Part
+type CreatePartParams struct {
+	PartID      int32
+	PartBrandID int32
+	PartTypeID  int32
+	Sku         string
+	Name        string
+	Description sql.NullString
+	Price       sql.NullInt32
+	Quantity    sql.NullInt32
+	CreatedAt   sql.NullTime
+	CreatedBy   sql.NullString
+}
+
+func (q *Queries) CreatePart(ctx context.Context, arg CreatePartParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, createPart,
+		arg.PartID,
+		arg.PartBrandID,
+		arg.PartTypeID,
+		arg.Sku,
+		arg.Name,
+		arg.Description,
+		arg.Price,
+		arg.Quantity,
+		arg.CreatedAt,
+		arg.CreatedBy,
+	)
+}
+
+const deletePartByID = `-- name: DeletePartByID :execresult
+UPDATE part SET
+    is_active = 0,
+    updated_at = ?,
+    updated_by = ?
+WHERE part_id = ?
+`
+
+type DeletePartByIDParams struct {
+	UpdatedAt sql.NullTime
+	UpdatedBy sql.NullString
+	PartID    int32
+}
+
+func (q *Queries) DeletePartByID(ctx context.Context, arg DeletePartByIDParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, deletePartByID, arg.UpdatedAt, arg.UpdatedBy, arg.PartID)
+}
+
+const getPartByID = `-- name: GetPartByID :one
+SELECT part_id, part_brand_id, part_type_id, sku, name, description, price, quantity, is_active
+FROM part
+WHERE part_id = ? AND is_active = 1
+`
+
+type GetPartByIDRow struct {
+	PartID      int32
+	PartBrandID int32
+	PartTypeID  int32
+	Sku         string
+	Name        string
+	Description sql.NullString
+	Price       sql.NullInt32
+	Quantity    sql.NullInt32
+	IsActive    bool
+}
+
+func (q *Queries) GetPartByID(ctx context.Context, partID int32) (GetPartByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getPartByID, partID)
+	var i GetPartByIDRow
 	err := row.Scan(
 		&i.PartID,
-		&i.CarBrandID,
 		&i.PartBrandID,
 		&i.PartTypeID,
+		&i.Sku,
 		&i.Name,
 		&i.Description,
 		&i.Price,
 		&i.Quantity,
 		&i.IsActive,
-		&i.CreatedAt,
-		&i.CreatedBy,
-		&i.UpdatedAt,
-		&i.UpdatedBy,
 	)
 	return i, err
 }
 
-const listParts = `-- name: ListParts :many
-SELECT part_id, car_brand_id, part_brand_id, part_type_id, name, description, price, quantity, is_active, created_at, created_by, updated_at, updated_by FROM part ORDER BY name
+const getPartBySKU = `-- name: GetPartBySKU :one
+SELECT part_id, part_brand_id, part_type_id, sku, name, description, price, quantity, is_active
+FROM part
+WHERE sku = ? AND is_active = 1
 `
 
-func (q *Queries) ListParts(ctx context.Context) ([]Part, error) {
-	rows, err := q.db.QueryContext(ctx, listParts)
+type GetPartBySKURow struct {
+	PartID      int32
+	PartBrandID int32
+	PartTypeID  int32
+	Sku         string
+	Name        string
+	Description sql.NullString
+	Price       sql.NullInt32
+	Quantity    sql.NullInt32
+	IsActive    bool
+}
+
+func (q *Queries) GetPartBySKU(ctx context.Context, sku string) (GetPartBySKURow, error) {
+	row := q.db.QueryRowContext(ctx, getPartBySKU, sku)
+	var i GetPartBySKURow
+	err := row.Scan(
+		&i.PartID,
+		&i.PartBrandID,
+		&i.PartTypeID,
+		&i.Sku,
+		&i.Name,
+		&i.Description,
+		&i.Price,
+		&i.Quantity,
+		&i.IsActive,
+	)
+	return i, err
+}
+
+const getPartWithImages = `-- name: GetPartWithImages :many
+SELECT 
+    p.part_id,
+    p.sku,
+    p.name AS part_name,
+    p.description AS part_description,
+    p.price,
+    p.quantity,
+    cm.car_model_id,
+    cm.name AS car_model_name,
+    COALESCE(cc.year_from, cm.year_from) AS year_from,
+    COALESCE(cc.year_to, cm.year_to) AS year_to,
+    i.image_id,
+    i.image_url,
+    i.is_primary,
+    i.sort_image
+FROM part p
+LEFT JOIN compatible_car cc ON p.part_id = cc.part_id
+LEFT JOIN car_model cm ON cc.car_model_id = cm.car_model_id
+LEFT JOIN image i ON i.reference_type = 'part' AND i.reference_id = p.part_id
+WHERE p.part_id = ?
+ORDER BY i.is_primary DESC, i.sort_image ASC, i.created_at ASC
+`
+
+type GetPartWithImagesRow struct {
+	PartID          int32
+	Sku             string
+	PartName        string
+	PartDescription sql.NullString
+	Price           sql.NullInt32
+	Quantity        sql.NullInt32
+	CarModelID      sql.NullInt32
+	CarModelName    sql.NullString
+	YearFrom        sql.NullInt16
+	YearTo          sql.NullInt16
+	ImageID         sql.NullInt64
+	ImageUrl        sql.NullString
+	IsPrimary       sql.NullBool
+	SortImage       sql.NullInt32
+}
+
+func (q *Queries) GetPartWithImages(ctx context.Context, partID int32) ([]GetPartWithImagesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPartWithImages, partID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Part
+	var items []GetPartWithImagesRow
 	for rows.Next() {
-		var i Part
+		var i GetPartWithImagesRow
 		if err := rows.Scan(
 			&i.PartID,
-			&i.CarBrandID,
-			&i.PartBrandID,
-			&i.PartTypeID,
-			&i.Name,
-			&i.Description,
+			&i.Sku,
+			&i.PartName,
+			&i.PartDescription,
 			&i.Price,
 			&i.Quantity,
-			&i.IsActive,
-			&i.CreatedAt,
-			&i.CreatedBy,
-			&i.UpdatedAt,
-			&i.UpdatedBy,
+			&i.CarModelID,
+			&i.CarModelName,
+			&i.YearFrom,
+			&i.YearTo,
+			&i.ImageID,
+			&i.ImageUrl,
+			&i.IsPrimary,
+			&i.SortImage,
 		); err != nil {
 			return nil, err
 		}
@@ -73,4 +208,125 @@ func (q *Queries) ListParts(ctx context.Context) ([]Part, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const listParts = `-- name: ListParts :many
+SELECT part_id, part_brand_id, part_type_id, sku, name, description, price, quantity, is_active
+FROM part
+WHERE is_active = 1
+ORDER BY created_at
+`
+
+type ListPartsRow struct {
+	PartID      int32
+	PartBrandID int32
+	PartTypeID  int32
+	Sku         string
+	Name        string
+	Description sql.NullString
+	Price       sql.NullInt32
+	Quantity    sql.NullInt32
+	IsActive    bool
+}
+
+func (q *Queries) ListParts(ctx context.Context) ([]ListPartsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listParts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListPartsRow
+	for rows.Next() {
+		var i ListPartsRow
+		if err := rows.Scan(
+			&i.PartID,
+			&i.PartBrandID,
+			&i.PartTypeID,
+			&i.Sku,
+			&i.Name,
+			&i.Description,
+			&i.Price,
+			&i.Quantity,
+			&i.IsActive,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updatePartByID = `-- name: UpdatePartByID :execresult
+UPDATE part SET
+    sku = ?,
+    name = ?,
+    description = ?,
+    part_type_id = ?,
+    part_brand_id = ?,
+    price = ?,
+    quantity = ?,
+    is_active = ?,
+    updated_at = ?,
+    updated_by = ?
+WHERE part_id = ?
+`
+
+type UpdatePartByIDParams struct {
+	Sku         string
+	Name        string
+	Description sql.NullString
+	PartTypeID  int32
+	PartBrandID int32
+	Price       sql.NullInt32
+	Quantity    sql.NullInt32
+	IsActive    bool
+	UpdatedAt   sql.NullTime
+	UpdatedBy   sql.NullString
+	PartID      int32
+}
+
+func (q *Queries) UpdatePartByID(ctx context.Context, arg UpdatePartByIDParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, updatePartByID,
+		arg.Sku,
+		arg.Name,
+		arg.Description,
+		arg.PartTypeID,
+		arg.PartBrandID,
+		arg.Price,
+		arg.Quantity,
+		arg.IsActive,
+		arg.UpdatedAt,
+		arg.UpdatedBy,
+		arg.PartID,
+	)
+}
+
+const updatePartStockByID = `-- name: UpdatePartStockByID :execresult
+UPDATE part SET
+    quantity = ?,
+    updated_at = ?,
+    updated_by = ?
+WHERE part_id = ?
+`
+
+type UpdatePartStockByIDParams struct {
+	Quantity  sql.NullInt32
+	UpdatedAt sql.NullTime
+	UpdatedBy sql.NullString
+	PartID    int32
+}
+
+func (q *Queries) UpdatePartStockByID(ctx context.Context, arg UpdatePartStockByIDParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, updatePartStockByID,
+		arg.Quantity,
+		arg.UpdatedAt,
+		arg.UpdatedBy,
+		arg.PartID,
+	)
 }

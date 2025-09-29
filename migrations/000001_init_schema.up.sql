@@ -85,16 +85,16 @@ CREATE TABLE car_brand (
 CREATE TABLE car_model (
   car_model_id INT AUTO_INCREMENT PRIMARY KEY,
   car_brand_id INT NOT NULL,
-  name VARCHAR(100) NOT NULL,
-  year_from YEAR NOT NULL,      
-  year_to YEAR NOT NULL,        
+  name VARCHAR(50) NOT NULL,
+  year_from YEAR DEFAULT NULL,
+  year_to YEAR DEFAULT NULL,
   FOREIGN KEY (car_brand_id) REFERENCES car_brand(car_brand_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 -- Table: part
 CREATE TABLE part (
   part_id INT AUTO_INCREMENT PRIMARY KEY,
-  car_brand_id INT NOT NULL,
   part_brand_id INT NOT NULL,
   part_type_id INT NOT NULL,
   name VARCHAR(100) NOT NULL UNIQUE,
@@ -107,7 +107,6 @@ CREATE TABLE part (
   created_by VARCHAR(40),
   updated_at TIMESTAMP NULL DEFAULT NULL,
   updated_by VARCHAR(40),
-  CONSTRAINT fk_part_car_brand FOREIGN KEY (car_brand_id) REFERENCES car_brand(car_brand_id),
   CONSTRAINT fk_part_part_brand FOREIGN KEY (part_brand_id) REFERENCES part_brand(part_brand_id),
   CONSTRAINT fk_part_part_type FOREIGN KEY (part_type_id) REFERENCES part_type(part_type_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -208,8 +207,8 @@ CREATE TABLE compatible_car (
   compatible_id INT AUTO_INCREMENT PRIMARY KEY,
   part_id INT NOT NULL,
   car_model_id INT NOT NULL,
-  year_from YEAR NULL,
-  year_to YEAR NULL,
+  year_from YEAR DEFAULT NULL,
+  year_to YEAR DEFAULT NULL,
   FOREIGN KEY (part_id) REFERENCES part(part_id),
   FOREIGN KEY (car_model_id) REFERENCES car_model(car_model_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

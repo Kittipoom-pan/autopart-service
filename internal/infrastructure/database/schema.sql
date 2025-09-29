@@ -1,3 +1,7 @@
+-- ================================
+-- 1️⃣ Master / independent tables
+-- ================================
+
 -- Table: customer
 CREATE TABLE customer (
   customer_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -33,8 +37,8 @@ CREATE TABLE admin_user (
   is_active TINYINT(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE UNIQUE INDEX unique_active_username ON admin_user (username, is_active);
-CREATE UNIQUE INDEX unique_active_email ON admin_user (email, is_active);
+CREATE UNIQUE INDEX unique_active_admin_username ON admin_user (username, is_active);
+CREATE UNIQUE INDEX unique_active_admin_email ON admin_user (email, is_active);
 
 -- Table: discount
 CREATE TABLE discount (
@@ -54,6 +58,7 @@ CREATE TABLE discount (
 -- Table: part_type
 CREATE TABLE part_type (
   part_type_id INT AUTO_INCREMENT PRIMARY KEY,
+  parent_id INT NULL,
   name VARCHAR(50) NOT NULL UNIQUE,
   description VARCHAR(255)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -65,13 +70,34 @@ CREATE TABLE part_brand (
   description VARCHAR(255)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Table: car_brand
+CREATE TABLE car_brand (
+  car_brand_id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(50) NOT NULL UNIQUE,
+  description VARCHAR(255)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ================================
+-- 2️⃣ Dependent tables
+-- ================================
+
+-- Table: car_model
+CREATE TABLE car_model (
+  car_model_id INT AUTO_INCREMENT PRIMARY KEY,
+  car_brand_id INT NOT NULL,
+  name VARCHAR(50) NOT NULL,
+  year_from YEAR DEFAULT NULL,
+  year_to YEAR DEFAULT NULL,
+  FOREIGN KEY (car_brand_id) REFERENCES car_brand(car_brand_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Table: part
 CREATE TABLE part (
   part_id INT AUTO_INCREMENT PRIMARY KEY,
-  car_brand_id INT NOT NULL,
   part_brand_id INT NOT NULL,
   part_type_id INT NOT NULL,
   name VARCHAR(100) NOT NULL UNIQUE,
+  sku VARCHAR(50) NOT NULL UNIQUE,
   description TEXT,
   price INT,
   quantity INT,
@@ -80,36 +106,13 @@ CREATE TABLE part (
   created_by VARCHAR(40),
   updated_at TIMESTAMP NULL DEFAULT NULL,
   updated_by VARCHAR(40),
-  CONSTRAINT fk_part_car_brand FOREIGN KEY (car_brand_id) REFERENCES car_brand(car_brand_id),
   CONSTRAINT fk_part_part_brand FOREIGN KEY (part_brand_id) REFERENCES part_brand(part_brand_id),
   CONSTRAINT fk_part_part_type FOREIGN KEY (part_type_id) REFERENCES part_type(part_type_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: compatible_car
-CREATE TABLE compatible_car (
-  compatible_id INT AUTO_INCREMENT PRIMARY KEY,
-  part_id INT NOT NULL,
-  car_model_id INT NOT NULL,
-  year_from YEAR,
-  year_to YEAR,
-  FOREIGN KEY (part_id) REFERENCES part(part_id),
-  FOREIGN KEY (car_model_id) REFERENCES car_model(car_model_id)
-);
-
--- Table: car_brand
-CREATE TABLE car_brand (
-  car_brand_id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(50) NOT NULL UNIQUE,
-  description VARCHAR(255)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table:car_model
-CREATE TABLE car_model (
-  car_model_id INT AUTO_INCREMENT PRIMARY KEY,
-  car_brand_id INT NOT NULL,
-  name VARCHAR(100) NOT NULL,
-  FOREIGN KEY (car_brand_id) REFERENCES car_brand(car_brand_id)
-);
+-- ================================
+-- 3️⃣ Customer-related tables
+-- ================================
 
 -- Table: customer_payment_method
 CREATE TABLE customer_payment_method (
@@ -124,28 +127,6 @@ CREATE TABLE customer_payment_method (
   updated_at TIMESTAMP NULL DEFAULT NULL,
   updated_by VARCHAR(40),
   CONSTRAINT fk_cpm_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table: admin_token
-CREATE TABLE admin_token (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  admin_user_id INT NOT NULL,
-  token VARCHAR(255) NOT NULL UNIQUE,
-  expires_at TIMESTAMP NOT NULL,
-  created_at TIMESTAMP NOT NULL,
-  is_revoked BOOLEAN DEFAULT FALSE,
-  CONSTRAINT fk_token_admin_user FOREIGN KEY (admin_user_id) REFERENCES admin_user(admin_user_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table: customer_token
-CREATE TABLE customer_token (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  customer_id INT NOT NULL,
-  token VARCHAR(255) NOT NULL UNIQUE,
-  expires_at TIMESTAMP NOT NULL,
-  created_at TIMESTAMP NOT NULL,
-  is_revoked BOOLEAN DEFAULT FALSE,
-  CONSTRAINT fk_token_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table: address
@@ -190,7 +171,67 @@ CREATE TABLE cart_item (
   CONSTRAINT fk_cart_item_part FOREIGN KEY (part_id) REFERENCES part(part_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: order
+-- ================================
+-- 4️⃣ Token tables
+-- ================================
+
+-- Table: admin_token
+CREATE TABLE admin_token (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  admin_user_id INT NOT NULL,
+  token VARCHAR(255) NOT NULL UNIQUE,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP NOT NULL,
+  is_revoked BOOLEAN DEFAULT FALSE,
+  CONSTRAINT fk_token_admin_user FOREIGN KEY (admin_user_id) REFERENCES admin_user(admin_user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table: customer_token
+CREATE TABLE customer_token (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  customer_id INT NOT NULL,
+  token VARCHAR(255) NOT NULL UNIQUE,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP NOT NULL,
+  is_revoked BOOLEAN DEFAULT FALSE,
+  CONSTRAINT fk_token_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ================================
+-- 5️⃣ Compatible / stock tables
+-- ================================
+
+-- Table: compatible_car
+CREATE TABLE compatible_car (
+  compatible_id INT AUTO_INCREMENT PRIMARY KEY,
+  part_id INT NOT NULL,
+  car_model_id INT NOT NULL,
+  year_from YEAR DEFAULT NULL,
+  year_to YEAR DEFAULT NULL,
+  FOREIGN KEY (part_id) REFERENCES part(part_id),
+  FOREIGN KEY (car_model_id) REFERENCES car_model(car_model_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table: stock_movement
+CREATE TABLE stock_movement (
+  stock_movement_id INT AUTO_INCREMENT PRIMARY KEY,
+  part_id INT NOT NULL,
+  part_brand_id INT,
+  quantity_change INT,
+  price INT,
+  event_type ENUM('in', 'out'),
+  remark VARCHAR(255),
+  created_at TIMESTAMP NULL DEFAULT NULL,
+  created_by VARCHAR(40),
+  CONSTRAINT fk_stock_movement_part FOREIGN KEY (part_id) REFERENCES part(part_id),
+  CONSTRAINT fk_stock_movement_part_brand FOREIGN KEY (part_brand_id) REFERENCES part_brand(part_brand_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ================================
+-- 6️⃣ Order-related tables
+-- ================================
+
+-- Table: `order`
 CREATE TABLE `order` (
   order_id INT AUTO_INCREMENT PRIMARY KEY,
   customer_id INT NOT NULL,
@@ -236,17 +277,18 @@ CREATE TABLE payment (
   CONSTRAINT fk_payment_order FOREIGN KEY (order_id) REFERENCES `order`(order_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: stock_movement
-CREATE TABLE stock_movement (
-  stock_movement_id INT AUTO_INCREMENT PRIMARY KEY,
-  part_id INT NOT NULL,
-  part_brand_id INT,
-  quantity_change INT,
-  price INT,
-  event_type ENUM('in', 'out'),
-  remark VARCHAR(255),
-  created_at TIMESTAMP NULL DEFAULT NULL,
-  created_by VARCHAR(40),
-  CONSTRAINT fk_stock_movement_part FOREIGN KEY (part_id) REFERENCES part(part_id),
-  CONSTRAINT fk_stock_movement_part_brand FOREIGN KEY (part_brand_id) REFERENCES part_brand(part_brand_id)
+-- ================================
+-- 7️⃣ Image table
+-- ================================
+CREATE TABLE image (
+    image_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    reference_id INT NOT NULL,                            
+    reference_type VARCHAR(20) NOT NULL,                            
+    image_url VARCHAR(500) NOT NULL,
+    is_primary TINYINT(1) NOT NULL DEFAULT 0,
+    sort_image INT NULL DEFAULT 0,
+    created_at TIMESTAMP NULL DEFAULT NULL,
+    created_by VARCHAR(40),
+    updated_at TIMESTAMP NULL DEFAULT NULL,
+    updated_by VARCHAR(40)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
