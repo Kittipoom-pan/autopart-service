@@ -33,7 +33,7 @@ func GenerateToken(userID uint32, role string, cfg *config.Config) (string, erro
 
 func VerifyToken(tokenStr string, cfg *config.Config) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return cfg.JWT.Secret, nil
+		return []byte(cfg.JWT.Secret), nil
 	})
 	if err != nil {
 		return nil, err
