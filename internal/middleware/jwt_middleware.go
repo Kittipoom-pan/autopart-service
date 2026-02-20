@@ -15,8 +15,8 @@ func JWTMiddleware(cfg *config.Config) fiber.Handler {
 		if header == "" {
 			log.Warn().
 				Str("path", c.Path()).
-				Msg("Missing Authorization header")
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing Authorization header"})
+				Msg("Missing Authorization Header")
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing Authorization"})
 		}
 		tokenStr := strings.TrimPrefix(header, "Bearer ")
 		claims, err := auth.VerifyToken(tokenStr, cfg)

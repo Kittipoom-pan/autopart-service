@@ -4,6 +4,7 @@ import (
 	"github.com/Kittipoom-pan/autopart-service/internal/middleware"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/admin"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer"
+	"github.com/Kittipoom-pan/autopart-service/internal/module/part"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -23,6 +24,12 @@ func (s *Server) MapHandlers() error {
 
 	adminPrivate := v1.Group("/admin")
 	admin.SetupPrivateRoutes(adminPrivate, s.Db, s.Cfg, middleware.JWTMiddleware(s.Cfg))
+
+	partPublic := v1.Group("/part")
+	part.SetupPublicRoutes(partPublic, s.Db, s.Cfg)
+
+	partPrivate := v1.Group("/part")
+	part.SetupPrivateRoutes(partPrivate, s.Db, s.Cfg, middleware.JWTMiddleware(s.Cfg))
 
 	// End point not found
 	s.App.Use(func(c *fiber.Ctx) error {
