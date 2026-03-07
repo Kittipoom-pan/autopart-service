@@ -23,7 +23,7 @@ sqlc generate -f internal/infrastructure/database/sqlc.yaml
 
 ### Database Migration (false case)
 ```bash
-migrate -path migrations -database "mysql://<user>:<password>@tcp(localhost:3306)/<dbname>" version
+1. migrate -path migrations -database "mysql://<user>:<password>@tcp(localhost:3306)/<dbname>" version
 Output เช่น 3 (dirty) → หมายถึง version ปัจจุบัน = 3 และอยู่ในสถานะ dirty
 
 2. กำหนด version ให้ clean (force)

@@ -5,6 +5,7 @@
 -- Table: customer
 CREATE TABLE customer (
   customer_id INT AUTO_INCREMENT PRIMARY KEY,
+  uuid BINARY(16) NOT NULL,
   first_name VARCHAR(40),
   last_name VARCHAR(40),
   username VARCHAR(50) NOT NULL,
@@ -13,9 +14,9 @@ CREATE TABLE customer (
   birth_date DATE,
   phone_number VARCHAR(13),
   created_at TIMESTAMP NULL DEFAULT NULL,
-  created_by VARCHAR(40),
+  created_by INT,
   updated_at TIMESTAMP NULL DEFAULT NULL,
-  updated_by VARCHAR(40),
+  updated_by INT,
   is_active TINYINT(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -31,9 +32,9 @@ CREATE TABLE admin_user (
   password VARCHAR(150) NOT NULL,
   role ENUM('super_admin', 'staff') NOT NULL,
   created_at TIMESTAMP NULL DEFAULT NULL,
-  created_by VARCHAR(40),
+  created_by INT,
   updated_at TIMESTAMP NULL DEFAULT NULL,
-  updated_by VARCHAR(40),
+  updated_by INT,
   is_active TINYINT(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -47,12 +48,12 @@ CREATE TABLE discount (
   discount_type ENUM('percentage', 'fixed'),
   amount INT,
   description VARCHAR(255),
-  min_order INT,
+  min_ INT,
   expiration_date DATE,
   created_at TIMESTAMP NULL DEFAULT NULL,
-  created_by VARCHAR(40),
+  created_by INT,
   updated_at TIMESTAMP NULL DEFAULT NULL,
-  updated_by VARCHAR(40)
+  updated_by INT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table: part_type
@@ -94,6 +95,7 @@ CREATE TABLE car_model (
 -- Table: part
 CREATE TABLE part (
   part_id INT AUTO_INCREMENT PRIMARY KEY,
+  uuid BINARY(16) NOT NULL,
   part_brand_id INT NOT NULL,
   part_type_id INT NOT NULL,
   name VARCHAR(100) NOT NULL UNIQUE,
@@ -103,9 +105,9 @@ CREATE TABLE part (
   quantity INT,
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP NULL DEFAULT NULL,
-  created_by VARCHAR(40),
+  created_by INT,
   updated_at TIMESTAMP NULL DEFAULT NULL,
-  updated_by VARCHAR(40),
+  updated_by INT,
   CONSTRAINT fk_part_part_brand FOREIGN KEY (part_brand_id) REFERENCES part_brand(part_brand_id),
   CONSTRAINT fk_part_part_type FOREIGN KEY (part_type_id) REFERENCES part_type(part_type_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -123,9 +125,9 @@ CREATE TABLE customer_payment_method (
   card_token VARCHAR(255) UNIQUE,
   is_default TINYINT(1) DEFAULT 1,
   created_at TIMESTAMP NULL DEFAULT NULL,
-  created_by VARCHAR(40),
+  created_by INT,
   updated_at TIMESTAMP NULL DEFAULT NULL,
-  updated_by VARCHAR(40),
+  updated_by INT,
   CONSTRAINT fk_cpm_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -142,9 +144,9 @@ CREATE TABLE address (
   phone_number VARCHAR(13),
   is_default BIT(1),
   created_at TIMESTAMP NULL DEFAULT NULL,
-  created_by VARCHAR(40),
+  created_by INT,
   updated_at TIMESTAMP NULL DEFAULT NULL,
-  updated_by VARCHAR(40),
+  updated_by INT,
   CONSTRAINT fk_address_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -222,7 +224,7 @@ CREATE TABLE stock_movement (
   event_type ENUM('in', 'out'),
   remark VARCHAR(255),
   created_at TIMESTAMP NULL DEFAULT NULL,
-  created_by VARCHAR(40),
+  created_by INT,
   CONSTRAINT fk_stock_movement_part FOREIGN KEY (part_id) REFERENCES part(part_id),
   CONSTRAINT fk_stock_movement_part_brand FOREIGN KEY (part_brand_id) REFERENCES part_brand(part_brand_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -242,9 +244,9 @@ CREATE TABLE `order` (
   discount_id INT,
   status ENUM('pending', 'completed', 'cancelled'),
   created_at TIMESTAMP NULL DEFAULT NULL,
-  created_by VARCHAR(40),
+  created_by INT,
   updated_at TIMESTAMP NULL DEFAULT NULL,
-  updated_by VARCHAR(40),
+  updated_by INT,
   CONSTRAINT fk_order_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
   CONSTRAINT fk_order_payment_method FOREIGN KEY (customer_payment_method_id) REFERENCES customer_payment_method(customer_payment_method_id),
   CONSTRAINT fk_order_cart FOREIGN KEY (cart_id) REFERENCES cart(cart_id),
@@ -271,9 +273,9 @@ CREATE TABLE payment (
   payment_method ENUM('credit_card', 'bank_transfer', 'paypal', 'cod'),
   status ENUM('pending', 'completed', 'failed'),
   created_at TIMESTAMP NULL DEFAULT NULL,
-  created_by VARCHAR(40),
+  created_by INT,
   updated_at TIMESTAMP NULL DEFAULT NULL,
-  updated_by VARCHAR(40),
+  updated_by INT,
   CONSTRAINT fk_payment_order FOREIGN KEY (order_id) REFERENCES `order`(order_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -283,12 +285,12 @@ CREATE TABLE payment (
 CREATE TABLE image (
     image_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     reference_id INT NOT NULL,                            
-    reference_type VARCHAR(20) NOT NULL,                            
+    reference_type VARCHAR(20) NOT NULL,    
+    file_name VARCHAR(20) NOT NULL,                                                    
     image_url VARCHAR(500) NOT NULL,
+    alt_text VARCHAR(50) NOT NULL,                            
     is_primary TINYINT(1) NOT NULL DEFAULT 0,
     sort_image INT NULL DEFAULT 0,
     created_at TIMESTAMP NULL DEFAULT NULL,
-    created_by VARCHAR(40),
-    updated_at TIMESTAMP NULL DEFAULT NULL,
-    updated_by VARCHAR(40)
+    created_by INT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
