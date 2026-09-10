@@ -1,4 +1,4 @@
-package entitie
+package entity
 
 type LoginResponse struct {
 	AccessToken string `json:"access_token"`

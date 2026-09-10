@@ -10,6 +10,119 @@ import (
 	"database/sql"
 )
 
+const adminGetCustomerDetail = `-- name: AdminGetCustomerDetail :one
+SELECT customer_id, uuid, first_name, last_name, username, email, birth_date, phone_number, is_active, created_at FROM customer WHERE uuid = ? and is_active = 1
+`
+
+type AdminGetCustomerDetailRow struct {
+	CustomerID  int32
+	Uuid        []byte
+	FirstName   sql.NullString
+	LastName    sql.NullString
+	Username    string
+	Email       string
+	BirthDate   sql.NullTime
+	PhoneNumber sql.NullString
+	IsActive    bool
+	CreatedAt   sql.NullTime
+}
+
+func (q *Queries) AdminGetCustomerDetail(ctx context.Context, uuid []byte) (AdminGetCustomerDetailRow, error) {
+	row := q.db.QueryRowContext(ctx, adminGetCustomerDetail, uuid)
+	var i AdminGetCustomerDetailRow
+	err := row.Scan(
+		&i.CustomerID,
+		&i.Uuid,
+		&i.FirstName,
+		&i.LastName,
+		&i.Username,
+		&i.Email,
+		&i.BirthDate,
+		&i.PhoneNumber,
+		&i.IsActive,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const adminListCustomers = `-- name: AdminListCustomers :many
+SELECT customer_id, uuid, first_name, last_name, username, is_active, created_at 
+FROM customer 
+ORDER BY created_at DESC 
+LIMIT ? OFFSET ?
+`
+
+type AdminListCustomersParams struct {
+	Limit  int32
+	Offset int32
+}
+
+type AdminListCustomersRow struct {
+	CustomerID int32
+	Uuid       []byte
+	FirstName  sql.NullString
+	LastName   sql.NullString
+	Username   string
+	IsActive   bool
+	CreatedAt  sql.NullTime
+}
+
+// Pagination (Limit/Offset)
+func (q *Queries) AdminListCustomers(ctx context.Context, arg AdminListCustomersParams) ([]AdminListCustomersRow, error) {
+	rows, err := q.db.QueryContext(ctx, adminListCustomers, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AdminListCustomersRow
+	for rows.Next() {
+		var i AdminListCustomersRow
+		if err := rows.Scan(
+			&i.CustomerID,
+			&i.Uuid,
+			&i.FirstName,
+			&i.LastName,
+			&i.Username,
+			&i.IsActive,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const adminUpdateCustomerStatus = `-- name: AdminUpdateCustomerStatus :execresult
+UPDATE customer SET
+    is_active = ?,
+    updated_at = ?,
+    updated_by = ?
+WHERE uuid = ?
+`
+
+type AdminUpdateCustomerStatusParams struct {
+	IsActive  bool
+	UpdatedAt sql.NullTime
+	UpdatedBy sql.NullInt32
+	Uuid      []byte
+}
+
+func (q *Queries) AdminUpdateCustomerStatus(ctx context.Context, arg AdminUpdateCustomerStatusParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, adminUpdateCustomerStatus,
+		arg.IsActive,
+		arg.UpdatedAt,
+		arg.UpdatedBy,
+		arg.Uuid,
+	)
+}
+
 const createCustomer = `-- name: CreateCustomer :execresult
 INSERT INTO customer (
     uuid,
@@ -207,7 +320,7 @@ UPDATE customer SET
     is_active = ?,
     updated_at = ?,
     updated_by = ?
-WHERE customer_id = ?
+WHERE customer_id = ? and is_active = 1
 `
 
 type UpdateCustomerIsActiveParams struct {

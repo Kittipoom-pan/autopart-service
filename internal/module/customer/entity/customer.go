@@ -1,9 +1,8 @@
-package entitie
+package entity
 
-type Admin struct {
+type Customer struct {
 	ID       uint32 `json:"id" db:"id"`
+	Uuid     string `json:"uuid"`
 	Username string `json:"username" db:"username"`
-	Email    string `json:"email" db:"email"`
 	Password string `json:"password" db:"password"`
-	Role     string `json:"role" db:"role"`
 }

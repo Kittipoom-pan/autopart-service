@@ -1,4 +1,4 @@
-package entitie
+package entity
 
 type Part struct {
 	ID       uint32 `json:"id" db:"id"`

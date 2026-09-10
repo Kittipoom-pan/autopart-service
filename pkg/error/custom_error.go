@@ -5,8 +5,9 @@ import (
 )
 
 type APIError struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
+	Code    int               `json:"code"`
+	Message string            `json:"message"`
+	Errors  map[string]string `json:"errors,omitempty"`
 }
 
 type NotFoundError struct {
@@ -48,11 +49,10 @@ func NewNotFoundError(resource string) *NotFoundError {
 }
 
 func NewAPIError(code int, message string) APIError {
-	apiErr := APIError{
+	return APIError{
 		Code:    code,
 		Message: message,
 	}
-	return apiErr
 }
 
 func NewUnauthorizedError(message string) *UnauthorizedError {
@@ -64,17 +64,16 @@ func NewForbiddenError(message string) *ForbiddenError {
 }
 
 func InvalidRequestData(errors map[string]string) APIError {
-	apiErr := APIError{
+	return APIError{
 		Code:    http.StatusUnprocessableEntity,
 		Message: "Invalid request data",
+		Errors:  errors,
 	}
-	return apiErr
 }
 
 func InvalidJSON() APIError {
-	apiErr := APIError{
+	return APIError{
 		Code:    http.StatusBadRequest,
 		Message: "invalid json request data",
 	}
-	return apiErr
 }

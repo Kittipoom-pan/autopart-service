@@ -6,5 +6,6 @@ type BaseResponse struct {
 }
 
 type BaseErrorResponse struct {
-	Message string `json:"message"`
+	Message string            `json:"message"`
+	Errors  map[string]string `json:"errors,omitempty"`
 }

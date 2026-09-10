@@ -3,11 +3,11 @@ package controller
 import (
 	"strconv"
 
+	"github.com/Kittipoom-pan/autopart-service/internal/auth"
 	"github.com/Kittipoom-pan/autopart-service/internal/helper"
-	"github.com/Kittipoom-pan/autopart-service/internal/module/admin/entitie"
+	"github.com/Kittipoom-pan/autopart-service/internal/module/admin/entity"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/admin/usecase"
 	adminerror "github.com/Kittipoom-pan/autopart-service/pkg/error"
-	"github.com/Kittipoom-pan/autopart-service/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -28,7 +28,7 @@ func NewAdminController(usecase usecase.AdminUsecase) *AdminController {
 func (h *AdminController) GetAllAdminUsers(c *fiber.Ctx) error {
 	h.logger.Debug().Msg("Get all admins request")
 
-	admins, err := h.usecase.GetAllAdmins(c.Context())
+	admins, err := h.usecase.GetAllAdmins(c.UserContext())
 
 	if err != nil {
 		return helper.RespondError(c, err)
@@ -55,7 +55,7 @@ func (h *AdminController) GetAdminByID(c *fiber.Ctx) error {
 		return helper.RespondError(c, adminerror.InvalidRequestData(map[string]string{"id": "invalid id format"}))
 	}
 
-	admin, err := h.usecase.GetAdminByID(c.Context(), id)
+	admin, err := h.usecase.GetAdminByID(c.UserContext(), id)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
@@ -64,22 +64,22 @@ func (h *AdminController) GetAdminByID(c *fiber.Ctx) error {
 }
 
 func (h *AdminController) CreateAdmin(c *fiber.Ctx) error {
-	userID, err := utils.GetUserID(c, h.logger)
+	userID, err := auth.GetUserID(c, h.logger)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
 
-	admin := &entitie.AdminReq{}
+	admin := &entity.AdminReq{}
 	if err := c.BodyParser(admin); err != nil {
-		h.logger.Warn().Err(err).Bytes("raw_body", c.Body()).Msg("Failed to parse request body")
+		h.logger.Warn().Err(err).Msg("Failed to parse request body")
 		return helper.RespondError(c, adminerror.InvalidRequestData(map[string]string{"body": "failed to parse request body"}))
 	}
 
 	creatorID := userID
 
-	adminID, err := h.usecase.CreateAdmin(c.Context(), admin, &creatorID)
+	adminID, err := h.usecase.CreateAdmin(c.UserContext(), admin, &creatorID)
 	if err != nil {
-		h.logger.Error().Err(err).Interface("request", admin).Msg("Failed to create admin in usecase")
+		h.logger.Error().Err(err).Str("username", admin.Username).Msg("Failed to create admin in usecase")
 		return helper.RespondError(c, err)
 	}
 
@@ -87,7 +87,7 @@ func (h *AdminController) CreateAdmin(c *fiber.Ctx) error {
 }
 
 func (h *AdminController) UpdateAdmin(c *fiber.Ctx) error {
-	userID, err := utils.GetUserID(c, h.logger)
+	userID, err := auth.GetUserID(c, h.logger)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
@@ -99,13 +99,13 @@ func (h *AdminController) UpdateAdmin(c *fiber.Ctx) error {
 		return helper.RespondError(c, adminerror.InvalidRequestData(map[string]string{"id": "invalid admin ID format"}))
 	}
 
-	adminReq := new(entitie.AdminReq)
+	adminReq := new(entity.AdminReq)
 	if err := c.BodyParser(adminReq); err != nil {
-		h.logger.Warn().Err(err).Bytes("raw_body", c.Body()).Msg("Failed to parse request body")
+		h.logger.Warn().Err(err).Msg("Failed to parse request body")
 		return helper.RespondError(c, adminerror.InvalidRequestData(map[string]string{"body": "failed to parse request body"}))
 	}
 
-	if err := h.usecase.UpdateAdmin(c.Context(), adminID, userID, adminReq); err != nil {
+	if err := h.usecase.UpdateAdmin(c.UserContext(), adminID, userID, adminReq); err != nil {
 		h.logger.Error().Err(err).Int("admin_id", adminID).Msg("Failed to update admin")
 		return helper.RespondError(c, err)
 	}
@@ -115,7 +115,7 @@ func (h *AdminController) UpdateAdmin(c *fiber.Ctx) error {
 }
 
 func (h *AdminController) DeleteAdmin(c *fiber.Ctx) error {
-	userID, err := utils.GetUserID(c, h.logger)
+	userID, err := auth.GetUserID(c, h.logger)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
@@ -127,7 +127,7 @@ func (h *AdminController) DeleteAdmin(c *fiber.Ctx) error {
 		return helper.RespondError(c, adminerror.InvalidRequestData(map[string]string{"id": "invalid admin ID format"}))
 	}
 
-	if err := h.usecase.DeleteAdmin(c.Context(), adminID, userID); err != nil {
+	if err := h.usecase.DeleteAdmin(c.UserContext(), adminID, userID); err != nil {
 		h.logger.Error().Err(err).Int("admin_id", adminID).Msg("Failed to delete admin")
 		return helper.RespondError(c, err)
 	}

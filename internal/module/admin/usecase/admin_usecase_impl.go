@@ -4,8 +4,11 @@ import (
 	"context"
 
 	"github.com/Kittipoom-pan/autopart-service/internal/auth"
-	"github.com/Kittipoom-pan/autopart-service/internal/module/admin/entitie"
+	"github.com/Kittipoom-pan/autopart-service/internal/common"
+	"github.com/Kittipoom-pan/autopart-service/internal/module/admin/entity"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/admin/repository"
+	"github.com/Kittipoom-pan/autopart-service/internal/module/admin/usecase/validation"
+	adminerror "github.com/Kittipoom-pan/autopart-service/pkg/error"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -22,82 +25,68 @@ func NewAdminUsecase(repo repository.AdminRepository) AdminUsecase {
 	}
 }
 
-func (u *adminUsecase) GetAdminByID(ctx context.Context, id int) (*entitie.AdminRes, error) {
-	u.logger.Info().Int("admin_id", id).Msg("GetAdminByID started")
-
-	admin, err := u.repo.GetAdminByID(ctx, id)
-	if err != nil {
-		u.logger.Error().Err(err).Int("admin_id", id).Msg("Failed to get admin from repository")
-		return nil, err
-	}
-
-	u.logger.Info().Int("admin_id", id).Msg("GetAdminByID completed successfully")
-	return admin, nil
+func (u *adminUsecase) GetAdminByID(ctx context.Context, id int) (*entity.AdminRes, error) {
+	u.logger.Debug().Int("admin_id", id).Msg("GetAdminByID")
+	return u.repo.GetAdminByID(ctx, id)
 }
 
-func (u *adminUsecase) GetAllAdmins(ctx context.Context) ([]*entitie.AdminRes, error) {
-	admins, err := u.repo.GetAllAdmins(ctx)
-	if err != nil {
-		u.logger.Error().Err(err).Msg("Failed to get all admins from repository")
-		return nil, err
-	}
-	return admins, nil
+func (u *adminUsecase) GetAllAdmins(ctx context.Context) ([]*entity.AdminRes, error) {
+	u.logger.Debug().Msg("GetAllAdmins")
+	return u.repo.GetAllAdmins(ctx)
 }
 
-func (u *adminUsecase) CreateAdmin(ctx context.Context, admin *entitie.AdminReq, userID *int) (int64, error) {
-	u.logger.Info().Msg("CreateAdmin started")
+func (u *adminUsecase) CreateAdmin(ctx context.Context, admin *entity.AdminReq, userID *int) (int64, error) {
+	if err := validation.ValidateAdminRequest(admin, false); err != nil {
+		u.logger.Warn().Err(err).Msg("admin create validation failed")
+		return 0, err
+	}
 
 	hashedPassword, err := auth.HashPassword(admin.Password)
 	if err != nil {
-		u.logger.Error().Err(err).Msg("Failed to hash password")
-		return 0, err
+		u.logger.Error().Err(err).Msg("failed to hash password")
+		return 0, adminerror.NewAPIError(common.StatusError, "failed to process password")
 	}
 
-	admin.Password = hashedPassword
-	params := entitie.MapAdminToAdminParam(admin, userID)
+	req := *admin
+	req.Password = hashedPassword
 
-	adminID, err := u.repo.CreateAdmin(ctx, params)
+	adminID, err := u.repo.CreateAdmin(ctx, &req, userID)
 	if err != nil {
-		u.logger.Error().Err(err).Msg("Failed to create admin")
 		return 0, err
 	}
-	u.logger.Info().Int64("admin_id", adminID).Msg("Admin created successfully")
+
+	u.logger.Info().Int64("admin_id", adminID).Msg("admin created successfully")
 	return adminID, nil
 }
 
-func (u *adminUsecase) UpdateAdmin(ctx context.Context, adminID int, userID int, user *entitie.AdminReq) error {
-	u.logger.Info().Int("admin_id", adminID).Msg("UpdateAdmin started")
-	params := entitie.MapUpdateAdminParams(adminID, user, &userID)
-
-	hashedPassword, err := auth.HashPassword(user.Password)
-
-	if err != nil {
-		u.logger.Error().Err(err).Msg("Failed to hash password")
+func (u *adminUsecase) UpdateAdmin(ctx context.Context, adminID int, userID int, admin *entity.AdminReq) error {
+	if err := validation.ValidateAdminRequest(admin, true); err != nil {
+		u.logger.Warn().Err(err).Msg("admin update validation failed")
 		return err
 	}
 
-	user.Password = hashedPassword
-
-	err = u.repo.UpdateAdmin(ctx, params)
+	hashedPassword, err := auth.HashPassword(admin.Password)
 	if err != nil {
-		u.logger.Error().Err(err).Int("admin_id", adminID).Msg("Failed to update admin in repository")
+		u.logger.Error().Err(err).Msg("failed to hash password")
+		return adminerror.NewAPIError(common.StatusError, "failed to process password")
+	}
+
+	req := *admin
+	req.Password = hashedPassword
+
+	if err := u.repo.UpdateAdmin(ctx, adminID, &req, userID); err != nil {
 		return err
 	}
 
-	u.logger.Info().Int("admin_id", adminID).Msg("UpdateAdmin completed successfully")
+	u.logger.Info().Int("admin_id", adminID).Msg("admin updated successfully")
 	return nil
 }
 
 func (u *adminUsecase) DeleteAdmin(ctx context.Context, adminID int, userID int) error {
-	u.logger.Info().Int("admin_id", adminID).Msg("DeleteAdmin started")
-	params := entitie.MapUpdateAdminIsActiveParams(adminID, false, &userID)
-
-	err := u.repo.DeleteAdmin(ctx, params)
-	if err != nil {
-		u.logger.Error().Err(err).Int("admin_id", adminID).Msg("Failed to delete admin in repository")
+	if err := u.repo.DeleteAdmin(ctx, adminID, userID); err != nil {
 		return err
 	}
 
-	u.logger.Info().Int("admin_id", adminID).Msg("DeleteAdmin completed successfully")
+	u.logger.Info().Int("admin_id", adminID).Msg("admin deleted successfully")
 	return nil
 }

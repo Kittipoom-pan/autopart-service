@@ -3,15 +3,14 @@ package repository
 import (
 	"context"
 
-	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"
-	"github.com/Kittipoom-pan/autopart-service/internal/module/admin/entitie"
+	"github.com/Kittipoom-pan/autopart-service/internal/module/admin/entity"
 )
 
 type AdminRepository interface {
-	GetAdminByID(ctx context.Context, id int) (*entitie.AdminRes, error)
-	GetAdminByUsername(ctx context.Context, username string) (*entitie.Admin, error)
-	CreateAdmin(ctx context.Context, param db.CreateAdminParams) (int64, error)
-	GetAllAdmins(ctx context.Context) ([]*entitie.AdminRes, error)
-	UpdateAdmin(ctx context.Context, params db.UpdateAdminParams) error
-	DeleteAdmin(ctx context.Context, params db.UpdateAdminIsActiveParams) error
+	GetAdminByID(ctx context.Context, id int) (*entity.AdminRes, error)
+	GetAdminByUsername(ctx context.Context, username string) (*entity.Admin, error)
+	CreateAdmin(ctx context.Context, admin *entity.AdminReq, createdBy *int) (int64, error)
+	GetAllAdmins(ctx context.Context) ([]*entity.AdminRes, error)
+	UpdateAdmin(ctx context.Context, adminID int, admin *entity.AdminReq, updatedBy int) error
+	DeleteAdmin(ctx context.Context, adminID int, updatedBy int) error
 }

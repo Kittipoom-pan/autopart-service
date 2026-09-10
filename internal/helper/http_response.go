@@ -7,23 +7,33 @@ import (
 )
 
 func RespondError(c *fiber.Ctx, err error) error {
-	// custom APIError
 	if apiErr, ok := err.(customerror.APIError); ok {
 		return c.Status(apiErr.Code).JSON(common.BaseErrorResponse{
 			Message: apiErr.Message,
+			Errors:  apiErr.Errors,
 		})
 	}
 
-	// NotFoundError
 	if notFoundErr, ok := err.(*customerror.NotFoundError); ok {
 		return c.Status(common.StatusNotFound).JSON(common.BaseErrorResponse{
 			Message: notFoundErr.Error(),
 		})
 	}
 
-	// default: Internal Server Error
+	if unauthorizedErr, ok := err.(*customerror.UnauthorizedError); ok {
+		return c.Status(common.StatusUnauthorized).JSON(common.BaseErrorResponse{
+			Message: unauthorizedErr.Error(),
+		})
+	}
+
+	if forbiddenErr, ok := err.(*customerror.ForbiddenError); ok {
+		return c.Status(fiber.StatusForbidden).JSON(common.BaseErrorResponse{
+			Message: forbiddenErr.Error(),
+		})
+	}
+
 	return c.Status(common.StatusError).JSON(common.BaseErrorResponse{
-		Message: err.Error(),
+		Message: "Internal server error",
 	})
 }
 

@@ -22,7 +22,7 @@ INSERT INTO customer (
 )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
--- name: UpdateMyProfile :execresult
+-- name: UpdateCustomer :execresult
 UPDATE customer SET
     first_name = ?,
     last_name = ?,
@@ -39,7 +39,7 @@ UPDATE customer SET
     is_active = ?,
     updated_at = ?,
     updated_by = ?
-WHERE customer_id = ?;
+WHERE customer_id = ? and is_active = 1;
 
 -- name: UpdateCustomerPassword :execresult
 UPDATE customer SET

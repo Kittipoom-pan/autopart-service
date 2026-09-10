@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 
-	"github.com/Kittipoom-pan/autopart-service/internal/module/part/entitie"
+	"github.com/Kittipoom-pan/autopart-service/internal/module/part/entity"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/part/repository"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/part/usecase/validation"
 	"github.com/rs/zerolog"
@@ -22,76 +22,54 @@ func NewPartUsecase(repo repository.PartRepository) PartUsecase {
 	}
 }
 
-func (u *partUsecase) GetPartByID(ctx context.Context, id int) (*entitie.PartRes, error) {
-	u.logger.Info().Int("part_id", id).Msg("GetPartByID started")
-
-	part, err := u.repo.GetPartByID(ctx, id)
-	if err != nil {
-		u.logger.Error().Err(err).Int("part_id", id).Msg("Failed to get part from repository")
-		return nil, err
-	}
-
-	u.logger.Info().Int("part_id", id).Msg("GetPartByID completed successfully")
-	return part, nil
+func (u *partUsecase) GetPartByID(ctx context.Context, id int) (*entity.PartRes, error) {
+	u.logger.Debug().Int("part_id", id).Msg("GetPartByID")
+	return u.repo.GetPartByID(ctx, id)
 }
 
-func (u *partUsecase) GetAllParts(ctx context.Context) ([]*entitie.PartRes, error) {
-	parts, err := u.repo.GetAllParts(ctx)
-	if err != nil {
-		u.logger.Error().Err(err).Msg("Failed to get all parts from repository")
-		return nil, err
-	}
-	return parts, nil
+func (u *partUsecase) GetAllParts(ctx context.Context) ([]*entity.PartRes, error) {
+	u.logger.Debug().Msg("GetAllParts")
+	return u.repo.GetAllParts(ctx)
 }
 
-func (u *partUsecase) CreatePart(ctx context.Context, part *entitie.PartReq, userID *int) (int64, error) {
-	params := entitie.MapPartToPartParam(part, userID)
-
-	partID, err := u.repo.CreatePart(ctx, params)
-	if err != nil {
-		u.logger.Error().Err(err).Msg("Failed to create part")
+func (u *partUsecase) CreatePart(ctx context.Context, part *entity.PartReq, userID *int) (int64, error) {
+	if err := validation.ValidatePartRequest(part, false); err != nil {
+		u.logger.Warn().Err(err).Msg("part create validation failed")
 		return 0, err
 	}
-	u.logger.Info().Int64("part_id", partID).Msg("Part created successfully")
+
+	partID, err := u.repo.CreatePart(ctx, part, userID)
+	if err != nil {
+		return 0, err
+	}
+
+	u.logger.Info().Int64("part_id", partID).Msg("part created successfully")
 	return partID, nil
 }
 
-func (u *partUsecase) UpdatePart(ctx context.Context, id int, partReq *entitie.PartReq, userID int) error {
-	u.logger.Info().Int("part_id", id).Msg("UpdatePart started")
-
+func (u *partUsecase) UpdatePart(ctx context.Context, id int, partReq *entity.PartReq, userID int) error {
 	if err := validation.ValidatePartRequest(partReq, true); err != nil {
-		u.logger.Warn().Err(err).Msg("Part request validation failed")
+		u.logger.Warn().Err(err).Msg("part update validation failed")
 		return err
 	}
 
-	_, err := u.repo.GetPartByID(ctx, id)
-	if err != nil {
-		u.logger.Error().Err(err).Int("part_id", id).Msg("Part not found or failed to get from repository")
+	if _, err := u.repo.GetPartByID(ctx, id); err != nil {
 		return err
 	}
 
-	params := entitie.MapUpdatePartParams(id, partReq, userID)
-
-	err = u.repo.UpdatePart(ctx, params)
-	if err != nil {
-		u.logger.Error().Err(err).Int("part_id", id).Msg("Failed to update part in repository")
+	if err := u.repo.UpdatePart(ctx, id, partReq, userID); err != nil {
 		return err
 	}
 
-	u.logger.Info().Int("part_id", id).Msg("UpdatePart completed successfully")
+	u.logger.Info().Int("part_id", id).Msg("part updated successfully")
 	return nil
 }
 
 func (u *partUsecase) DeletePart(ctx context.Context, id int, userID int) error {
-	u.logger.Info().Int("part_id", id).Msg("DeletePart started")
-	params := entitie.MapUpdatePartIsActiveParams(id, false, userID)
-
-	err := u.repo.DeletePart(ctx, params)
-	if err != nil {
-		u.logger.Error().Err(err).Int("part_id", id).Msg("Failed to delete part in repository")
+	if err := u.repo.DeletePart(ctx, id, userID); err != nil {
 		return err
 	}
 
-	u.logger.Info().Int("part_id", id).Msg("DeletePart completed successfully")
+	u.logger.Info().Int("part_id", id).Msg("part deleted successfully")
 	return nil
 }

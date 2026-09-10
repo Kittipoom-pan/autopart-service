@@ -1,4 +1,4 @@
-package entitie
+package entity
 
 import (
 	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"
@@ -20,6 +20,7 @@ func MapDbPartToPartRes(dbPart db.GetPartByIDRow) *PartRes {
 
 func MapPartToPartParam(req *PartReq, createdBy *int) db.CreatePartParams {
 	return db.CreatePartParams{
+		Uuid:        utils.NewUUIDBytes(),
 		PartBrandID: int32(req.PartBrandID),
 		PartTypeID:  int32(req.PartTypeID),
 		Name:        req.Name,

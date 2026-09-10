@@ -1,4 +1,4 @@
-package entitie
+package entity
 
 import (
 	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"

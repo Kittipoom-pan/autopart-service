@@ -3,14 +3,13 @@ package repository
 import (
 	"context"
 
-	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"
-	"github.com/Kittipoom-pan/autopart-service/internal/module/part/entitie"
+	"github.com/Kittipoom-pan/autopart-service/internal/module/part/entity"
 )
 
 type PartRepository interface {
-	GetPartByID(ctx context.Context, id int) (*entitie.PartRes, error)
-	CreatePart(ctx context.Context, param db.CreatePartParams) (int64, error)
-	GetAllParts(ctx context.Context) ([]*entitie.PartRes, error)
-	UpdatePart(ctx context.Context, param db.UpdatePartByIDParams) error
-	DeletePart(ctx context.Context, param db.DeletePartByIDParams) error
+	GetPartByID(ctx context.Context, id int) (*entity.PartRes, error)
+	CreatePart(ctx context.Context, part *entity.PartReq, createdBy *int) (int64, error)
+	GetAllParts(ctx context.Context) ([]*entity.PartRes, error)
+	UpdatePart(ctx context.Context, id int, part *entity.PartReq, updatedBy int) error
+	DeletePart(ctx context.Context, id int, updatedBy int) error
 }

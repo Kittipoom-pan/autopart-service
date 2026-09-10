@@ -3,11 +3,11 @@ package controller
 import (
 	"strconv"
 
+	"github.com/Kittipoom-pan/autopart-service/internal/auth"
 	"github.com/Kittipoom-pan/autopart-service/internal/helper"
-	"github.com/Kittipoom-pan/autopart-service/internal/module/part/entitie"
+	"github.com/Kittipoom-pan/autopart-service/internal/module/part/entity"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/part/usecase"
 	parterror "github.com/Kittipoom-pan/autopart-service/pkg/error"
-	"github.com/Kittipoom-pan/autopart-service/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -28,13 +28,13 @@ func NewPartController(usecase usecase.PartUsecase) *PartController {
 func (h *PartController) GetAllParts(c *fiber.Ctx) error {
 	h.logger.Debug().Msg("Get all parts request")
 
-	parts, err := h.usecase.GetAllParts(c.Context())
+	parts, err := h.usecase.GetAllParts(c.UserContext())
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
 
 	if parts == nil {
-		parts = []*entitie.PartRes{}
+		parts = []*entity.PartRes{}
 	}
 
 	return helper.RespondSuccess(c, fiber.StatusOK, parts, "Parts retrieved successfully")
@@ -50,7 +50,7 @@ func (h *PartController) GetPartByID(c *fiber.Ctx) error {
 		return helper.RespondError(c, parterror.InvalidRequestData(map[string]string{"id": "invalid part id format"}))
 	}
 
-	part, err := h.usecase.GetPartByID(c.Context(), id)
+	part, err := h.usecase.GetPartByID(c.UserContext(), id)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
@@ -59,27 +59,29 @@ func (h *PartController) GetPartByID(c *fiber.Ctx) error {
 }
 
 func (h *PartController) CreatePart(c *fiber.Ctx) error {
-	userID, err := utils.GetUserID(c, h.logger)
+	userID, err := auth.GetUserID(c, h.logger)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
 
-	partReq := &entitie.PartReq{}
+	partReq := &entity.PartReq{}
 	if err := c.BodyParser(partReq); err != nil {
-		h.logger.Warn().Err(err).Bytes("raw_body", c.Body()).Msg("Failed to parse request body")
+		h.logger.Warn().Err(err).Msg("Failed to parse request body")
 		return helper.RespondError(c, parterror.InvalidRequestData(map[string]string{"body": "failed to parse request body"}))
 	}
 
-	partID, err := h.usecase.CreatePart(c.Context(), partReq, &userID)
+	partID, err := h.usecase.CreatePart(c.UserContext(), partReq, &userID)
 	if err != nil {
+		h.logger.Error().Err(err).Str("sku", partReq.SKU).Msg("Failed to create part")
 		return helper.RespondError(c, err)
 	}
 
+	h.logger.Info().Int64("part_id", partID).Msg("Part created successfully")
 	return helper.RespondSuccess(c, fiber.StatusCreated, fiber.Map{"part_id": partID}, "Part created successfully")
 }
 
 func (h *PartController) UpdatePart(c *fiber.Ctx) error {
-	userID, err := utils.GetUserID(c, h.logger)
+	userID, err := auth.GetUserID(c, h.logger)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
@@ -90,13 +92,13 @@ func (h *PartController) UpdatePart(c *fiber.Ctx) error {
 		return helper.RespondError(c, parterror.InvalidRequestData(map[string]string{"id": "invalid part ID format"}))
 	}
 
-	partReq := &entitie.PartReq{}
+	partReq := &entity.PartReq{}
 	if err := c.BodyParser(partReq); err != nil {
-		h.logger.Warn().Err(err).Bytes("raw_body", c.Body()).Msg("Failed to parse request body")
+		h.logger.Warn().Err(err).Msg("Failed to parse request body")
 		return helper.RespondError(c, parterror.InvalidRequestData(map[string]string{"body": "failed to parse request body"}))
 	}
 
-	if err := h.usecase.UpdatePart(c.Context(), id, partReq, userID); err != nil {
+	if err := h.usecase.UpdatePart(c.UserContext(), id, partReq, userID); err != nil {
 		h.logger.Error().Err(err).Int("part_id", id).Msg("Failed to update part")
 		return helper.RespondError(c, err)
 	}
@@ -106,7 +108,7 @@ func (h *PartController) UpdatePart(c *fiber.Ctx) error {
 }
 
 func (h *PartController) DeletePart(c *fiber.Ctx) error {
-	userID, err := utils.GetUserID(c, h.logger)
+	userID, err := auth.GetUserID(c, h.logger)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
@@ -117,7 +119,7 @@ func (h *PartController) DeletePart(c *fiber.Ctx) error {
 		return helper.RespondError(c, parterror.InvalidRequestData(map[string]string{"id": "invalid part ID format"}))
 	}
 
-	if err := h.usecase.DeletePart(c.Context(), id, userID); err != nil {
+	if err := h.usecase.DeletePart(c.UserContext(), id, userID); err != nil {
 		h.logger.Error().Err(err).Int("part_id", id).Msg("Failed to delete part")
 		return helper.RespondError(c, err)
 	}

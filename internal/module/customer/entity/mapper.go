@@ -1,4 +1,4 @@
-package entitie
+package entity
 
 import (
 	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"
@@ -8,7 +8,7 @@ import (
 func MapDbCustomerToCustomerRes(dbCustomer db.GetCustomerRow) *CustomerRes {
 	return &CustomerRes{
 		ID:          uint32(dbCustomer.CustomerID),
-		Uuid:        string(dbCustomer.Uuid),
+		Uuid:        utils.UUIDBytesToString(dbCustomer.Uuid),
 		FirstName:   dbCustomer.FirstName.String,
 		LastName:    dbCustomer.LastName.String,
 		Username:    dbCustomer.Username,
@@ -21,7 +21,7 @@ func MapDbCustomerToCustomerRes(dbCustomer db.GetCustomerRow) *CustomerRes {
 func MapDbCustomerToCustomerEntity(dbCustomer db.GetCustomerByUsernameRow) *Customer {
 	return &Customer{
 		ID:       uint32(dbCustomer.CustomerID),
-		Uuid:     string(dbCustomer.Uuid),
+		Uuid:     utils.UUIDBytesToString(dbCustomer.Uuid),
 		Username: dbCustomer.Username,
 		Password: dbCustomer.Password.String,
 	}
@@ -45,7 +45,7 @@ func MapCustomerToCustomerParam(customer *CustomerReq, createBy *int) db.CreateC
 func MapDbCustomersToCustomerRes(dbCustomer db.ListCustomersRow) *CustomerRes {
 	return &CustomerRes{
 		ID:          uint32(dbCustomer.CustomerID),
-		Uuid:        string(dbCustomer.Uuid),
+		Uuid:        utils.UUIDBytesToString(dbCustomer.Uuid),
 		FirstName:   dbCustomer.FirstName.String,
 		LastName:    dbCustomer.LastName.String,
 		Username:    dbCustomer.Username,

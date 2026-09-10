@@ -60,7 +60,7 @@ UPDATE part SET
     is_active = 0,
     updated_at = ?,
     updated_by = ?
-WHERE part_id = ?
+WHERE part_id = ? AND is_active = 1
 `
 
 type DeletePartByIDParams struct {
@@ -334,7 +334,7 @@ UPDATE part SET
     is_active = ?,
     updated_at = ?,
     updated_by = ?
-WHERE part_id = ?
+WHERE part_id = ? AND is_active = 1
 `
 
 type UpdatePartByIDParams struct {
@@ -372,7 +372,7 @@ UPDATE part SET
     quantity = ?,
     updated_at = ?,
     updated_by = ?
-WHERE part_id = ?
+WHERE part_id = ? AND is_active = 1
 `
 
 type UpdatePartStockByIDParams struct {

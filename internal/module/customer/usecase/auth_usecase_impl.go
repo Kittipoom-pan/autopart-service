@@ -2,16 +2,16 @@ package usecase
 
 import (
 	"context"
+	"errors"
 
 	"github.com/Kittipoom-pan/autopart-service/config"
 	"github.com/Kittipoom-pan/autopart-service/internal/auth"
 	"github.com/Kittipoom-pan/autopart-service/internal/common"
-	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/entitie"
+	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/entity"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/repository"
 	customerror "github.com/Kittipoom-pan/autopart-service/pkg/error"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type authUsecase struct {
@@ -24,33 +24,34 @@ func NewAuthUsecase(repo repository.CustomerRepository, cfg *config.Config) Auth
 	return &authUsecase{
 		repo:   repo,
 		cfg:    cfg,
-		logger: log.With().Str("component", "auth_usecase").Logger(),
+		logger: log.With().Str("component", "customer_auth_usecase").Logger(),
 	}
 }
 
-func (u *authUsecase) Login(ctx context.Context, request *entitie.LoginRequest) (*entitie.LoginResponse, error) {
+func (u *authUsecase) Login(ctx context.Context, request *entity.LoginRequest) (*entity.LoginResponse, error) {
+	invalidCreds := customerror.NewAPIError(common.StatusUnauthorized, "Incorrect username or password")
+
 	customer, err := u.repo.GetCustomerByUsername(ctx, request.Username)
 	if err != nil {
-		u.logger.Error().Err(err).Msg("Failed to get customer user")
-		return nil, err
-	}
-
-	err = bcrypt.CompareHashAndPassword([]byte(customer.Password), []byte(request.Password))
-	if err != nil {
-		if err == bcrypt.ErrMismatchedHashAndPassword {
-			u.logger.Warn().Msg("Invalid password provided for user")
-			return nil, customerror.NewAPIError(common.StatusUnauthorized, "Incorrect username or password")
+		var notFound *customerror.NotFoundError
+		if errors.As(err, &notFound) {
+			u.logger.Warn().Str("username", request.Username).Msg("login failed: customer not found")
+			return nil, invalidCreds
 		}
-
-		u.logger.Error().Err(err).Msg("bcrypt comparison failed for unexpected reason")
+		u.logger.Error().Err(err).Msg("failed to get customer for login")
 		return nil, err
 	}
 
-	token, err := auth.GenerateToken(customer.ID, "", u.cfg)
+	if err := auth.VerifyPassword(customer.Password, request.Password); err != nil {
+		u.logger.Warn().Str("username", request.Username).Msg("login failed: invalid password")
+		return nil, invalidCreds
+	}
+
+	token, err := auth.GenerateToken(customer.ID, auth.RoleCustomer, u.cfg)
 	if err != nil {
-		u.logger.Error().Err(err).Msg("Failed to generate JWT token")
-		return nil, err
+		u.logger.Error().Err(err).Msg("failed to generate JWT token")
+		return nil, customerror.NewAPIError(common.StatusError, "failed to generate token")
 	}
 
-	return entitie.MapCustomerToLoginRes(customer, token, int32(u.cfg.JWT.Expiry)), nil
+	return entity.MapCustomerToLoginRes(customer, token, int32(u.cfg.JWT.Expiry)), nil
 }

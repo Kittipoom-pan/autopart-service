@@ -3,11 +3,11 @@ package controller
 import (
 	"strconv"
 
+	"github.com/Kittipoom-pan/autopart-service/internal/auth"
 	"github.com/Kittipoom-pan/autopart-service/internal/helper"
-	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/entitie"
+	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/entity"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/usecase"
 	customerror "github.com/Kittipoom-pan/autopart-service/pkg/error"
-	"github.com/Kittipoom-pan/autopart-service/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -28,15 +28,15 @@ func NewCustomerController(usecase usecase.CustomerUsecase) *CustomerController 
 func (h *CustomerController) GetAllCustomers(c *fiber.Ctx) error {
 	h.logger.Debug().Msg("Get all customers request")
 
-	customers, err := h.usecase.GetAllCustomers(c.Context())
+	customers, err := h.usecase.GetAllCustomers(c.UserContext())
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
-	if len(customers) == 0 {
-		return helper.RespondSuccess(c, fiber.StatusOK, customers, "Customers not found")
+	if customers == nil {
+		customers = []*entity.CustomerRes{}
 	}
 
-	return helper.RespondSuccess(c, fiber.StatusOK, customers, "")
+	return helper.RespondSuccess(c, fiber.StatusOK, customers, "Customers retrieved successfully")
 }
 
 func (h *CustomerController) GetCustomerByID(c *fiber.Ctx) error {
@@ -54,7 +54,11 @@ func (h *CustomerController) GetCustomerByID(c *fiber.Ctx) error {
 		return helper.RespondError(c, customerror.InvalidRequestData(map[string]string{"id": "invalid id format"}))
 	}
 
-	customer, err := h.usecase.GetCustomerByID(c.Context(), id)
+	if err := auth.EnsureSelfOrAdmin(c, id, h.logger); err != nil {
+		return helper.RespondError(c, err)
+	}
+
+	customer, err := h.usecase.GetCustomerByID(c.UserContext(), id)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
@@ -63,13 +67,13 @@ func (h *CustomerController) GetCustomerByID(c *fiber.Ctx) error {
 }
 
 func (h *CustomerController) CreateCustomer(c *fiber.Ctx) error {
-	customer := new(entitie.CustomerReq)
+	customer := new(entity.CustomerReq)
 	if err := c.BodyParser(customer); err != nil {
-		h.logger.Warn().Err(err).Bytes("raw_body", c.Body()).Msg("Failed to parse request body")
+		h.logger.Warn().Err(err).Msg("Failed to parse request body")
 		return helper.RespondError(c, customerror.InvalidRequestData(map[string]string{"body": "failed to parse request body"}))
 	}
 
-	customerID, err := h.usecase.CreateCustomer(c.Context(), customer)
+	customerID, err := h.usecase.CreateCustomer(c.UserContext(), customer)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
@@ -78,7 +82,7 @@ func (h *CustomerController) CreateCustomer(c *fiber.Ctx) error {
 }
 
 func (h *CustomerController) UpdateCustomer(c *fiber.Ctx) error {
-	userID, err := utils.GetUserID(c, h.logger)
+	userID, err := auth.GetUserID(c, h.logger)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
@@ -90,13 +94,17 @@ func (h *CustomerController) UpdateCustomer(c *fiber.Ctx) error {
 		return helper.RespondError(c, customerror.InvalidRequestData(map[string]string{"id": "invalid customer ID format"}))
 	}
 
-	customerReq := new(entitie.CustomerReq)
+	if err := auth.EnsureSelfOrAdmin(c, customerID, h.logger); err != nil {
+		return helper.RespondError(c, err)
+	}
+
+	customerReq := new(entity.CustomerReq)
 	if err := c.BodyParser(customerReq); err != nil {
-		h.logger.Warn().Err(err).Bytes("raw_body", c.Body()).Msg("Failed to parse request body")
+		h.logger.Warn().Err(err).Msg("Failed to parse request body")
 		return helper.RespondError(c, customerror.InvalidRequestData(map[string]string{"body": "failed to parse request body"}))
 	}
 
-	if err := h.usecase.UpdateCustomer(c.Context(), customerID, customerReq, userID); err != nil {
+	if err := h.usecase.UpdateCustomer(c.UserContext(), customerID, customerReq, userID); err != nil {
 		h.logger.Error().Err(err).Int("customer_id", customerID).Msg("Failed to update customer")
 		return helper.RespondError(c, err)
 	}
@@ -106,7 +114,7 @@ func (h *CustomerController) UpdateCustomer(c *fiber.Ctx) error {
 }
 
 func (h *CustomerController) DeleteCustomer(c *fiber.Ctx) error {
-	userID, err := utils.GetUserID(c, h.logger)
+	userID, err := auth.GetUserID(c, h.logger)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
@@ -118,7 +126,11 @@ func (h *CustomerController) DeleteCustomer(c *fiber.Ctx) error {
 		return helper.RespondError(c, customerror.InvalidRequestData(map[string]string{"id": "invalid customer ID format"}))
 	}
 
-	if err := h.usecase.DeleteCustomer(c.Context(), customerID, userID); err != nil {
+	if err := auth.EnsureSelfOrAdmin(c, customerID, h.logger); err != nil {
+		return helper.RespondError(c, err)
+	}
+
+	if err := h.usecase.DeleteCustomer(c.UserContext(), customerID, userID); err != nil {
 		h.logger.Error().Err(err).Int("customer_id", customerID).Msg("Failed to delete customer")
 		return helper.RespondError(c, err)
 	}

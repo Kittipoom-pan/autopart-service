@@ -9,7 +9,7 @@ import (
 
 func TimeoutMiddleware(timeout time.Duration) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		ctx, cancel := context.WithTimeout(c.Context(), timeout)
+		ctx, cancel := context.WithTimeout(c.UserContext(), timeout)
 		defer cancel()
 
 		c.SetUserContext(ctx)

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/Kittipoom-pan/autopart-service/config"
+	"github.com/Kittipoom-pan/autopart-service/internal/auth"
 	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"
 	"github.com/Kittipoom-pan/autopart-service/internal/middleware"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/controller"
@@ -12,18 +13,21 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func SetupPrivateRoutes(router fiber.Router, db *db.Queries, cfg *config.Config, auth fiber.Handler) {
+func SetupPrivateRoutes(router fiber.Router, db *db.Queries, cfg *config.Config, jwtAuth fiber.Handler) {
 	router.Use(middleware.TimeoutMiddleware(3 * time.Second))
+	router.Use(jwtAuth)
 
-	// create dependencies
 	repo := repository.NewCustomerRepository(db)
-	usecase := usecase.NewCustomerUsecase(repo)
-	controller := controller.NewCustomerController(usecase)
+	customerUsecase := usecase.NewCustomerUsecase(repo)
+	customerController := controller.NewCustomerController(customerUsecase)
 
-	router.Get("/", auth, controller.GetAllCustomers)
-	router.Get("/:id", auth, controller.GetCustomerByID)
-	router.Put("/:id", auth, controller.UpdateCustomer)
-	router.Delete("/:id", auth, controller.DeleteCustomer)
+	// Admin-only: list all customers
+	router.Get("/", middleware.RequireRoles(auth.RoleSuperAdmin, auth.RoleStaff), customerController.GetAllCustomers)
+
+	// Self or admin: read / update / delete a specific customer
+	router.Get("/:id", customerController.GetCustomerByID)
+	router.Put("/:id", customerController.UpdateCustomer)
+	router.Delete("/:id", customerController.DeleteCustomer)
 }
 
 func SetupPublicRoutes(router fiber.Router, db *db.Queries, cfg *config.Config) {
@@ -31,8 +35,8 @@ func SetupPublicRoutes(router fiber.Router, db *db.Queries, cfg *config.Config) 
 
 	repo := repository.NewCustomerRepository(db)
 	authUsecase := usecase.NewAuthUsecase(repo, cfg)
-	usecase := usecase.NewCustomerUsecase(repo)
-	customerController := controller.NewCustomerController(usecase)
+	customerUsecase := usecase.NewCustomerUsecase(repo)
+	customerController := controller.NewCustomerController(customerUsecase)
 	authController := controller.NewAuthController(authUsecase, cfg)
 
 	router.Post("/login", authController.Login)

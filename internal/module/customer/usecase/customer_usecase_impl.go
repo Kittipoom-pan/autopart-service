@@ -4,8 +4,11 @@ import (
 	"context"
 
 	"github.com/Kittipoom-pan/autopart-service/internal/auth"
-	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/entitie"
+	"github.com/Kittipoom-pan/autopart-service/internal/common"
+	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/entity"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/repository"
+	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/usecase/validation"
+	customererror "github.com/Kittipoom-pan/autopart-service/pkg/error"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -22,71 +25,59 @@ func NewCustomerUsecase(repo repository.CustomerRepository) CustomerUsecase {
 	}
 }
 
-func (u *customerUsecase) GetCustomerByID(ctx context.Context, id int) (*entitie.CustomerRes, error) {
-	u.logger.Info().Int("customer_id", id).Msg("GetCustomerByID started")
-
-	customer, err := u.repo.GetCustomerByID(ctx, id)
-	if err != nil {
-		u.logger.Error().Err(err).Int("customer_id", id).Msg("Failed to get customer from repository")
-		return nil, err
-	}
-
-	u.logger.Info().Int("customer_id", id).Msg("GetCustomerByID completed successfully")
-	return customer, nil
+func (u *customerUsecase) GetCustomerByID(ctx context.Context, id int) (*entity.CustomerRes, error) {
+	u.logger.Debug().Int("customer_id", id).Msg("GetCustomerByID")
+	return u.repo.GetCustomerByID(ctx, id)
 }
 
-func (u *customerUsecase) GetAllCustomers(ctx context.Context) ([]*entitie.CustomerRes, error) {
-	customers, err := u.repo.GetAllCustomers(ctx)
-	if err != nil {
-		u.logger.Error().Err(err).Msg("Failed to get all customers from repository")
-		return nil, err
-	}
-	return customers, nil
+func (u *customerUsecase) GetAllCustomers(ctx context.Context) ([]*entity.CustomerRes, error) {
+	u.logger.Debug().Msg("GetAllCustomers")
+	return u.repo.GetAllCustomers(ctx)
 }
 
-func (u *customerUsecase) CreateCustomer(ctx context.Context, customer *entitie.CustomerReq) (int64, error) {
+func (u *customerUsecase) CreateCustomer(ctx context.Context, customer *entity.CustomerReq) (int64, error) {
+	if err := validation.ValidateCustomerRequest(customer, false); err != nil {
+		u.logger.Warn().Err(err).Msg("customer create validation failed")
+		return 0, err
+	}
+
 	hashedPassword, err := auth.HashPassword(customer.Password)
 	if err != nil {
-		u.logger.Error().Err(err).Msg("Failed to hash password")
+		u.logger.Error().Err(err).Msg("failed to hash password")
+		return 0, customererror.NewAPIError(common.StatusError, "failed to process password")
+	}
+
+	req := *customer
+	req.Password = hashedPassword
+
+	customerID, err := u.repo.CreateCustomer(ctx, &req, nil)
+	if err != nil {
 		return 0, err
 	}
 
-	customer.Password = hashedPassword
-	params := entitie.MapCustomerToCustomerParam(customer, nil)
-	customerID, err := u.repo.CreateCustomer(ctx, params)
-	if err != nil {
-		u.logger.Error().Err(err).Msg("Failed to create customer")
-		return 0, err
-	}
-	u.logger.Info().Int64("customer_id", customerID).Msg("Customer created successfully")
+	u.logger.Info().Int64("customer_id", customerID).Msg("customer created successfully")
 	return customerID, nil
 }
 
-func (u *customerUsecase) UpdateCustomer(ctx context.Context, customerID int, customer *entitie.CustomerReq, userID int) error {
-	u.logger.Info().Int("customer_id", customerID).Msg("UpdateCustomer started")
-
-	params := entitie.MapUpdateCustomerParams(customerID, customer, userID)
-
-	err := u.repo.UpdateCustomer(ctx, params)
-	if err != nil {
-		u.logger.Error().Err(err).Int("customer_id", customerID).Msg("Failed to update customer in repository")
+func (u *customerUsecase) UpdateCustomer(ctx context.Context, customerID int, customer *entity.CustomerReq, userID int) error {
+	if err := validation.ValidateCustomerRequest(customer, true); err != nil {
+		u.logger.Warn().Err(err).Msg("customer update validation failed")
 		return err
 	}
 
-	u.logger.Info().Int("customer_id", customerID).Msg("UpdateCustomer completed successfully")
+	if err := u.repo.UpdateCustomer(ctx, customerID, customer, userID); err != nil {
+		return err
+	}
+
+	u.logger.Info().Int("customer_id", customerID).Msg("customer updated successfully")
 	return nil
 }
 
 func (u *customerUsecase) DeleteCustomer(ctx context.Context, id int, userId int) error {
-	u.logger.Info().Int("customer_id", id).Msg("DeleteCustomer started")
-	params := entitie.MapUpdateCustomerIsActiveParams(id, false, userId)
-
-	err := u.repo.DeleteCustomer(ctx, params)
-	if err != nil {
-		u.logger.Error().Err(err).Int("customer_id", id).Msg("Failed to delete customer in repository")
+	if err := u.repo.DeleteCustomer(ctx, id, userId); err != nil {
 		return err
 	}
 
-	u.logger.Info().Int("customer_id", id).Msg("DeleteCustomer completed successfully")
+	u.logger.Info().Int("customer_id", id).Msg("customer deleted successfully")
 	return nil
 }
