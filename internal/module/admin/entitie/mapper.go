@@ -23,13 +23,13 @@ func MapDbAdminToAdminEntity(dbAdmin db.GetAdminByUsernameRow) *Admin {
 	}
 }
 
-func MapAdminToAdminParam(admin *AdminReq, createBy string) db.CreateAdminParams {
+func MapAdminToAdminParam(admin *AdminReq, createBy *int) db.CreateAdminParams {
 	return db.CreateAdminParams{
 		Username:  admin.Username,
 		Email:     utils.StringToNullString(admin.Email),
 		Role:      db.AdminUserRole(admin.Role),
 		Password:  admin.Password,
-		CreatedBy: utils.StringToNullString(createBy),
+		CreatedBy: utils.IntNullToNullInt32(createBy),
 		CreatedAt: utils.NullTimeNow(),
 	}
 }
@@ -43,22 +43,22 @@ func MapDbAdminsToAdminEntity(dbAdmin db.ListAdminUsersRow) *AdminRes {
 	}
 }
 
-func MapUpdateAdminParams(id int, admin *AdminReq, updatedBy string) db.UpdateAdminParams {
+func MapUpdateAdminParams(id int, admin *AdminReq, updatedBy *int) db.UpdateAdminParams {
 	return db.UpdateAdminParams{
 		AdminUserID: int32(id),
 		Username:    admin.Username,
 		Password:    admin.Password,
 		Role:        db.AdminUserRole(admin.Role),
 		Email:       utils.StringToNullString(admin.Email),
-		UpdatedBy:   utils.StringToNullString(updatedBy),
+		UpdatedBy:   utils.IntNullToNullInt32(updatedBy),
 		UpdatedAt:   utils.NullTimeNow(),
 	}
 }
 
-func MapUpdateAdminIsActiveParams(id int, isActive bool, updatedBy string) db.UpdateAdminIsActiveParams {
+func MapUpdateAdminIsActiveParams(id int, isActive bool, updatedBy *int) db.UpdateAdminIsActiveParams {
 	return db.UpdateAdminIsActiveParams{
 		IsActive:    isActive,
-		UpdatedBy:   utils.StringToNullString(updatedBy),
+		UpdatedBy:   utils.IntNullToNullInt32(updatedBy),
 		UpdatedAt:   utils.NullTimeNow(),
 		AdminUserID: int32(id),
 	}

@@ -236,6 +236,7 @@ CREATE TABLE stock_movement (
 -- Table: `order`
 CREATE TABLE `order` (
   order_id INT AUTO_INCREMENT PRIMARY KEY,
+  uuid BINARY(16) NOT NULL,
   customer_id INT NOT NULL,
   customer_payment_method_id INT,
   cart_id INT,

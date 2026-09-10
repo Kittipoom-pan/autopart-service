@@ -1,26 +1,60 @@
 -- name: ListImagesByReference :many
-SELECT image_id, reference_id, reference_type, image_url, is_primary, sort_image, created_at, created_by, updated_at, updated_by
+SELECT
+    image_id,
+    reference_id,
+    reference_type,
+    file_name,
+    image_url,
+    alt_text,
+    is_primary,
+    sort_image,
+    created_at,
+    created_by
 FROM image
 WHERE reference_type = ? AND reference_id = ?
 ORDER BY is_primary DESC, sort_image ASC, created_at ASC;
 
 -- name: GetPrimaryImageByReference :one
-SELECT image_id, reference_id, reference_type, image_url, is_primary, sort_image, created_at, created_by, updated_at, updated_by
+SELECT
+    image_id,
+    reference_id,
+    reference_type,
+    file_name,
+    image_url,
+    alt_text,
+    is_primary,
+    sort_image,
+    created_at,
+    created_by
 FROM image
 WHERE reference_type = ? AND reference_id = ? AND is_primary = 1
 LIMIT 1;
 
 -- name: AddImage :execresult
-INSERT INTO image (reference_id, reference_type, image_url, is_primary, sort_image, created_at, created_by)
-VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?);
+INSERT INTO image (
+    reference_id,
+    reference_type,
+    file_name,
+    image_url,
+    alt_text,
+    is_primary,
+    sort_image,
+    created_at,
+    created_by
+)
+VALUES (
+    ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?
+);
 
 -- name: UpdateImage :execresult
 UPDATE image
-SET image_url = ?,
+SET
+    file_name = ?,
+    image_url = ?,
+    alt_text = ?,
     is_primary = ?,
     sort_image = ?,
-    updated_at = CURRENT_TIMESTAMP,
-    updated_by = ?
+    created_by = ?
 WHERE image_id = ?;
 
 -- name: DeleteImage :execresult

@@ -1,15 +1,48 @@
 -- name: GetPartByID :one
-SELECT part_id, part_brand_id, part_type_id, sku, name, description, price, quantity, is_active
+SELECT
+    part_id,
+    uuid,
+    part_brand_id,
+    part_type_id,
+    sku,
+    name,
+    description,
+    price,
+    quantity,
+    is_active,
+    created_at
 FROM part
 WHERE part_id = ? AND is_active = 1;
 
 -- name: GetPartBySKU :one
-SELECT part_id, part_brand_id, part_type_id, sku, name, description, price, quantity, is_active
+SELECT
+    part_id,
+    uuid,
+    part_brand_id,
+    part_type_id,
+    sku,
+    name,
+    description,
+    price,
+    quantity,
+    is_active,
+    created_at
 FROM part
 WHERE sku = ? AND is_active = 1;
 
 -- name: ListParts :many
-SELECT part_id, part_brand_id, part_type_id, sku, name, description, price, quantity, is_active
+SELECT
+    part_id,
+    uuid,
+    part_brand_id,
+    part_type_id,
+    sku,
+    name,
+    description,
+    price,
+    quantity,
+    is_active,
+    created_at
 FROM part
 WHERE is_active = 1
 ORDER BY created_at;
@@ -17,6 +50,7 @@ ORDER BY created_at;
 -- name: GetPartWithImages :many
 SELECT 
     p.part_id,
+    p.uuid,
     p.sku,
     p.name AS part_name,
     p.description AS part_description,
@@ -38,8 +72,20 @@ WHERE p.part_id = ?
 ORDER BY i.is_primary DESC, i.sort_image ASC, i.created_at ASC;
 
 -- name: CreatePart :execresult
-INSERT INTO part (part_id, part_brand_id, part_type_id, sku, name, description, price, quantity, created_at, created_by)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO part (
+    uuid,
+    part_brand_id,
+    part_type_id,
+    sku,
+    name,
+    description,
+    price,
+    quantity,
+    is_active,
+    created_at,
+    created_by
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?);
 
 -- name: UpdatePartByID :execresult
 UPDATE part SET

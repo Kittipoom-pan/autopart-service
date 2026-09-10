@@ -7,6 +7,7 @@ import (
 	"github.com/Kittipoom-pan/autopart-service/internal/module/admin/entitie"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/admin/usecase"
 	adminerror "github.com/Kittipoom-pan/autopart-service/pkg/error"
+	"github.com/Kittipoom-pan/autopart-service/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -63,14 +64,22 @@ func (h *AdminController) GetAdminByID(c *fiber.Ctx) error {
 }
 
 func (h *AdminController) CreateAdmin(c *fiber.Ctx) error {
-	admin := new(entitie.AdminReq)
+	userID, err := utils.GetUserID(c, h.logger)
+	if err != nil {
+		return helper.RespondError(c, err)
+	}
+
+	admin := &entitie.AdminReq{}
 	if err := c.BodyParser(admin); err != nil {
 		h.logger.Warn().Err(err).Bytes("raw_body", c.Body()).Msg("Failed to parse request body")
 		return helper.RespondError(c, adminerror.InvalidRequestData(map[string]string{"body": "failed to parse request body"}))
 	}
 
-	adminID, err := h.usecase.CreateAdmin(c.Context(), admin)
+	creatorID := userID
+
+	adminID, err := h.usecase.CreateAdmin(c.Context(), admin, &creatorID)
 	if err != nil {
+		h.logger.Error().Err(err).Interface("request", admin).Msg("Failed to create admin in usecase")
 		return helper.RespondError(c, err)
 	}
 
@@ -78,8 +87,13 @@ func (h *AdminController) CreateAdmin(c *fiber.Ctx) error {
 }
 
 func (h *AdminController) UpdateAdmin(c *fiber.Ctx) error {
+	userID, err := utils.GetUserID(c, h.logger)
+	if err != nil {
+		return helper.RespondError(c, err)
+	}
+
 	idStr := c.Params("id")
-	id, err := strconv.Atoi(idStr)
+	adminID, err := strconv.Atoi(idStr)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("Invalid admin ID format")
 		return helper.RespondError(c, adminerror.InvalidRequestData(map[string]string{"id": "invalid admin ID format"}))
@@ -91,28 +105,33 @@ func (h *AdminController) UpdateAdmin(c *fiber.Ctx) error {
 		return helper.RespondError(c, adminerror.InvalidRequestData(map[string]string{"body": "failed to parse request body"}))
 	}
 
-	if err := h.usecase.UpdateAdmin(c.Context(), id, adminReq); err != nil {
-		h.logger.Error().Err(err).Int("admin_id", id).Msg("Failed to update admin")
+	if err := h.usecase.UpdateAdmin(c.Context(), adminID, userID, adminReq); err != nil {
+		h.logger.Error().Err(err).Int("admin_id", adminID).Msg("Failed to update admin")
 		return helper.RespondError(c, err)
 	}
 
-	h.logger.Info().Int("admin_id", id).Msg("Admin updated successfully")
+	h.logger.Info().Int("admin_id", adminID).Msg("Admin updated successfully")
 	return helper.RespondSuccess(c, fiber.StatusOK, nil, "Admin updated successfully")
 }
 
 func (h *AdminController) DeleteAdmin(c *fiber.Ctx) error {
+	userID, err := utils.GetUserID(c, h.logger)
+	if err != nil {
+		return helper.RespondError(c, err)
+	}
+
 	idStr := c.Params("id")
-	id, err := strconv.Atoi(idStr)
+	adminID, err := strconv.Atoi(idStr)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("Invalid admin ID format")
 		return helper.RespondError(c, adminerror.InvalidRequestData(map[string]string{"id": "invalid admin ID format"}))
 	}
 
-	if err := h.usecase.DeleteAdmin(c.Context(), id); err != nil {
-		h.logger.Error().Err(err).Int("admin_id", id).Msg("Failed to delete admin")
+	if err := h.usecase.DeleteAdmin(c.Context(), adminID, userID); err != nil {
+		h.logger.Error().Err(err).Int("admin_id", adminID).Msg("Failed to delete admin")
 		return helper.RespondError(c, err)
 	}
 
-	h.logger.Info().Int("admin_id", id).Msg("Admin deleted successfully")
+	h.logger.Info().Int("admin_id", adminID).Msg("Admin deleted successfully")
 	return helper.RespondSuccess(c, fiber.StatusOK, nil, "Admin deleted successfully")
 }

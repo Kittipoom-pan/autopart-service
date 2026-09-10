@@ -24,6 +24,7 @@ func SetupPrivateRoutes(router fiber.Router, db *db.Queries, cfg *config.Config,
 	router.Get("/:id", auth, controller.GetAdminByID)
 	router.Put("/:id", auth, controller.UpdateAdmin)
 	router.Delete("/:id", auth, controller.DeleteAdmin)
+	router.Post("/register", auth, controller.CreateAdmin)
 }
 
 func SetupPublicRoutes(router fiber.Router, db *db.Queries, cfg *config.Config) {
@@ -31,10 +32,7 @@ func SetupPublicRoutes(router fiber.Router, db *db.Queries, cfg *config.Config) 
 
 	repo := repository.NewAdminRepository(db)
 	authUsecase := usecase.NewAuthUsecase(repo, cfg)
-	usecase := usecase.NewAdminUsecase(repo)
-	adminController := controller.NewAdminController(usecase)
 	authController := controller.NewAuthController(authUsecase, cfg)
 
 	router.Post("/login", authController.Login)
-	router.Post("/register", adminController.CreateAdmin)
 }

@@ -14,14 +14,15 @@ import (
 
 func SetupPrivateRoutes(router fiber.Router, db *db.Queries, cfg *config.Config, auth fiber.Handler) {
 	router.Use(middleware.TimeoutMiddleware(3 * time.Second))
+	router.Use(auth)
 
 	repo := repository.NewPartRepository(db)
 	usecase := usecase.NewPartUsecase(repo)
 	controller := controller.NewPartController(usecase)
 
-	router.Put("/:id", auth, controller.UpdatePart)
 	router.Post("/", controller.CreatePart)
-	router.Delete("/:id", auth, controller.DeletePart)
+	router.Put("/:id", controller.UpdatePart)
+	router.Delete("/:id", controller.DeletePart)
 }
 
 func SetupPublicRoutes(router fiber.Router, db *db.Queries, cfg *config.Config) {

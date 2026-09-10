@@ -39,13 +39,11 @@ func (r *partRepository) GetPartByID(ctx context.Context, id int) (*entitie.Part
 	return entitie.MapDbPartToPartRes(part), nil
 }
 
-func (r *partRepository) CreatePart(ctx context.Context, part *entitie.PartReq) (int64, error) {
-	params := entitie.MapPartToPartParam(part, "SYSTEM")
-
+func (r *partRepository) CreatePart(ctx context.Context, params db.CreatePartParams) (int64, error) {
 	result, err := r.queries.CreatePart(ctx, params)
 	if err != nil {
 		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
-			r.logger.Warn().Err(mysqlErr).Str("part", part.Name).Msg("duplicate key error")
+			r.logger.Warn().Err(mysqlErr).Str("part", params.Name).Msg("duplicate key error")
 			return 0, parterror.NewAPIError(common.StatusConflict, "Part already exists (duplicate key)")
 		}
 		r.logger.Error().Err(err).Msg("failed to create part in database")
@@ -75,50 +73,46 @@ func (r *partRepository) GetAllParts(ctx context.Context) ([]*entitie.PartRes, e
 	return partEntities, nil
 }
 
-func (r *partRepository) UpdatePart(ctx context.Context, id int, part *entitie.PartReq) error {
-	params := entitie.MapUpdatePartParams(id, part, "SYSTEM")
-
+func (r *partRepository) UpdatePart(ctx context.Context, params db.UpdatePartByIDParams) error {
 	result, err := r.queries.UpdatePartByID(ctx, params)
 	if err != nil {
 		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
-			r.logger.Warn().Err(mysqlErr).Str("part", part.Name).Msg("duplicate key error")
+			r.logger.Warn().Err(mysqlErr).Str("part", params.Name).Msg("duplicate key error")
 			return parterror.NewAPIError(common.StatusConflict, "Part already exists (duplicate key)")
 		}
-		r.logger.Error().Err(err).Int("part_id", id).Msg("failed to update part in database")
+		r.logger.Error().Err(err).Int("part_id", int(params.PartID)).Msg("failed to update part in database")
 		return parterror.NewAPIError(common.StatusError, "Database error: "+err.Error())
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		r.logger.Error().Err(err).Int("part_id", id).Msg("failed to get rows affected")
+		r.logger.Error().Err(err).Int("part_id", int(params.PartID)).Msg("failed to get rows affected")
 		return parterror.NewAPIError(common.StatusError, "Database error: "+err.Error())
 	}
 
 	if rowsAffected == 0 {
-		r.logger.Warn().Int("part_id", id).Msg("part not found for update")
+		r.logger.Warn().Int("part_id", int(params.PartID)).Msg("part not found for update")
 		return parterror.NewNotFoundError("Part")
 	}
 
 	return nil
 }
 
-func (r *partRepository) DeletePart(ctx context.Context, id int) error {
-	params := entitie.MapUpdatePartIsActiveParams(id, false, "SYSTEM")
-
+func (r *partRepository) DeletePart(ctx context.Context, params db.DeletePartByIDParams) error {
 	result, err := r.queries.DeletePartByID(ctx, params)
 	if err != nil {
-		r.logger.Error().Err(err).Int("part_id", id).Msg("failed to delete part in database")
+		r.logger.Error().Err(err).Int("part_id", int(params.PartID)).Msg("failed to delete part in database")
 		return parterror.NewAPIError(common.StatusError, "Database error: "+err.Error())
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		r.logger.Error().Err(err).Int("part_id", id).Msg("failed to get rows affected")
+		r.logger.Error().Err(err).Int("part_id", int(params.PartID)).Msg("failed to get rows affected")
 		return parterror.NewAPIError(common.StatusError, "Database error: "+err.Error())
 	}
 
 	if rowsAffected == 0 {
-		r.logger.Warn().Int("part_id", id).Msg("part not found for delete")
+		r.logger.Warn().Int("part_id", int(params.PartID)).Msg("part not found for delete")
 		return parterror.NewNotFoundError("Part")
 	}
 	return nil

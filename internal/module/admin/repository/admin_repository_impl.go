@@ -39,13 +39,11 @@ func (r *adminRepository) GetAdminByID(ctx context.Context, id int) (*entitie.Ad
 	return entitie.MapDbAdminToAdminRes(admin), nil
 }
 
-func (r *adminRepository) CreateAdmin(ctx context.Context, admin *entitie.AdminReq) (int64, error) {
-	params := entitie.MapAdminToAdminParam(admin, "SYSTEM")
-
+func (r *adminRepository) CreateAdmin(ctx context.Context, params db.CreateAdminParams) (int64, error) {
 	result, err := r.queries.CreateAdmin(ctx, params)
 	if err != nil {
 		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
-			r.logger.Warn().Err(mysqlErr).Str("admin", admin.Username).Msg("duplicate key error")
+			r.logger.Warn().Err(mysqlErr).Str("admin", params.Username).Msg("duplicate key error")
 			return 0, adminror.NewAPIError(common.StatusConflict, "Username or email already exists")
 		}
 		r.logger.Error().Err(err).Msg("failed to create admin in database")
@@ -75,50 +73,46 @@ func (r *adminRepository) GetAllAdmins(ctx context.Context) ([]*entitie.AdminRes
 	return adminEntities, nil
 }
 
-func (r *adminRepository) UpdateAdmin(ctx context.Context, id int, admin *entitie.AdminReq) error {
-	params := entitie.MapUpdateAdminParams(id, admin, "SYSTEM")
-
+func (r *adminRepository) UpdateAdmin(ctx context.Context, params db.UpdateAdminParams) error {
 	result, err := r.queries.UpdateAdmin(ctx, params)
 	if err != nil {
 		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
-			r.logger.Warn().Err(mysqlErr).Str("admin", admin.Username).Msg("duplicate key error")
+			r.logger.Warn().Err(mysqlErr).Str("admin", params.Username).Msg("duplicate key error")
 			return adminror.NewAPIError(common.StatusConflict, "Username or email already exists")
 		}
-		r.logger.Error().Err(err).Int("admin_id", id).Msg("failed to update admin in database")
+		r.logger.Error().Err(err).Int("admin_id", int(params.AdminUserID)).Msg("failed to update admin in database")
 		return adminror.NewAPIError(common.StatusError, "Database error: "+err.Error())
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		r.logger.Error().Err(err).Int("admin_id", id).Msg("failed to get rows affected")
+		r.logger.Error().Err(err).Int("admin_id", int(params.AdminUserID)).Msg("failed to get rows affected")
 		return adminror.NewAPIError(common.StatusError, "Database error: "+err.Error())
 	}
 
 	if rowsAffected == 0 {
-		r.logger.Warn().Int("admin_id", id).Msg("admin not found for update")
+		r.logger.Warn().Int("admin_id", int(params.AdminUserID)).Msg("admin not found for update")
 		return adminror.NewNotFoundError("Admin")
 	}
 
 	return nil
 }
 
-func (r *adminRepository) DeleteAdmin(ctx context.Context, id int) error {
-	params := entitie.MapUpdateAdminIsActiveParams(id, false, "SYSTEM")
-
+func (r *adminRepository) DeleteAdmin(ctx context.Context, params db.UpdateAdminIsActiveParams) error {
 	result, err := r.queries.UpdateAdminIsActive(ctx, params)
 	if err != nil {
-		r.logger.Error().Err(err).Int("admin_id", id).Msg("failed to delete admin in database")
+		r.logger.Error().Err(err).Int("admin_id", int(params.AdminUserID)).Msg("failed to delete admin in database")
 		return adminror.NewAPIError(common.StatusError, "Database error: "+err.Error())
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		r.logger.Error().Err(err).Int("admin_id", id).Msg("failed to get rows affected")
+		r.logger.Error().Err(err).Int("admin_id", int(params.AdminUserID)).Msg("failed to get rows affected")
 		return adminror.NewAPIError(common.StatusError, "Database error: "+err.Error())
 	}
 
 	if rowsAffected == 0 {
-		r.logger.Warn().Int("admin_id", id).Msg("admin not found for delete")
+		r.logger.Warn().Int("admin_id", int(params.AdminUserID)).Msg("admin not found for delete")
 		return adminror.NewNotFoundError("Admin")
 	}
 	return nil

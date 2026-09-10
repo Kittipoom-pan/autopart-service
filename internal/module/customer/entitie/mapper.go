@@ -8,6 +8,7 @@ import (
 func MapDbCustomerToCustomerRes(dbCustomer db.GetCustomerRow) *CustomerRes {
 	return &CustomerRes{
 		ID:          uint32(dbCustomer.CustomerID),
+		Uuid:        string(dbCustomer.Uuid),
 		FirstName:   dbCustomer.FirstName.String,
 		LastName:    dbCustomer.LastName.String,
 		Username:    dbCustomer.Username,
@@ -20,13 +21,15 @@ func MapDbCustomerToCustomerRes(dbCustomer db.GetCustomerRow) *CustomerRes {
 func MapDbCustomerToCustomerEntity(dbCustomer db.GetCustomerByUsernameRow) *Customer {
 	return &Customer{
 		ID:       uint32(dbCustomer.CustomerID),
+		Uuid:     string(dbCustomer.Uuid),
 		Username: dbCustomer.Username,
 		Password: dbCustomer.Password.String,
 	}
 }
 
-func MapCustomerToCustomerParam(customer *CustomerReq, createBy string) db.CreateCustomerParams {
+func MapCustomerToCustomerParam(customer *CustomerReq, createBy *int) db.CreateCustomerParams {
 	return db.CreateCustomerParams{
+		Uuid:        utils.NewUUIDBytes(),
 		FirstName:   utils.StringToNullString(customer.FirstName),
 		LastName:    utils.StringToNullString(customer.LastName),
 		Username:    customer.Username,
@@ -34,7 +37,7 @@ func MapCustomerToCustomerParam(customer *CustomerReq, createBy string) db.Creat
 		Password:    utils.StringToNullString(customer.Password),
 		BirthDate:   utils.NullTime(customer.BirthDate),
 		PhoneNumber: utils.StringToNullString(customer.PhoneNumber),
-		CreatedBy:   utils.StringToNullString(createBy),
+		CreatedBy:   utils.IntNullToNullInt32(createBy),
 		CreatedAt:   utils.NullTimeNow(),
 	}
 }
@@ -42,6 +45,7 @@ func MapCustomerToCustomerParam(customer *CustomerReq, createBy string) db.Creat
 func MapDbCustomersToCustomerRes(dbCustomer db.ListCustomersRow) *CustomerRes {
 	return &CustomerRes{
 		ID:          uint32(dbCustomer.CustomerID),
+		Uuid:        string(dbCustomer.Uuid),
 		FirstName:   dbCustomer.FirstName.String,
 		LastName:    dbCustomer.LastName.String,
 		Username:    dbCustomer.Username,
@@ -51,7 +55,7 @@ func MapDbCustomersToCustomerRes(dbCustomer db.ListCustomersRow) *CustomerRes {
 	}
 }
 
-func MapUpdateCustomerParams(id int, customer *CustomerReq, updatedBy string) db.UpdateCustomerParams {
+func MapUpdateCustomerParams(id int, customer *CustomerReq, updatedBy int) db.UpdateCustomerParams {
 	return db.UpdateCustomerParams{
 		CustomerID:  int32(id),
 		FirstName:   utils.StringToNullString(customer.FirstName),
@@ -60,15 +64,15 @@ func MapUpdateCustomerParams(id int, customer *CustomerReq, updatedBy string) db
 		Email:       customer.Email,
 		BirthDate:   utils.NullTime(customer.BirthDate),
 		PhoneNumber: utils.StringToNullString(customer.PhoneNumber),
-		UpdatedBy:   utils.StringToNullString(updatedBy),
+		UpdatedBy:   utils.IntToNullInt32(updatedBy),
 		UpdatedAt:   utils.NullTimeNow(),
 	}
 }
 
-func MapUpdateCustomerIsActiveParams(id int, isActive bool, updatedBy string) db.UpdateCustomerIsActiveParams {
+func MapUpdateCustomerIsActiveParams(id int, isActive bool, updatedBy int) db.UpdateCustomerIsActiveParams {
 	return db.UpdateCustomerIsActiveParams{
 		IsActive:   isActive,
-		UpdatedBy:  utils.StringToNullString(updatedBy),
+		UpdatedBy:  utils.IntToNullInt32(updatedBy),
 		UpdatedAt:  utils.NullTimeNow(),
 		CustomerID: int32(id),
 	}

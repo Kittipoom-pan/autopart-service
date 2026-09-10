@@ -44,8 +44,10 @@ func (u *partUsecase) GetAllParts(ctx context.Context) ([]*entitie.PartRes, erro
 	return parts, nil
 }
 
-func (u *partUsecase) CreatePart(ctx context.Context, part *entitie.PartReq) (int64, error) {
-	partID, err := u.repo.CreatePart(ctx, part)
+func (u *partUsecase) CreatePart(ctx context.Context, part *entitie.PartReq, userID *int) (int64, error) {
+	params := entitie.MapPartToPartParam(part, userID)
+
+	partID, err := u.repo.CreatePart(ctx, params)
 	if err != nil {
 		u.logger.Error().Err(err).Msg("Failed to create part")
 		return 0, err
@@ -54,7 +56,7 @@ func (u *partUsecase) CreatePart(ctx context.Context, part *entitie.PartReq) (in
 	return partID, nil
 }
 
-func (u *partUsecase) UpdatePart(ctx context.Context, id int, partReq *entitie.PartReq) error {
+func (u *partUsecase) UpdatePart(ctx context.Context, id int, partReq *entitie.PartReq, userID int) error {
 	u.logger.Info().Int("part_id", id).Msg("UpdatePart started")
 
 	if err := validation.ValidatePartRequest(partReq, true); err != nil {
@@ -68,7 +70,9 @@ func (u *partUsecase) UpdatePart(ctx context.Context, id int, partReq *entitie.P
 		return err
 	}
 
-	err = u.repo.UpdatePart(ctx, id, partReq)
+	params := entitie.MapUpdatePartParams(id, partReq, userID)
+
+	err = u.repo.UpdatePart(ctx, params)
 	if err != nil {
 		u.logger.Error().Err(err).Int("part_id", id).Msg("Failed to update part in repository")
 		return err
@@ -78,10 +82,11 @@ func (u *partUsecase) UpdatePart(ctx context.Context, id int, partReq *entitie.P
 	return nil
 }
 
-func (u *partUsecase) DeletePart(ctx context.Context, id int) error {
+func (u *partUsecase) DeletePart(ctx context.Context, id int, userID int) error {
 	u.logger.Info().Int("part_id", id).Msg("DeletePart started")
+	params := entitie.MapUpdatePartIsActiveParams(id, false, userID)
 
-	err := u.repo.DeletePart(ctx, id)
+	err := u.repo.DeletePart(ctx, params)
 	if err != nil {
 		u.logger.Error().Err(err).Int("part_id", id).Msg("Failed to delete part in repository")
 		return err

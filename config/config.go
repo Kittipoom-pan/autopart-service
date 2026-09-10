@@ -44,7 +44,7 @@ func LoadConfigs() (*Config, error) {
 
 	once.Do(func() {
 		if err := godotenv.Load(".env"); err != nil {
-			log.Println("Warning: No .env file found")
+			log.Fatal("Error loading .env file")
 		}
 
 		configInstance = &Config{

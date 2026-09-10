@@ -52,7 +52,8 @@ func (u *customerUsecase) CreateCustomer(ctx context.Context, customer *entitie.
 	}
 
 	customer.Password = hashedPassword
-	customerID, err := u.repo.CreateCustomer(ctx, customer)
+	params := entitie.MapCustomerToCustomerParam(customer, nil)
+	customerID, err := u.repo.CreateCustomer(ctx, params)
 	if err != nil {
 		u.logger.Error().Err(err).Msg("Failed to create customer")
 		return 0, err
@@ -61,23 +62,26 @@ func (u *customerUsecase) CreateCustomer(ctx context.Context, customer *entitie.
 	return customerID, nil
 }
 
-func (u *customerUsecase) UpdateCustomer(ctx context.Context, id int, user *entitie.CustomerReq) error {
-	u.logger.Info().Int("customer_id", id).Msg("UpdateCustomer started")
+func (u *customerUsecase) UpdateCustomer(ctx context.Context, customerID int, customer *entitie.CustomerReq, userID int) error {
+	u.logger.Info().Int("customer_id", customerID).Msg("UpdateCustomer started")
 
-	err := u.repo.UpdateCustomer(ctx, id, user)
+	params := entitie.MapUpdateCustomerParams(customerID, customer, userID)
+
+	err := u.repo.UpdateCustomer(ctx, params)
 	if err != nil {
-		u.logger.Error().Err(err).Int("customer_id", id).Msg("Failed to update customer in repository")
+		u.logger.Error().Err(err).Int("customer_id", customerID).Msg("Failed to update customer in repository")
 		return err
 	}
 
-	u.logger.Info().Int("customer_id", id).Msg("UpdateCustomer completed successfully")
+	u.logger.Info().Int("customer_id", customerID).Msg("UpdateCustomer completed successfully")
 	return nil
 }
 
-func (u *customerUsecase) DeleteCustomer(ctx context.Context, id int) error {
+func (u *customerUsecase) DeleteCustomer(ctx context.Context, id int, userId int) error {
 	u.logger.Info().Int("customer_id", id).Msg("DeleteCustomer started")
+	params := entitie.MapUpdateCustomerIsActiveParams(id, false, userId)
 
-	err := u.repo.DeleteCustomer(ctx, id)
+	err := u.repo.DeleteCustomer(ctx, params)
 	if err != nil {
 		u.logger.Error().Err(err).Int("customer_id", id).Msg("Failed to delete customer in repository")
 		return err

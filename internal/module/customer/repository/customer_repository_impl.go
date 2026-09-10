@@ -39,13 +39,11 @@ func (r *customerRepository) GetCustomerByID(ctx context.Context, id int) (*enti
 	return entitie.MapDbCustomerToCustomerRes(customer), nil
 }
 
-func (r *customerRepository) CreateCustomer(ctx context.Context, customer *entitie.CustomerReq) (int64, error) {
-	params := entitie.MapCustomerToCustomerParam(customer, "SYSTEM")
-
+func (r *customerRepository) CreateCustomer(ctx context.Context, params db.CreateCustomerParams) (int64, error) {
 	result, err := r.queries.CreateCustomer(ctx, params)
 	if err != nil {
 		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
-			r.logger.Warn().Err(mysqlErr).Str("customer", customer.Username).Msg("duplicate key error")
+			r.logger.Warn().Err(mysqlErr).Str("customer", params.Username).Msg("duplicate key error")
 			return 0, customerror.NewAPIError(common.StatusConflict, "Username or email or phone number already exists")
 		}
 		r.logger.Error().Err(err).Msg("failed to create customer in database")
@@ -75,50 +73,46 @@ func (r *customerRepository) GetAllCustomers(ctx context.Context) ([]*entitie.Cu
 	return customerEntities, nil
 }
 
-func (r *customerRepository) UpdateCustomer(ctx context.Context, id int, customer *entitie.CustomerReq) error {
-	params := entitie.MapUpdateCustomerParams(id, customer, "SYSTEM")
-
+func (r *customerRepository) UpdateCustomer(ctx context.Context, params db.UpdateCustomerParams) error {
 	result, err := r.queries.UpdateCustomer(ctx, params)
 	if err != nil {
 		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
-			r.logger.Warn().Err(mysqlErr).Str("customer", customer.Username).Msg("duplicate key error")
+			r.logger.Warn().Err(mysqlErr).Str("customer", params.Username).Msg("duplicate key error")
 			return customerror.NewAPIError(common.StatusConflict, "Username or email or phone number already exists")
 		}
-		r.logger.Error().Err(err).Int("customer_id", id).Msg("failed to update customer in database")
+		r.logger.Error().Err(err).Int("customer_id", int(params.CustomerID)).Msg("failed to update customer in database")
 		return customerror.NewAPIError(common.StatusError, "Database error: "+err.Error())
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		r.logger.Error().Err(err).Int("customer_id", id).Msg("failed to get rows affected")
+		r.logger.Error().Err(err).Int("customer_id", int(params.CustomerID)).Msg("failed to get rows affected")
 		return customerror.NewAPIError(common.StatusError, "Database error: "+err.Error())
 	}
 
 	if rowsAffected == 0 {
-		r.logger.Warn().Int("customer_id", id).Msg("customer not found for update")
+		r.logger.Warn().Int("customer_id", int(params.CustomerID)).Msg("customer not found for update")
 		return customerror.NewNotFoundError("Customer")
 	}
 
 	return nil
 }
 
-func (r *customerRepository) DeleteCustomer(ctx context.Context, id int) error {
-	params := entitie.MapUpdateCustomerIsActiveParams(id, false, "SYSTEM")
-
+func (r *customerRepository) DeleteCustomer(ctx context.Context, params db.UpdateCustomerIsActiveParams) error {
 	result, err := r.queries.UpdateCustomerIsActive(ctx, params)
 	if err != nil {
-		r.logger.Error().Err(err).Int("customer_id", id).Msg("failed to delete customer in database")
+		r.logger.Error().Err(err).Int("customer_id", int(params.CustomerID)).Msg("failed to delete customer in database")
 		return customerror.NewAPIError(common.StatusError, "Database error: "+err.Error())
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		r.logger.Error().Err(err).Int("customer_id", id).Msg("failed to get rows affected")
+		r.logger.Error().Err(err).Int("customer_id", int(params.CustomerID)).Msg("failed to get rows affected")
 		return customerror.NewAPIError(common.StatusError, "Database error: "+err.Error())
 	}
 
 	if rowsAffected == 0 {
-		r.logger.Warn().Int("customer_id", id).Msg("customer not found for delete")
+		r.logger.Warn().Int("customer_id", int(params.CustomerID)).Msg("customer not found for delete")
 		return customerror.NewNotFoundError("Customer")
 	}
 	return nil

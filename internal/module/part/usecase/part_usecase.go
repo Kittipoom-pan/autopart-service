@@ -9,7 +9,7 @@ import (
 type PartUsecase interface {
 	GetPartByID(ctx context.Context, id int) (*entitie.PartRes, error)
 	GetAllParts(ctx context.Context) ([]*entitie.PartRes, error)
-	CreatePart(ctx context.Context, user *entitie.PartReq) (int64, error)
-	UpdatePart(ctx context.Context, id int, user *entitie.PartReq) error
-	DeletePart(ctx context.Context, id int) error
+	CreatePart(ctx context.Context, user *entitie.PartReq, userID *int) (int64, error)
+	UpdatePart(ctx context.Context, id int, user *entitie.PartReq, userID int) error
+	DeletePart(ctx context.Context, id int, userID int) error
 }

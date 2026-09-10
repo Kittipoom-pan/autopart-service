@@ -7,6 +7,7 @@ import (
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/entitie"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/usecase"
 	customerror "github.com/Kittipoom-pan/autopart-service/pkg/error"
+	"github.com/Kittipoom-pan/autopart-service/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -77,8 +78,13 @@ func (h *CustomerController) CreateCustomer(c *fiber.Ctx) error {
 }
 
 func (h *CustomerController) UpdateCustomer(c *fiber.Ctx) error {
+	userID, err := utils.GetUserID(c, h.logger)
+	if err != nil {
+		return helper.RespondError(c, err)
+	}
+
 	idStr := c.Params("id")
-	id, err := strconv.Atoi(idStr)
+	customerID, err := strconv.Atoi(idStr)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("Invalid customer ID format")
 		return helper.RespondError(c, customerror.InvalidRequestData(map[string]string{"id": "invalid customer ID format"}))
@@ -90,28 +96,33 @@ func (h *CustomerController) UpdateCustomer(c *fiber.Ctx) error {
 		return helper.RespondError(c, customerror.InvalidRequestData(map[string]string{"body": "failed to parse request body"}))
 	}
 
-	if err := h.usecase.UpdateCustomer(c.Context(), id, customerReq); err != nil {
-		h.logger.Error().Err(err).Int("customer_id", id).Msg("Failed to update customer")
+	if err := h.usecase.UpdateCustomer(c.Context(), customerID, customerReq, userID); err != nil {
+		h.logger.Error().Err(err).Int("customer_id", customerID).Msg("Failed to update customer")
 		return helper.RespondError(c, err)
 	}
 
-	h.logger.Info().Int("customer_id", id).Msg("Customer updated successfully")
+	h.logger.Info().Int("customer_id", customerID).Msg("Customer updated successfully")
 	return helper.RespondSuccess(c, fiber.StatusOK, nil, "Customer updated successfully")
 }
 
 func (h *CustomerController) DeleteCustomer(c *fiber.Ctx) error {
-	idStr := c.Params("id")
-	id, err := strconv.Atoi(idStr)
+	userID, err := utils.GetUserID(c, h.logger)
 	if err != nil {
-		h.logger.Error().Err(err).Msg("Invalid customer ID format")
-		return helper.RespondError(c, customerror.InvalidRequestData(map[string]string{"id": "invalid customer ID format"}))
-	}
-
-	if err := h.usecase.DeleteCustomer(c.Context(), id); err != nil {
-		h.logger.Error().Err(err).Int("customer_id", id).Msg("Failed to delete customer")
 		return helper.RespondError(c, err)
 	}
 
-	h.logger.Info().Int("customer_id", id).Msg("Customer deleted successfully")
+	idStr := c.Params("id")
+	customerID, err := strconv.Atoi(idStr)
+	if err != nil {
+		h.logger.Error().Err(err).Str("id_param", idStr).Msg("Invalid customer ID format")
+		return helper.RespondError(c, customerror.InvalidRequestData(map[string]string{"id": "invalid customer ID format"}))
+	}
+
+	if err := h.usecase.DeleteCustomer(c.Context(), customerID, userID); err != nil {
+		h.logger.Error().Err(err).Int("customer_id", customerID).Msg("Failed to delete customer")
+		return helper.RespondError(c, err)
+	}
+
+	h.logger.Info().Int("customer_id", customerID).Int("by_user", userID).Msg("Customer deleted successfully")
 	return helper.RespondSuccess(c, fiber.StatusOK, nil, "Customer deleted successfully")
 }

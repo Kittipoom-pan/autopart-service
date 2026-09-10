@@ -13,6 +13,28 @@ type NotFoundError struct {
 	Resource string
 }
 
+type UnauthorizedError struct {
+	Message string
+}
+
+type ForbiddenError struct {
+	Message string
+}
+
+func (e *ForbiddenError) Error() string {
+	if e.Message == "" {
+		return "Permission denied"
+	}
+	return e.Message
+}
+
+func (e *UnauthorizedError) Error() string {
+	if e.Message == "" {
+		return "Unauthorized access"
+	}
+	return e.Message
+}
+
 func (e APIError) Error() string {
 	return e.Message
 }
@@ -31,6 +53,14 @@ func NewAPIError(code int, message string) APIError {
 		Message: message,
 	}
 	return apiErr
+}
+
+func NewUnauthorizedError(message string) *UnauthorizedError {
+	return &UnauthorizedError{Message: message}
+}
+
+func NewForbiddenError(message string) *ForbiddenError {
+	return &ForbiddenError{Message: message}
 }
 
 func InvalidRequestData(errors map[string]string) APIError {

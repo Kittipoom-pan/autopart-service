@@ -89,11 +89,19 @@ func StringPtrToNullString(s *string) sql.NullString {
 }
 
 // *int → sql.NullInt32
-func IntToNullInt32(i *int) sql.NullInt32 {
+func IntNullToNullInt32(i *int) sql.NullInt32 {
 	if i != nil {
 		return sql.NullInt32{Int32: int32(*i), Valid: true}
 	}
 	return sql.NullInt32{}
+}
+
+// int → sql.NullInt32
+func IntToNullInt32(i int) sql.NullInt32 {
+	return sql.NullInt32{
+		Int32: int32(i),
+		Valid: true,
+	}
 }
 
 // *int → sql.NullInt64
