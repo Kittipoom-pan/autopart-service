@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 
+	"github.com/Kittipoom-pan/autopart-service/internal/helper"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/part/entity"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/part/repository"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/part/usecase/validation"
@@ -24,12 +25,20 @@ func NewPartUsecase(repo repository.PartRepository) PartUsecase {
 
 func (u *partUsecase) GetPartByID(ctx context.Context, id int) (*entity.PartRes, error) {
 	u.logger.Debug().Int("part_id", id).Msg("GetPartByID")
-	return u.repo.GetPartByID(ctx, id)
+	part, err := u.repo.GetPartByID(ctx, id)
+	if err != nil {
+		return nil, helper.MapDBErrorToAPIError(err, "Part")
+	}
+	return part, nil
 }
 
 func (u *partUsecase) GetAllParts(ctx context.Context) ([]*entity.PartRes, error) {
 	u.logger.Debug().Msg("GetAllParts")
-	return u.repo.GetAllParts(ctx)
+	parts, err := u.repo.GetAllParts(ctx)
+	if err != nil {
+		return nil, helper.MapDBErrorToAPIError(err, "Part")
+	}
+	return parts, nil
 }
 
 func (u *partUsecase) CreatePart(ctx context.Context, part *entity.PartReq, userID *int) (int64, error) {
@@ -40,7 +49,7 @@ func (u *partUsecase) CreatePart(ctx context.Context, part *entity.PartReq, user
 
 	partID, err := u.repo.CreatePart(ctx, part, userID)
 	if err != nil {
-		return 0, err
+		return 0, helper.MapDBErrorToAPIError(err, "Part")
 	}
 
 	u.logger.Info().Int64("part_id", partID).Msg("part created successfully")
@@ -54,11 +63,11 @@ func (u *partUsecase) UpdatePart(ctx context.Context, id int, partReq *entity.Pa
 	}
 
 	if _, err := u.repo.GetPartByID(ctx, id); err != nil {
-		return err
+		return helper.MapDBErrorToAPIError(err, "Part")
 	}
 
 	if err := u.repo.UpdatePart(ctx, id, partReq, userID); err != nil {
-		return err
+		return helper.MapDBErrorToAPIError(err, "Part")
 	}
 
 	u.logger.Info().Int("part_id", id).Msg("part updated successfully")
@@ -67,7 +76,7 @@ func (u *partUsecase) UpdatePart(ctx context.Context, id int, partReq *entity.Pa
 
 func (u *partUsecase) DeletePart(ctx context.Context, id int, userID int) error {
 	if err := u.repo.DeletePart(ctx, id, userID); err != nil {
-		return err
+		return helper.MapDBErrorToAPIError(err, "Part")
 	}
 
 	u.logger.Info().Int("part_id", id).Msg("part deleted successfully")

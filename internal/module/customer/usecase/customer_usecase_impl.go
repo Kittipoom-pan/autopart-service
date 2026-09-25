@@ -5,6 +5,7 @@ import (
 
 	"github.com/Kittipoom-pan/autopart-service/internal/auth"
 	"github.com/Kittipoom-pan/autopart-service/internal/common"
+	"github.com/Kittipoom-pan/autopart-service/internal/helper"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/entity"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/repository"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/usecase/validation"
@@ -27,12 +28,20 @@ func NewCustomerUsecase(repo repository.CustomerRepository) CustomerUsecase {
 
 func (u *customerUsecase) GetCustomerByID(ctx context.Context, id int) (*entity.CustomerRes, error) {
 	u.logger.Debug().Int("customer_id", id).Msg("GetCustomerByID")
-	return u.repo.GetCustomerByID(ctx, id)
+	customer, err := u.repo.GetCustomerByID(ctx, id)
+	if err != nil {
+		return nil, helper.MapDBErrorToAPIError(err, "Customer")
+	}
+	return customer, nil
 }
 
 func (u *customerUsecase) GetAllCustomers(ctx context.Context) ([]*entity.CustomerRes, error) {
 	u.logger.Debug().Msg("GetAllCustomers")
-	return u.repo.GetAllCustomers(ctx)
+	customers, err := u.repo.GetAllCustomers(ctx)
+	if err != nil {
+		return nil, helper.MapDBErrorToAPIError(err, "Customer")
+	}
+	return customers, nil
 }
 
 func (u *customerUsecase) CreateCustomer(ctx context.Context, customer *entity.CustomerReq) (int64, error) {
@@ -52,7 +61,7 @@ func (u *customerUsecase) CreateCustomer(ctx context.Context, customer *entity.C
 
 	customerID, err := u.repo.CreateCustomer(ctx, &req, nil)
 	if err != nil {
-		return 0, err
+		return 0, helper.MapDBErrorToAPIError(err, "Customer")
 	}
 
 	u.logger.Info().Int64("customer_id", customerID).Msg("customer created successfully")
@@ -66,7 +75,7 @@ func (u *customerUsecase) UpdateCustomer(ctx context.Context, customerID int, cu
 	}
 
 	if err := u.repo.UpdateCustomer(ctx, customerID, customer, userID); err != nil {
-		return err
+		return helper.MapDBErrorToAPIError(err, "Customer")
 	}
 
 	u.logger.Info().Int("customer_id", customerID).Msg("customer updated successfully")
@@ -75,7 +84,7 @@ func (u *customerUsecase) UpdateCustomer(ctx context.Context, customerID int, cu
 
 func (u *customerUsecase) DeleteCustomer(ctx context.Context, id int, userId int) error {
 	if err := u.repo.DeleteCustomer(ctx, id, userId); err != nil {
-		return err
+		return helper.MapDBErrorToAPIError(err, "Customer")
 	}
 
 	u.logger.Info().Int("customer_id", id).Msg("customer deleted successfully")

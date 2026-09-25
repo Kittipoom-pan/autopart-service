@@ -4,11 +4,9 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/Kittipoom-pan/autopart-service/internal/common"
+	dberror "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/dberror"
 	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/admin/entity"
-	adminerror "github.com/Kittipoom-pan/autopart-service/pkg/error"
-	"github.com/go-sql-driver/mysql"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -30,10 +28,10 @@ func (r *adminRepository) GetAdminByID(ctx context.Context, id int) (*entity.Adm
 	if err != nil {
 		if err == sql.ErrNoRows {
 			r.logger.Warn().Int("admin_id", id).Msg("admin not found in database")
-			return nil, adminerror.NewNotFoundError("Admin")
+			return nil, dberror.NewDBError(dberror.ErrRecordNotFound, "admin not found")
 		}
 		r.logger.Error().Err(err).Int("admin_id", id).Msg("failed to get admin from database")
-		return nil, adminerror.NewAPIError(common.StatusError, "failed to get admin")
+		return nil, dberror.NewDBError(dberror.ErrDatabaseInternal, err.Error())
 	}
 
 	return entity.MapDbAdminToAdminRes(admin), nil
@@ -43,18 +41,19 @@ func (r *adminRepository) CreateAdmin(ctx context.Context, admin *entity.AdminRe
 	params := entity.MapAdminToAdminParam(admin, createdBy)
 	result, err := r.queries.CreateAdmin(ctx, params)
 	if err != nil {
-		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
-			r.logger.Warn().Err(mysqlErr).Str("admin", params.Username).Msg("duplicate key error")
-			return 0, adminerror.NewAPIError(common.StatusConflict, "Username or email already exists")
+		dbErr := dberror.HandleMySQLError(err)
+		if dberror.IsDuplicateKey(dbErr) {
+			r.logger.Warn().Err(dbErr).Str("admin", params.Username).Msg("duplicate key error")
+			return 0, dbErr
 		}
 		r.logger.Error().Err(err).Msg("failed to create admin in database")
-		return 0, adminerror.NewAPIError(common.StatusError, "failed to create admin")
+		return 0, dbErr
 	}
 
 	adminID, err := result.LastInsertId()
 	if err != nil {
 		r.logger.Error().Err(err).Msg("failed to retrieve admin ID from database")
-		return 0, adminerror.NewAPIError(common.StatusError, "failed to create admin")
+		return 0, dberror.NewDBError(dberror.ErrDatabaseInternal, err.Error())
 	}
 
 	return adminID, nil
@@ -64,7 +63,7 @@ func (r *adminRepository) GetAllAdmins(ctx context.Context) ([]*entity.AdminRes,
 	admins, err := r.queries.ListAdminUsers(ctx)
 	if err != nil {
 		r.logger.Error().Err(err).Msg("failed to list admins from database")
-		return nil, adminerror.NewAPIError(common.StatusError, "failed to list admins")
+		return nil, dberror.NewDBError(dberror.ErrDatabaseInternal, err.Error())
 	}
 
 	adminEntities := make([]*entity.AdminRes, 0, len(admins))
@@ -78,23 +77,24 @@ func (r *adminRepository) UpdateAdmin(ctx context.Context, adminID int, admin *e
 	params := entity.MapUpdateAdminParams(adminID, admin, &updatedBy)
 	result, err := r.queries.UpdateAdmin(ctx, params)
 	if err != nil {
-		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
-			r.logger.Warn().Err(mysqlErr).Str("admin", params.Username).Msg("duplicate key error")
-			return adminerror.NewAPIError(common.StatusConflict, "Username or email already exists")
+		dbErr := dberror.HandleMySQLError(err)
+		if dberror.IsDuplicateKey(dbErr) {
+			r.logger.Warn().Err(dbErr).Str("admin", params.Username).Msg("duplicate key error")
+			return dbErr
 		}
 		r.logger.Error().Err(err).Int("admin_id", adminID).Msg("failed to update admin in database")
-		return adminerror.NewAPIError(common.StatusError, "failed to update admin")
+		return dbErr
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		r.logger.Error().Err(err).Int("admin_id", adminID).Msg("failed to get rows affected")
-		return adminerror.NewAPIError(common.StatusError, "failed to update admin")
+		return dberror.NewDBError(dberror.ErrDatabaseInternal, err.Error())
 	}
 
 	if rowsAffected == 0 {
 		r.logger.Warn().Int("admin_id", adminID).Msg("admin not found for update")
-		return adminerror.NewNotFoundError("Admin")
+		return dberror.NewDBError(dberror.ErrRecordNotFound, "admin not found")
 	}
 
 	return nil
@@ -105,18 +105,18 @@ func (r *adminRepository) DeleteAdmin(ctx context.Context, adminID int, updatedB
 	result, err := r.queries.UpdateAdminIsActive(ctx, params)
 	if err != nil {
 		r.logger.Error().Err(err).Int("admin_id", adminID).Msg("failed to delete admin in database")
-		return adminerror.NewAPIError(common.StatusError, "failed to delete admin")
+		return dberror.NewDBError(dberror.ErrDatabaseInternal, err.Error())
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		r.logger.Error().Err(err).Int("admin_id", adminID).Msg("failed to get rows affected")
-		return adminerror.NewAPIError(common.StatusError, "failed to delete admin")
+		return dberror.NewDBError(dberror.ErrDatabaseInternal, err.Error())
 	}
 
 	if rowsAffected == 0 {
 		r.logger.Warn().Int("admin_id", adminID).Msg("admin not found for delete")
-		return adminerror.NewNotFoundError("Admin")
+		return dberror.NewDBError(dberror.ErrRecordNotFound, "admin not found")
 	}
 	return nil
 }
@@ -126,10 +126,10 @@ func (r *adminRepository) GetAdminByUsername(ctx context.Context, username strin
 	if err != nil {
 		if err == sql.ErrNoRows {
 			r.logger.Warn().Str("username", username).Msg("admin not found in database")
-			return nil, adminerror.NewNotFoundError("Admin")
+			return nil, dberror.NewDBError(dberror.ErrRecordNotFound, "admin not found")
 		}
 		r.logger.Error().Err(err).Str("username", username).Msg("failed to get admin from database")
-		return nil, adminerror.NewAPIError(common.StatusError, "failed to get admin")
+		return nil, dberror.NewDBError(dberror.ErrDatabaseInternal, err.Error())
 	}
 
 	return entity.MapDbAdminToAdminEntity(admin), nil

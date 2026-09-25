@@ -5,6 +5,7 @@ import (
 
 	"github.com/Kittipoom-pan/autopart-service/internal/auth"
 	"github.com/Kittipoom-pan/autopart-service/internal/common"
+	"github.com/Kittipoom-pan/autopart-service/internal/helper"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/admin/entity"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/admin/repository"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/admin/usecase/validation"
@@ -27,12 +28,20 @@ func NewAdminUsecase(repo repository.AdminRepository) AdminUsecase {
 
 func (u *adminUsecase) GetAdminByID(ctx context.Context, id int) (*entity.AdminRes, error) {
 	u.logger.Debug().Int("admin_id", id).Msg("GetAdminByID")
-	return u.repo.GetAdminByID(ctx, id)
+	admin, err := u.repo.GetAdminByID(ctx, id)
+	if err != nil {
+		return nil, helper.MapDBErrorToAPIError(err, "Admin")
+	}
+	return admin, nil
 }
 
 func (u *adminUsecase) GetAllAdmins(ctx context.Context) ([]*entity.AdminRes, error) {
 	u.logger.Debug().Msg("GetAllAdmins")
-	return u.repo.GetAllAdmins(ctx)
+	admins, err := u.repo.GetAllAdmins(ctx)
+	if err != nil {
+		return nil, helper.MapDBErrorToAPIError(err, "Admin")
+	}
+	return admins, nil
 }
 
 func (u *adminUsecase) CreateAdmin(ctx context.Context, admin *entity.AdminReq, userID *int) (int64, error) {
@@ -52,7 +61,7 @@ func (u *adminUsecase) CreateAdmin(ctx context.Context, admin *entity.AdminReq, 
 
 	adminID, err := u.repo.CreateAdmin(ctx, &req, userID)
 	if err != nil {
-		return 0, err
+		return 0, helper.MapDBErrorToAPIError(err, "Admin")
 	}
 
 	u.logger.Info().Int64("admin_id", adminID).Msg("admin created successfully")
@@ -75,7 +84,7 @@ func (u *adminUsecase) UpdateAdmin(ctx context.Context, adminID int, userID int,
 	req.Password = hashedPassword
 
 	if err := u.repo.UpdateAdmin(ctx, adminID, &req, userID); err != nil {
-		return err
+		return helper.MapDBErrorToAPIError(err, "Admin")
 	}
 
 	u.logger.Info().Int("admin_id", adminID).Msg("admin updated successfully")
@@ -84,7 +93,7 @@ func (u *adminUsecase) UpdateAdmin(ctx context.Context, adminID int, userID int,
 
 func (u *adminUsecase) DeleteAdmin(ctx context.Context, adminID int, userID int) error {
 	if err := u.repo.DeleteAdmin(ctx, adminID, userID); err != nil {
-		return err
+		return helper.MapDBErrorToAPIError(err, "Admin")
 	}
 
 	u.logger.Info().Int("admin_id", adminID).Msg("admin deleted successfully")

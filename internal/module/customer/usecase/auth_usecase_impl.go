@@ -2,11 +2,12 @@ package usecase
 
 import (
 	"context"
-	"errors"
 
 	"github.com/Kittipoom-pan/autopart-service/config"
 	"github.com/Kittipoom-pan/autopart-service/internal/auth"
 	"github.com/Kittipoom-pan/autopart-service/internal/common"
+	"github.com/Kittipoom-pan/autopart-service/internal/helper"
+	dberror "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/dberror"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/entity"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/repository"
 	customerror "github.com/Kittipoom-pan/autopart-service/pkg/error"
@@ -33,13 +34,12 @@ func (u *authUsecase) Login(ctx context.Context, request *entity.LoginRequest) (
 
 	customer, err := u.repo.GetCustomerByUsername(ctx, request.Username)
 	if err != nil {
-		var notFound *customerror.NotFoundError
-		if errors.As(err, &notFound) {
+		if dberror.IsRecordNotFound(err) {
 			u.logger.Warn().Str("username", request.Username).Msg("login failed: customer not found")
 			return nil, invalidCreds
 		}
 		u.logger.Error().Err(err).Msg("failed to get customer for login")
-		return nil, err
+		return nil, helper.MapDBErrorToAPIError(err, "Customer")
 	}
 
 	if err := auth.VerifyPassword(customer.Password, request.Password); err != nil {

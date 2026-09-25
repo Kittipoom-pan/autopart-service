@@ -4,11 +4,9 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/Kittipoom-pan/autopart-service/internal/common"
+	dberror "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/dberror"
 	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/entity"
-	customererror "github.com/Kittipoom-pan/autopart-service/pkg/error"
-	"github.com/go-sql-driver/mysql"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -30,10 +28,10 @@ func (r *customerRepository) GetCustomerByID(ctx context.Context, id int) (*enti
 	if err != nil {
 		if err == sql.ErrNoRows {
 			r.logger.Warn().Int("customer_id", id).Msg("customer not found in database")
-			return nil, customererror.NewNotFoundError("Customer")
+			return nil, dberror.NewDBError(dberror.ErrRecordNotFound, "customer not found")
 		}
 		r.logger.Error().Err(err).Int("customer_id", id).Msg("failed to get customer from database")
-		return nil, customererror.NewAPIError(common.StatusError, "failed to get customer")
+		return nil, dberror.NewDBError(dberror.ErrDatabaseInternal, err.Error())
 	}
 
 	return entity.MapDbCustomerToCustomerRes(customer), nil
@@ -43,18 +41,19 @@ func (r *customerRepository) CreateCustomer(ctx context.Context, customer *entit
 	params := entity.MapCustomerToCustomerParam(customer, createdBy)
 	result, err := r.queries.CreateCustomer(ctx, params)
 	if err != nil {
-		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
-			r.logger.Warn().Err(mysqlErr).Str("customer", params.Username).Msg("duplicate key error")
-			return 0, customererror.NewAPIError(common.StatusConflict, "Username or email or phone number already exists")
+		dbErr := dberror.HandleMySQLError(err)
+		if dberror.IsDuplicateKey(dbErr) {
+			r.logger.Warn().Err(dbErr).Str("customer", params.Username).Msg("duplicate key error")
+			return 0, dbErr
 		}
 		r.logger.Error().Err(err).Msg("failed to create customer in database")
-		return 0, customererror.NewAPIError(common.StatusError, "failed to create customer")
+		return 0, dbErr
 	}
 
 	customerID, err := result.LastInsertId()
 	if err != nil {
 		r.logger.Error().Err(err).Msg("failed to retrieve customer ID from database")
-		return 0, customererror.NewAPIError(common.StatusError, "failed to create customer")
+		return 0, dberror.NewDBError(dberror.ErrDatabaseInternal, err.Error())
 	}
 
 	return customerID, nil
@@ -64,7 +63,7 @@ func (r *customerRepository) GetAllCustomers(ctx context.Context) ([]*entity.Cus
 	customers, err := r.queries.ListCustomers(ctx)
 	if err != nil {
 		r.logger.Error().Err(err).Msg("failed to list customers from database")
-		return nil, customererror.NewAPIError(common.StatusError, "failed to list customers")
+		return nil, dberror.NewDBError(dberror.ErrDatabaseInternal, err.Error())
 	}
 
 	customerEntities := make([]*entity.CustomerRes, 0, len(customers))
@@ -78,23 +77,24 @@ func (r *customerRepository) UpdateCustomer(ctx context.Context, customerID int,
 	params := entity.MapUpdateCustomerParams(customerID, customer, updatedBy)
 	result, err := r.queries.UpdateCustomer(ctx, params)
 	if err != nil {
-		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
-			r.logger.Warn().Err(mysqlErr).Str("customer", params.Username).Msg("duplicate key error")
-			return customererror.NewAPIError(common.StatusConflict, "Username or email or phone number already exists")
+		dbErr := dberror.HandleMySQLError(err)
+		if dberror.IsDuplicateKey(dbErr) {
+			r.logger.Warn().Err(dbErr).Str("customer", params.Username).Msg("duplicate key error")
+			return dbErr
 		}
 		r.logger.Error().Err(err).Int("customer_id", customerID).Msg("failed to update customer in database")
-		return customererror.NewAPIError(common.StatusError, "failed to update customer")
+		return dbErr
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		r.logger.Error().Err(err).Int("customer_id", customerID).Msg("failed to get rows affected")
-		return customererror.NewAPIError(common.StatusError, "failed to update customer")
+		return dberror.NewDBError(dberror.ErrDatabaseInternal, err.Error())
 	}
 
 	if rowsAffected == 0 {
 		r.logger.Warn().Int("customer_id", customerID).Msg("customer not found for update")
-		return customererror.NewNotFoundError("Customer")
+		return dberror.NewDBError(dberror.ErrRecordNotFound, "customer not found")
 	}
 
 	return nil
@@ -105,18 +105,18 @@ func (r *customerRepository) DeleteCustomer(ctx context.Context, customerID int,
 	result, err := r.queries.UpdateCustomerIsActive(ctx, params)
 	if err != nil {
 		r.logger.Error().Err(err).Int("customer_id", customerID).Msg("failed to delete customer in database")
-		return customererror.NewAPIError(common.StatusError, "failed to delete customer")
+		return dberror.NewDBError(dberror.ErrDatabaseInternal, err.Error())
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		r.logger.Error().Err(err).Int("customer_id", customerID).Msg("failed to get rows affected")
-		return customererror.NewAPIError(common.StatusError, "failed to delete customer")
+		return dberror.NewDBError(dberror.ErrDatabaseInternal, err.Error())
 	}
 
 	if rowsAffected == 0 {
 		r.logger.Warn().Int("customer_id", customerID).Msg("customer not found for delete")
-		return customererror.NewNotFoundError("Customer")
+		return dberror.NewDBError(dberror.ErrRecordNotFound, "customer not found")
 	}
 	return nil
 }
@@ -126,10 +126,10 @@ func (r *customerRepository) GetCustomerByUsername(ctx context.Context, username
 	if err != nil {
 		if err == sql.ErrNoRows {
 			r.logger.Warn().Str("username", username).Msg("customer not found in database")
-			return nil, customererror.NewNotFoundError("Customer")
+			return nil, dberror.NewDBError(dberror.ErrRecordNotFound, "customer not found")
 		}
 		r.logger.Error().Err(err).Str("username", username).Msg("failed to get customer from database")
-		return nil, customererror.NewAPIError(common.StatusError, "failed to get customer")
+		return nil, dberror.NewDBError(dberror.ErrDatabaseInternal, err.Error())
 	}
 
 	return entity.MapDbCustomerToCustomerEntity(customer), nil
