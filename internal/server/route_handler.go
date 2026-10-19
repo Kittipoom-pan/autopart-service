@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/Kittipoom-pan/autopart-service/internal/middleware"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/admin"
+	"github.com/Kittipoom-pan/autopart-service/internal/module/cart"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/order"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/part"
@@ -47,6 +48,18 @@ func (s *Server) MapHandlers() error {
 	orderPrivate := v1.Group("/order")
 	order.SetupPrivateRoutes(
 		orderPrivate, s.Conn, s.Cfg,
+		middleware.JWTMiddleware(s.Cfg), s.Logger,
+	)
+
+	cartPrivate := v1.Group("/cart")
+	cart.SetupPrivateRoutes(
+		cartPrivate, s.Conn, s.Cfg,
+		middleware.JWTMiddleware(s.Cfg), s.Logger,
+	)
+
+	cartRoot := s.App.Group("/cart")
+	cart.SetupPrivateRoutes(
+		cartRoot, s.Conn, s.Cfg,
 		middleware.JWTMiddleware(s.Cfg), s.Logger,
 	)
 
