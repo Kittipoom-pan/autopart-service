@@ -3,6 +3,8 @@ package utils
 import (
 	"database/sql"
 	"time"
+
+	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"
 )
 
 // NullString → string
@@ -19,14 +21,6 @@ func NullInt64ToInt64(ni sql.NullInt64) int64 {
 		return ni.Int64
 	}
 	return 0
-}
-
-// NullTime → *time.Time
-func NullTimeToTime(nt sql.NullTime) *time.Time {
-	if nt.Valid {
-		return &nt.Time
-	}
-	return nil
 }
 
 // string → NullString
@@ -51,7 +45,7 @@ func TimeToNullTime(t time.Time) sql.NullTime {
 }
 
 // sql.NullXXX → pointer
-func ToStringPtr(ns sql.NullString) *string {
+func NullStringToStringPtr(ns sql.NullString) *string {
 	if ns.Valid {
 		return &ns.String
 	}
@@ -66,6 +60,13 @@ func ToInt32Ptr(ni sql.NullInt32) *int {
 	return nil
 }
 
+func NullInt32ToInt32Ptr(ni sql.NullInt32) *int32 {
+	if ni.Valid {
+		return &ni.Int32
+	}
+	return nil
+}
+
 func ToInt64Ptr(ni sql.NullInt64) *int64 {
 	if ni.Valid {
 		return &ni.Int64
@@ -73,7 +74,7 @@ func ToInt64Ptr(ni sql.NullInt64) *int64 {
 	return nil
 }
 
-func ToTimePtr(nt sql.NullTime) *time.Time {
+func NullTimeToTimePtr(nt sql.NullTime) *time.Time {
 	if nt.Valid {
 		return &nt.Time
 	}
@@ -96,6 +97,14 @@ func IntNullToNullInt32(i *int) sql.NullInt32 {
 	return sql.NullInt32{}
 }
 
+// *int32 → sql.NullInt32
+func Int32PtrToNullInt32(i *int32) sql.NullInt32 {
+	if i != nil {
+		return sql.NullInt32{Int32: *i, Valid: true}
+	}
+	return sql.NullInt32{}
+}
+
 // int → sql.NullInt32
 func IntToNullInt32(i int) sql.NullInt32 {
 	return sql.NullInt32{
@@ -110,4 +119,12 @@ func IntToNullInt64(i *int) sql.NullInt64 {
 		return sql.NullInt64{Int64: int64(*i), Valid: true}
 	}
 	return sql.NullInt64{}
+}
+
+func NullOrderStatusToStatus(ns db.NullOrderStatus) *db.OrderStatus {
+	if !ns.Valid {
+		return nil
+	}
+	status := ns.OrderStatus
+	return &status
 }

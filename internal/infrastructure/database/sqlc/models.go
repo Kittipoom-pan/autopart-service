@@ -138,12 +138,60 @@ func (ns NullDiscountDiscountType) Value() (driver.Value, error) {
 	return string(ns.DiscountDiscountType), nil
 }
 
+type OrderChannel string
+
+const (
+	OrderChannelWeb      OrderChannel = "web"
+	OrderChannelMobile   OrderChannel = "mobile"
+	OrderChannelCall     OrderChannel = "call"
+	OrderChannelLine     OrderChannel = "line"
+	OrderChannelFacebook OrderChannel = "facebook"
+	OrderChannelWalkIn   OrderChannel = "walk_in"
+)
+
+func (e *OrderChannel) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = OrderChannel(s)
+	case string:
+		*e = OrderChannel(s)
+	default:
+		return fmt.Errorf("unsupported scan type for OrderChannel: %T", src)
+	}
+	return nil
+}
+
+type NullOrderChannel struct {
+	OrderChannel OrderChannel
+	Valid        bool // Valid is true if OrderChannel is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullOrderChannel) Scan(value interface{}) error {
+	if value == nil {
+		ns.OrderChannel, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.OrderChannel.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullOrderChannel) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.OrderChannel), nil
+}
+
 type OrderStatus string
 
 const (
-	OrderStatusPending   OrderStatus = "pending"
-	OrderStatusCompleted OrderStatus = "completed"
-	OrderStatusCancelled OrderStatus = "cancelled"
+	OrderStatusPending    OrderStatus = "pending"
+	OrderStatusProcessing OrderStatus = "processing"
+	OrderStatusShipped    OrderStatus = "shipped"
+	OrderStatusDelivered  OrderStatus = "delivered"
+	OrderStatusCancelled  OrderStatus = "cancelled"
 )
 
 func (e *OrderStatus) Scan(src interface{}) error {
@@ -188,6 +236,7 @@ const (
 	PaymentPaymentMethodBankTransfer PaymentPaymentMethod = "bank_transfer"
 	PaymentPaymentMethodPaypal       PaymentPaymentMethod = "paypal"
 	PaymentPaymentMethodCod          PaymentPaymentMethod = "cod"
+	PaymentPaymentMethodCash         PaymentPaymentMethod = "cash"
 )
 
 func (e *PaymentPaymentMethod) Scan(src interface{}) error {
@@ -310,18 +359,63 @@ func (ns NullStockMovementEventType) Value() (driver.Value, error) {
 	return string(ns.StockMovementEventType), nil
 }
 
+type StockMovementReason string
+
+const (
+	StockMovementReasonSale       StockMovementReason = "sale"
+	StockMovementReasonReturn     StockMovementReason = "return"
+	StockMovementReasonPurchase   StockMovementReason = "purchase"
+	StockMovementReasonAdjustment StockMovementReason = "adjustment"
+	StockMovementReasonDamaged    StockMovementReason = "damaged"
+)
+
+func (e *StockMovementReason) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = StockMovementReason(s)
+	case string:
+		*e = StockMovementReason(s)
+	default:
+		return fmt.Errorf("unsupported scan type for StockMovementReason: %T", src)
+	}
+	return nil
+}
+
+type NullStockMovementReason struct {
+	StockMovementReason StockMovementReason
+	Valid               bool // Valid is true if StockMovementReason is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullStockMovementReason) Scan(value interface{}) error {
+	if value == nil {
+		ns.StockMovementReason, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.StockMovementReason.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullStockMovementReason) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.StockMovementReason), nil
+}
+
 type Address struct {
 	AddressID    int32
 	CustomerID   int32
 	Title        sql.NullString
-	AddressLine1 sql.NullString
+	AddressLine1 string
 	AddressLine2 sql.NullString
-	Country      sql.NullString
-	City         sql.NullString
-	PostalCode   sql.NullString
-	PhoneNumber  sql.NullString
+	Country      string
+	City         string
+	PostalCode   string
+	PhoneNumber  string
 	IsDefault    interface{}
-	CreatedAt    sql.NullTime
+	CreatedAt    time.Time
 	CreatedBy    sql.NullInt32
 	UpdatedAt    sql.NullTime
 	UpdatedBy    sql.NullInt32
@@ -333,7 +427,7 @@ type AdminToken struct {
 	Token       string
 	ExpiresAt   time.Time
 	CreatedAt   time.Time
-	IsRevoked   sql.NullBool
+	IsRevoked   interface{}
 }
 
 type AdminUser struct {
@@ -342,11 +436,11 @@ type AdminUser struct {
 	Email       sql.NullString
 	Password    string
 	Role        AdminUserRole
-	CreatedAt   sql.NullTime
+	CreatedAt   time.Time
 	CreatedBy   sql.NullInt32
 	UpdatedAt   sql.NullTime
 	UpdatedBy   sql.NullInt32
-	IsActive    bool
+	IsActive    interface{}
 }
 
 type CarBrand struct {
@@ -366,9 +460,9 @@ type CarModel struct {
 type Cart struct {
 	CartID     int32
 	CustomerID int32
-	Amount     sql.NullInt32
+	Amount     int32
 	IsCheckout interface{}
-	CreatedAt  sql.NullTime
+	CreatedAt  time.Time
 	UpdatedAt  sql.NullTime
 }
 
@@ -376,8 +470,8 @@ type CartItem struct {
 	CartItemID int32
 	CartID     int32
 	PartID     int32
-	Quantity   sql.NullInt32
-	CreatedAt  sql.NullTime
+	Quantity   int32
+	CreatedAt  time.Time
 	UpdatedAt  sql.NullTime
 }
 
@@ -391,19 +485,18 @@ type CompatibleCar struct {
 
 type Customer struct {
 	CustomerID  int32
-	Uuid        []byte
-	FirstName   sql.NullString
-	LastName    sql.NullString
+	FirstName   string
+	LastName    string
 	Username    string
 	Email       string
-	Password    sql.NullString
+	Password    string
 	BirthDate   sql.NullTime
-	PhoneNumber sql.NullString
-	CreatedAt   sql.NullTime
+	PhoneNumber string
+	CreatedAt   time.Time
 	CreatedBy   sql.NullInt32
 	UpdatedAt   sql.NullTime
 	UpdatedBy   sql.NullInt32
-	IsActive    bool
+	IsActive    interface{}
 }
 
 type CustomerPaymentMethod struct {
@@ -412,8 +505,8 @@ type CustomerPaymentMethod struct {
 	AccountName             sql.NullString
 	PaymentMethodType       CustomerPaymentMethodPaymentMethodType
 	CardToken               sql.NullString
-	IsDefault               sql.NullBool
-	CreatedAt               sql.NullTime
+	IsDefault               interface{}
+	CreatedAt               time.Time
 	CreatedBy               sql.NullInt32
 	UpdatedAt               sql.NullTime
 	UpdatedBy               sql.NullInt32
@@ -425,18 +518,19 @@ type CustomerToken struct {
 	Token      string
 	ExpiresAt  time.Time
 	CreatedAt  time.Time
-	IsRevoked  sql.NullBool
+	IsRevoked  interface{}
 }
 
 type Discount struct {
 	DiscountID     int32
 	Code           string
-	DiscountType   NullDiscountDiscountType
-	Amount         sql.NullInt32
+	DiscountType   DiscountDiscountType
+	Amount         int32
 	Description    sql.NullString
-	Min            sql.NullInt32
+	MinOrderAmount int32
 	ExpirationDate sql.NullTime
-	CreatedAt      sql.NullTime
+	IsActive       interface{}
+	CreatedAt      time.Time
 	CreatedBy      sql.NullInt32
 	UpdatedAt      sql.NullTime
 	UpdatedBy      sql.NullInt32
@@ -449,48 +543,53 @@ type Image struct {
 	FileName      string
 	ImageUrl      string
 	AltText       string
-	IsPrimary     bool
-	SortImage     sql.NullInt32
-	CreatedAt     sql.NullTime
+	IsPrimary     interface{}
+	SortImage     int32
+	CreatedAt     time.Time
 	CreatedBy     sql.NullInt32
 }
 
 type Order struct {
-	OrderID                 int32
-	Uuid                    []byte
-	CustomerID              int32
+	OrderID                 int64
+	OrderNumber             string
+	CustomerID              sql.NullInt32
+	Channel                 OrderChannel
+	PlacedByAdminUserID     sql.NullInt32
 	CustomerPaymentMethodID sql.NullInt32
 	CartID                  sql.NullInt32
-	Amount                  sql.NullInt32
+	Amount                  int32
 	AddressID               sql.NullInt32
 	DiscountID              sql.NullInt32
-	Status                  NullOrderStatus
-	CreatedAt               sql.NullTime
-	CreatedBy               sql.NullInt32
+	Status                  OrderStatus
+	Remark                  sql.NullString
+	CreatedAt               time.Time
 	UpdatedAt               sql.NullTime
-	UpdatedBy               sql.NullInt32
 }
 
 type OrderItem struct {
-	OrderItemID int32
-	OrderID     int32
-	PartID      sql.NullInt32
-	Quantity    sql.NullInt32
-	Price       sql.NullInt32
+	OrderItemID int64
+	OrderID     int64
+	PartID      int32
+	Quantity    int32
+	Price       int32
+}
+
+type OrderSequence struct {
+	SeqDate   time.Time
+	LastValue uint32
 }
 
 type Part struct {
 	PartID      int32
-	Uuid        []byte
 	PartBrandID int32
 	PartTypeID  int32
 	Name        string
 	Sku         string
 	Description sql.NullString
-	Price       sql.NullInt32
-	Quantity    sql.NullInt32
-	IsActive    bool
-	CreatedAt   sql.NullTime
+	Price       int32
+	Quantity    int32
+	IsActive    interface{}
+	CreatedAt   time.Time
 	CreatedBy   sql.NullInt32
 	UpdatedAt   sql.NullTime
 	UpdatedBy   sql.NullInt32
@@ -510,25 +609,27 @@ type PartType struct {
 }
 
 type Payment struct {
-	PaymentID     int32
-	OrderID       int32
-	Amount        sql.NullInt32
-	PaymentMethod NullPaymentPaymentMethod
-	Status        NullPaymentStatus
-	CreatedAt     sql.NullTime
+	PaymentID     int64
+	OrderID       int64
+	Amount        int32
+	PaymentMethod PaymentPaymentMethod
+	Status        PaymentStatus
+	CreatedAt     time.Time
 	CreatedBy     sql.NullInt32
 	UpdatedAt     sql.NullTime
 	UpdatedBy     sql.NullInt32
 }
 
 type StockMovement struct {
-	StockMovementID int32
+	StockMovementID int64
 	PartID          int32
 	PartBrandID     sql.NullInt32
-	QuantityChange  sql.NullInt32
-	Price           sql.NullInt32
-	EventType       NullStockMovementEventType
+	QuantityChange  int32
+	Price           int32
+	EventType       StockMovementEventType
+	Reason          StockMovementReason
+	OrderID         sql.NullInt64
 	Remark          sql.NullString
-	CreatedAt       sql.NullTime
+	CreatedAt       time.Time
 	CreatedBy       sql.NullInt32
 }

@@ -10,7 +10,6 @@ import (
 	adminerror "github.com/Kittipoom-pan/autopart-service/pkg/error"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 type AdminController struct {
@@ -18,10 +17,10 @@ type AdminController struct {
 	logger  zerolog.Logger
 }
 
-func NewAdminController(usecase usecase.AdminUsecase) *AdminController {
+func NewAdminController(usecase usecase.AdminUsecase, logger zerolog.Logger) *AdminController {
 	return &AdminController{
 		usecase: usecase,
-		logger:  log.With().Str("component", "admin_controller").Logger(),
+		logger:  logger,
 	}
 }
 

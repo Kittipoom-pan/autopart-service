@@ -8,6 +8,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const createAdmin = `-- name: CreateAdmin :execresult
@@ -20,7 +21,7 @@ type CreateAdminParams struct {
 	Role      AdminUserRole
 	Email     sql.NullString
 	Password  string
-	CreatedAt sql.NullTime
+	CreatedAt time.Time
 	CreatedBy sql.NullInt32
 }
 
@@ -67,7 +68,7 @@ type GetAdminUserRow struct {
 	Username    string
 	Role        AdminUserRole
 	Email       sql.NullString
-	IsActive    bool
+	IsActive    interface{}
 }
 
 func (q *Queries) GetAdminUser(ctx context.Context, adminUserID int32) (GetAdminUserRow, error) {
@@ -92,7 +93,7 @@ type ListAdminUsersRow struct {
 	Username    string
 	Role        AdminUserRole
 	Email       sql.NullString
-	IsActive    bool
+	IsActive    interface{}
 }
 
 func (q *Queries) ListAdminUsers(ctx context.Context) ([]ListAdminUsersRow, error) {
@@ -166,7 +167,7 @@ WHERE admin_user_id = ?
 `
 
 type UpdateAdminIsActiveParams struct {
-	IsActive    bool
+	IsActive    interface{}
 	UpdatedAt   sql.NullTime
 	UpdatedBy   sql.NullInt32
 	AdminUserID int32

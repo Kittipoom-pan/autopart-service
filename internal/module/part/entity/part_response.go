@@ -8,6 +8,6 @@ type PartRes struct {
 	Name        string  `json:"name" db:"name"`
 	SKU         string  `json:"sku" db:"sku"`
 	Description *string `json:"description,omitempty" db:"description"`
-	Price       *int    `json:"price,omitempty" db:"price"`
-	Quantity    *int    `json:"quantity,omitempty" db:"quantity"`
+	Price       int     `json:"price" db:"price"`
+	Quantity    int     `json:"quantity" db:"quantity"`
 }

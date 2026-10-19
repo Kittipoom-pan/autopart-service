@@ -12,7 +12,6 @@ import (
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/repository"
 	customerror "github.com/Kittipoom-pan/autopart-service/pkg/error"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 type authUsecase struct {
@@ -21,11 +20,11 @@ type authUsecase struct {
 	cfg    *config.Config
 }
 
-func NewAuthUsecase(repo repository.CustomerRepository, cfg *config.Config) AuthUsecase {
+func NewAuthUsecase(repo repository.CustomerRepository, cfg *config.Config, logger zerolog.Logger) AuthUsecase {
 	return &authUsecase{
 		repo:   repo,
 		cfg:    cfg,
-		logger: log.With().Str("component", "customer_auth_usecase").Logger(),
+		logger: logger,
 	}
 }
 

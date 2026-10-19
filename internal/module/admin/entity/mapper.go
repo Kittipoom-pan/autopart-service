@@ -30,7 +30,7 @@ func MapAdminToAdminParam(admin *AdminReq, createBy *int) db.CreateAdminParams {
 		Role:      db.AdminUserRole(admin.Role),
 		Password:  admin.Password,
 		CreatedBy: utils.IntNullToNullInt32(createBy),
-		CreatedAt: utils.NullTimeNow(),
+		CreatedAt: utils.NowUTC(),
 	}
 }
 

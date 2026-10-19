@@ -33,8 +33,8 @@ type AddImageParams struct {
 	FileName      string
 	ImageUrl      string
 	AltText       string
-	IsPrimary     bool
-	SortImage     sql.NullInt32
+	IsPrimary     interface{}
+	SortImage     int32
 	CreatedBy     sql.NullInt32
 }
 
@@ -188,8 +188,8 @@ type UpdateImageParams struct {
 	FileName  string
 	ImageUrl  string
 	AltText   string
-	IsPrimary bool
-	SortImage sql.NullInt32
+	IsPrimary interface{}
+	SortImage int32
 	CreatedBy sql.NullInt32
 	ImageID   int64
 }

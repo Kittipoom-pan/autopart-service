@@ -11,15 +11,16 @@ import (
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/repository"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/usecase"
 	"github.com/gofiber/fiber/v2"
+	"github.com/rs/zerolog"
 )
 
-func SetupPrivateRoutes(router fiber.Router, db *db.Queries, cfg *config.Config, jwtAuth fiber.Handler) {
+func SetupPrivateRoutes(router fiber.Router, db *db.Queries, cfg *config.Config, jwtAuth fiber.Handler, logger zerolog.Logger) {
 	router.Use(middleware.TimeoutMiddleware(3 * time.Second))
 	router.Use(jwtAuth)
 
-	repo := repository.NewCustomerRepository(db)
-	customerUsecase := usecase.NewCustomerUsecase(repo)
-	customerController := controller.NewCustomerController(customerUsecase)
+	repo := repository.NewCustomerRepository(db, logger)
+	customerUsecase := usecase.NewCustomerUsecase(repo, logger)
+	customerController := controller.NewCustomerController(customerUsecase, logger)
 
 	// Admin-only: list all customers
 	router.Get("/", middleware.RequireRoles(auth.RoleSuperAdmin, auth.RoleStaff), customerController.GetAllCustomers)
@@ -30,14 +31,14 @@ func SetupPrivateRoutes(router fiber.Router, db *db.Queries, cfg *config.Config,
 	router.Delete("/:id", customerController.DeleteCustomer)
 }
 
-func SetupPublicRoutes(router fiber.Router, db *db.Queries, cfg *config.Config) {
+func SetupPublicRoutes(router fiber.Router, db *db.Queries, cfg *config.Config, logger zerolog.Logger) {
 	router.Use(middleware.TimeoutMiddleware(3 * time.Second))
 
-	repo := repository.NewCustomerRepository(db)
-	authUsecase := usecase.NewAuthUsecase(repo, cfg)
-	customerUsecase := usecase.NewCustomerUsecase(repo)
-	customerController := controller.NewCustomerController(customerUsecase)
-	authController := controller.NewAuthController(authUsecase, cfg)
+	repo := repository.NewCustomerRepository(db, logger)
+	authUsecase := usecase.NewAuthUsecase(repo, cfg, logger)
+	customerUsecase := usecase.NewCustomerUsecase(repo, logger)
+	customerController := controller.NewCustomerController(customerUsecase, logger)
+	authController := controller.NewAuthController(authUsecase, cfg, logger)
 
 	router.Post("/login", authController.Login)
 	router.Post("/register", customerController.CreateCustomer)

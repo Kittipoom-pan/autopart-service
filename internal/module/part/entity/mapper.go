@@ -12,24 +12,36 @@ func MapDbPartToPartRes(dbPart db.GetPartByIDRow) *PartRes {
 		PartTypeID:  uint32(dbPart.PartTypeID),
 		Name:        dbPart.Name,
 		SKU:         dbPart.Sku,
-		Description: utils.ToStringPtr(dbPart.Description),
-		Price:       utils.ToInt32Ptr(dbPart.Price),
-		Quantity:    utils.ToInt32Ptr(dbPart.Quantity),
+		Description: utils.NullStringToStringPtr(dbPart.Description),
+		Price:       int(dbPart.Price),
+		Quantity:    int(dbPart.Quantity),
+	}
+}
+
+func MapDbPartBySKUToPartRes(dbPart db.GetPartBySKURow) *PartRes {
+	return &PartRes{
+		PartID:      uint32(dbPart.PartID),
+		PartBrandID: uint32(dbPart.PartBrandID),
+		PartTypeID:  uint32(dbPart.PartTypeID),
+		Name:        dbPart.Name,
+		SKU:         dbPart.Sku,
+		Description: utils.NullStringToStringPtr(dbPart.Description),
+		Price:       int(dbPart.Price),
+		Quantity:    int(dbPart.Quantity),
 	}
 }
 
 func MapPartToPartParam(req *PartReq, createdBy *int) db.CreatePartParams {
 	return db.CreatePartParams{
-		Uuid:        utils.NewUUIDBytes(),
 		PartBrandID: int32(req.PartBrandID),
 		PartTypeID:  int32(req.PartTypeID),
 		Name:        req.Name,
 		Sku:         req.SKU,
 		Description: utils.StringPtrToNullString(req.Description),
-		Price:       utils.IntNullToNullInt32(req.Price),
-		Quantity:    utils.IntNullToNullInt32(req.Quantity),
+		Price:       int32(req.Price),
+		Quantity:    int32(req.Quantity),
 		CreatedBy:   utils.IntNullToNullInt32(createdBy),
-		CreatedAt:   utils.NullTimeNow(),
+		CreatedAt:   utils.NowUTC(),
 	}
 }
 
@@ -40,9 +52,9 @@ func MapDbPartsToPartRes(dbPart db.ListPartsRow) *PartRes {
 		PartTypeID:  uint32(dbPart.PartTypeID),
 		Name:        dbPart.Name,
 		SKU:         dbPart.Sku,
-		Description: utils.ToStringPtr(dbPart.Description),
-		Price:       utils.ToInt32Ptr(dbPart.Price),
-		Quantity:    utils.ToInt32Ptr(dbPart.Quantity),
+		Description: utils.NullStringToStringPtr(dbPart.Description),
+		Price:       int(dbPart.Price),
+		Quantity:    int(dbPart.Quantity),
 	}
 }
 
@@ -54,8 +66,8 @@ func MapUpdatePartParams(id int, req *PartReq, updatedBy int) db.UpdatePartByIDP
 		Name:        req.Name,
 		Sku:         req.SKU,
 		Description: utils.StringPtrToNullString(req.Description),
-		Price:       utils.IntNullToNullInt32(req.Price),
-		Quantity:    utils.IntNullToNullInt32(req.Quantity),
+		Price:       int32(req.Price),
+		Quantity:    int32(req.Quantity),
 		IsActive:    req.IsActive,
 		UpdatedBy:   utils.IntNullToNullInt32(&updatedBy),
 		UpdatedAt:   utils.NullTimeNow(),

@@ -8,7 +8,6 @@ import (
 	"github.com/Kittipoom-pan/autopart-service/internal/module/part/repository"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/part/usecase/validation"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 type partUsecase struct {
@@ -16,16 +15,25 @@ type partUsecase struct {
 	logger zerolog.Logger
 }
 
-func NewPartUsecase(repo repository.PartRepository) PartUsecase {
+func NewPartUsecase(repo repository.PartRepository, logger zerolog.Logger) PartUsecase {
 	return &partUsecase{
 		repo:   repo,
-		logger: log.With().Str("component", "part_usecase").Logger(),
+		logger: logger,
 	}
 }
 
 func (u *partUsecase) GetPartByID(ctx context.Context, id int) (*entity.PartRes, error) {
 	u.logger.Debug().Int("part_id", id).Msg("GetPartByID")
 	part, err := u.repo.GetPartByID(ctx, id)
+	if err != nil {
+		return nil, helper.MapDBErrorToAPIError(err, "Part")
+	}
+	return part, nil
+}
+
+func (u *partUsecase) GetPartBySKU(ctx context.Context, sku string) (*entity.PartRes, error) {
+	u.logger.Debug().Str("sku", sku).Msg("GetPartBySKU")
+	part, err := u.repo.GetPartBySKU(ctx, sku)
 	if err != nil {
 		return nil, helper.MapDBErrorToAPIError(err, "Part")
 	}

@@ -8,6 +8,7 @@ import (
 
 type PartRepository interface {
 	GetPartByID(ctx context.Context, id int) (*entity.PartRes, error)
+	GetPartBySKU(ctx context.Context, sku string) (*entity.PartRes, error)
 	CreatePart(ctx context.Context, part *entity.PartReq, createdBy *int) (int64, error)
 	GetAllParts(ctx context.Context) ([]*entity.PartRes, error)
 	UpdatePart(ctx context.Context, id int, part *entity.PartReq, updatedBy int) error

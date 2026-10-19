@@ -8,45 +8,11 @@ package db
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
-const adminGetCustomerDetail = `-- name: AdminGetCustomerDetail :one
-SELECT customer_id, uuid, first_name, last_name, username, email, birth_date, phone_number, is_active, created_at FROM customer WHERE uuid = ? and is_active = 1
-`
-
-type AdminGetCustomerDetailRow struct {
-	CustomerID  int32
-	Uuid        []byte
-	FirstName   sql.NullString
-	LastName    sql.NullString
-	Username    string
-	Email       string
-	BirthDate   sql.NullTime
-	PhoneNumber sql.NullString
-	IsActive    bool
-	CreatedAt   sql.NullTime
-}
-
-func (q *Queries) AdminGetCustomerDetail(ctx context.Context, uuid []byte) (AdminGetCustomerDetailRow, error) {
-	row := q.db.QueryRowContext(ctx, adminGetCustomerDetail, uuid)
-	var i AdminGetCustomerDetailRow
-	err := row.Scan(
-		&i.CustomerID,
-		&i.Uuid,
-		&i.FirstName,
-		&i.LastName,
-		&i.Username,
-		&i.Email,
-		&i.BirthDate,
-		&i.PhoneNumber,
-		&i.IsActive,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
 const adminListCustomers = `-- name: AdminListCustomers :many
-SELECT customer_id, uuid, first_name, last_name, username, is_active, created_at 
+SELECT customer_id, first_name, last_name, username, is_active, created_at 
 FROM customer 
 ORDER BY created_at DESC 
 LIMIT ? OFFSET ?
@@ -59,12 +25,11 @@ type AdminListCustomersParams struct {
 
 type AdminListCustomersRow struct {
 	CustomerID int32
-	Uuid       []byte
-	FirstName  sql.NullString
-	LastName   sql.NullString
+	FirstName  string
+	LastName   string
 	Username   string
-	IsActive   bool
-	CreatedAt  sql.NullTime
+	IsActive   interface{}
+	CreatedAt  time.Time
 }
 
 // Pagination (Limit/Offset)
@@ -79,7 +44,6 @@ func (q *Queries) AdminListCustomers(ctx context.Context, arg AdminListCustomers
 		var i AdminListCustomersRow
 		if err := rows.Scan(
 			&i.CustomerID,
-			&i.Uuid,
 			&i.FirstName,
 			&i.LastName,
 			&i.Username,
@@ -104,14 +68,14 @@ UPDATE customer SET
     is_active = ?,
     updated_at = ?,
     updated_by = ?
-WHERE uuid = ?
+WHERE customer_id = ?
 `
 
 type AdminUpdateCustomerStatusParams struct {
-	IsActive  bool
-	UpdatedAt sql.NullTime
-	UpdatedBy sql.NullInt32
-	Uuid      []byte
+	IsActive   interface{}
+	UpdatedAt  sql.NullTime
+	UpdatedBy  sql.NullInt32
+	CustomerID int32
 }
 
 func (q *Queries) AdminUpdateCustomerStatus(ctx context.Context, arg AdminUpdateCustomerStatusParams) (sql.Result, error) {
@@ -119,13 +83,12 @@ func (q *Queries) AdminUpdateCustomerStatus(ctx context.Context, arg AdminUpdate
 		arg.IsActive,
 		arg.UpdatedAt,
 		arg.UpdatedBy,
-		arg.Uuid,
+		arg.CustomerID,
 	)
 }
 
 const createCustomer = `-- name: CreateCustomer :execresult
 INSERT INTO customer (
-    uuid,
     first_name,
     last_name,
     username,
@@ -136,25 +99,23 @@ INSERT INTO customer (
     created_at,
     created_by
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateCustomerParams struct {
-	Uuid        []byte
-	FirstName   sql.NullString
-	LastName    sql.NullString
+	FirstName   string
+	LastName    string
 	Username    string
 	Email       string
-	Password    sql.NullString
+	Password    string
 	BirthDate   sql.NullTime
-	PhoneNumber sql.NullString
-	CreatedAt   sql.NullTime
+	PhoneNumber string
+	CreatedAt   time.Time
 	CreatedBy   sql.NullInt32
 }
 
 func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) (sql.Result, error) {
 	return q.db.ExecContext(ctx, createCustomer,
-		arg.Uuid,
 		arg.FirstName,
 		arg.LastName,
 		arg.Username,
@@ -168,20 +129,19 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) 
 }
 
 const getCustomer = `-- name: GetCustomer :one
-SELECT customer_id, uuid, first_name, last_name, username, email, birth_date, phone_number, is_active, created_at FROM customer WHERE customer_id = ? and is_active = 1
+SELECT customer_id, first_name, last_name, username, email, birth_date, phone_number, is_active, created_at FROM customer WHERE customer_id = ? and is_active = 1
 `
 
 type GetCustomerRow struct {
 	CustomerID  int32
-	Uuid        []byte
-	FirstName   sql.NullString
-	LastName    sql.NullString
+	FirstName   string
+	LastName    string
 	Username    string
 	Email       string
 	BirthDate   sql.NullTime
-	PhoneNumber sql.NullString
-	IsActive    bool
-	CreatedAt   sql.NullTime
+	PhoneNumber string
+	IsActive    interface{}
+	CreatedAt   time.Time
 }
 
 func (q *Queries) GetCustomer(ctx context.Context, customerID int32) (GetCustomerRow, error) {
@@ -189,7 +149,6 @@ func (q *Queries) GetCustomer(ctx context.Context, customerID int32) (GetCustome
 	var i GetCustomerRow
 	err := row.Scan(
 		&i.CustomerID,
-		&i.Uuid,
 		&i.FirstName,
 		&i.LastName,
 		&i.Username,
@@ -203,43 +162,36 @@ func (q *Queries) GetCustomer(ctx context.Context, customerID int32) (GetCustome
 }
 
 const getCustomerByUsername = `-- name: GetCustomerByUsername :one
-SELECT customer_id, uuid, username, password FROM customer WHERE username = ? and is_active = 1
+SELECT customer_id, username, password FROM customer WHERE username = ? and is_active = 1
 `
 
 type GetCustomerByUsernameRow struct {
 	CustomerID int32
-	Uuid       []byte
 	Username   string
-	Password   sql.NullString
+	Password   string
 }
 
 func (q *Queries) GetCustomerByUsername(ctx context.Context, username string) (GetCustomerByUsernameRow, error) {
 	row := q.db.QueryRowContext(ctx, getCustomerByUsername, username)
 	var i GetCustomerByUsernameRow
-	err := row.Scan(
-		&i.CustomerID,
-		&i.Uuid,
-		&i.Username,
-		&i.Password,
-	)
+	err := row.Scan(&i.CustomerID, &i.Username, &i.Password)
 	return i, err
 }
 
 const listCustomers = `-- name: ListCustomers :many
-SELECT customer_id, uuid, first_name, last_name, username, email, birth_date, phone_number, is_active, created_at FROM customer WHERE is_active = 1 ORDER BY created_at
+SELECT customer_id, first_name, last_name, username, email, birth_date, phone_number, is_active, created_at FROM customer WHERE is_active = 1 ORDER BY created_at
 `
 
 type ListCustomersRow struct {
 	CustomerID  int32
-	Uuid        []byte
-	FirstName   sql.NullString
-	LastName    sql.NullString
+	FirstName   string
+	LastName    string
 	Username    string
 	Email       string
 	BirthDate   sql.NullTime
-	PhoneNumber sql.NullString
-	IsActive    bool
-	CreatedAt   sql.NullTime
+	PhoneNumber string
+	IsActive    interface{}
+	CreatedAt   time.Time
 }
 
 func (q *Queries) ListCustomers(ctx context.Context) ([]ListCustomersRow, error) {
@@ -253,7 +205,6 @@ func (q *Queries) ListCustomers(ctx context.Context) ([]ListCustomersRow, error)
 		var i ListCustomersRow
 		if err := rows.Scan(
 			&i.CustomerID,
-			&i.Uuid,
 			&i.FirstName,
 			&i.LastName,
 			&i.Username,
@@ -290,12 +241,12 @@ WHERE customer_id = ? and is_active = 1
 `
 
 type UpdateCustomerParams struct {
-	FirstName   sql.NullString
-	LastName    sql.NullString
+	FirstName   string
+	LastName    string
 	Username    string
 	Email       string
 	BirthDate   sql.NullTime
-	PhoneNumber sql.NullString
+	PhoneNumber string
 	UpdatedAt   sql.NullTime
 	UpdatedBy   sql.NullInt32
 	CustomerID  int32
@@ -324,7 +275,7 @@ WHERE customer_id = ? and is_active = 1
 `
 
 type UpdateCustomerIsActiveParams struct {
-	IsActive   bool
+	IsActive   interface{}
 	UpdatedAt  sql.NullTime
 	UpdatedBy  sql.NullInt32
 	CustomerID int32
@@ -348,7 +299,7 @@ WHERE customer_id = ? and is_active = 1
 `
 
 type UpdateCustomerPasswordParams struct {
-	Password   sql.NullString
+	Password   string
 	UpdatedAt  sql.NullTime
 	UpdatedBy  sql.NullInt32
 	CustomerID int32

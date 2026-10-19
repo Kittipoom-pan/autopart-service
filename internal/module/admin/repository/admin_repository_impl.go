@@ -8,7 +8,6 @@ import (
 	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/admin/entity"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 type adminRepository struct {
@@ -16,10 +15,10 @@ type adminRepository struct {
 	logger  zerolog.Logger
 }
 
-func NewAdminRepository(queries *db.Queries) AdminRepository {
+func NewAdminRepository(queries *db.Queries, logger zerolog.Logger) AdminRepository {
 	return &adminRepository{
 		queries: queries,
-		logger:  log.With().Str("component", "admin_repository").Logger(),
+		logger:  logger,
 	}
 }
 

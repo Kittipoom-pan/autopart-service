@@ -11,7 +11,6 @@ import (
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/usecase/validation"
 	customererror "github.com/Kittipoom-pan/autopart-service/pkg/error"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 type customerUsecase struct {
@@ -19,10 +18,10 @@ type customerUsecase struct {
 	logger zerolog.Logger
 }
 
-func NewCustomerUsecase(repo repository.CustomerRepository) CustomerUsecase {
+func NewCustomerUsecase(repo repository.CustomerRepository, logger zerolog.Logger) CustomerUsecase {
 	return &customerUsecase{
 		repo:   repo,
-		logger: log.With().Str("component", "customer_usecase").Logger(),
+		logger: logger,
 	}
 }
 

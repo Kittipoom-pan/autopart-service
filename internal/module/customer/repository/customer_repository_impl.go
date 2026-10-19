@@ -8,7 +8,6 @@ import (
 	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/entity"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 type customerRepository struct {
@@ -16,10 +15,10 @@ type customerRepository struct {
 	logger  zerolog.Logger
 }
 
-func NewCustomerRepository(queries *db.Queries) CustomerRepository {
+func NewCustomerRepository(queries *db.Queries, logger zerolog.Logger) CustomerRepository {
 	return &customerRepository{
 		queries: queries,
-		logger:  log.With().Str("component", "customer_repository").Logger(),
+		logger:  logger,
 	}
 }
 

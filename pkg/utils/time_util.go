@@ -20,3 +20,11 @@ func NullTime(t time.Time) sql.NullTime {
 func NullTimeNow() sql.NullTime {
 	return NullTime(NowUTC())
 }
+
+func NullTimeToDateStr(t sql.NullTime) *string {
+	if !t.Valid {
+		return nil
+	}
+	s := t.Time.Format(time.DateOnly)
+	return &s
+}

@@ -11,16 +11,17 @@ import (
 	"github.com/Kittipoom-pan/autopart-service/internal/module/admin/repository"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/admin/usecase"
 	"github.com/gofiber/fiber/v2"
+	"github.com/rs/zerolog"
 )
 
-func SetupPrivateRoutes(router fiber.Router, db *db.Queries, cfg *config.Config, jwtAuth fiber.Handler) {
+func SetupPrivateRoutes(router fiber.Router, db *db.Queries, cfg *config.Config, jwtAuth fiber.Handler, logger zerolog.Logger) {
 	router.Use(middleware.TimeoutMiddleware(3 * time.Second))
 	router.Use(jwtAuth)
 	router.Use(middleware.RequireRoles(auth.RoleSuperAdmin, auth.RoleStaff))
 
-	repo := repository.NewAdminRepository(db)
-	adminUsecase := usecase.NewAdminUsecase(repo)
-	adminController := controller.NewAdminController(adminUsecase)
+	repo := repository.NewAdminRepository(db, logger)
+	adminUsecase := usecase.NewAdminUsecase(repo, logger)
+	adminController := controller.NewAdminController(adminUsecase, logger)
 
 	router.Get("/", adminController.GetAllAdminUsers)
 	router.Get("/:id", adminController.GetAdminByID)
@@ -29,12 +30,12 @@ func SetupPrivateRoutes(router fiber.Router, db *db.Queries, cfg *config.Config,
 	router.Post("/register", adminController.CreateAdmin)
 }
 
-func SetupPublicRoutes(router fiber.Router, db *db.Queries, cfg *config.Config) {
+func SetupPublicRoutes(router fiber.Router, db *db.Queries, cfg *config.Config, logger zerolog.Logger) {
 	router.Use(middleware.TimeoutMiddleware(3 * time.Second))
 
-	repo := repository.NewAdminRepository(db)
-	authUsecase := usecase.NewAuthUsecase(repo, cfg)
-	authController := controller.NewAuthController(authUsecase, cfg)
+	repo := repository.NewAdminRepository(db, logger)
+	authUsecase := usecase.NewAuthUsecase(repo, cfg, logger)
+	authController := controller.NewAuthController(authUsecase, cfg, logger)
 
 	router.Post("/login", authController.Login)
 }

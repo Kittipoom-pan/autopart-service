@@ -1,26 +1,36 @@
 package server
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 
 	"github.com/Kittipoom-pan/autopart-service/config"
 	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"
 	"github.com/gofiber/fiber/v2"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
 type Server struct {
-	App *fiber.App
-	Cfg *config.Config
-	Db  *db.Queries
+	App    *fiber.App
+	Cfg    *config.Config
+	Db     *db.Queries
+	Conn   *sql.DB
+	Logger zerolog.Logger
 }
 
-func NewServer(cfg *config.Config, db *db.Queries) *Server {
+func NewServer(
+	cfg *config.Config,
+	conn *sql.DB,
+	queries *db.Queries,
+) *Server {
 	return &Server{
-		App: fiber.New(),
-		Cfg: cfg,
-		Db:  db,
+		App:    fiber.New(),
+		Cfg:    cfg,
+		Db:     queries,
+		Conn:   conn,
+		Logger: log.Logger,
 	}
 }
 
@@ -30,9 +40,13 @@ func (s *Server) Start() {
 		os.Exit(1)
 	}
 
-	fiberConnURL := fmt.Sprintf("%s:%d", s.Cfg.Server.Host, s.Cfg.Server.Port)
+	fiberConnURL := fmt.Sprintf(
+		"%s:%d",
+		s.Cfg.Server.Host,
+		s.Cfg.Server.Port,
+	)
 
-	log.Printf("Server has been started on %s", fiberConnURL)
+	log.Info().Str("url", fiberConnURL).Msg("Server has been started")
 
 	if err := s.App.Listen(fiberConnURL); err != nil {
 		log.Error().Err(err).Str("url", fiberConnURL).Msg("Failed to start server")

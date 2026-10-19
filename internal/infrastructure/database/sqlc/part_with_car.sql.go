@@ -26,8 +26,8 @@ type GetPartWithCompatibilityByIDRow struct {
 	Sku          string
 	PartName     string
 	Description  sql.NullString
-	Price        sql.NullInt32
-	Quantity     sql.NullInt32
+	Price        int32
+	Quantity     int32
 	CarModelID   int32
 	CarModelName string
 	YearFrom     sql.NullInt16
@@ -84,8 +84,8 @@ type SearchPartsByCarRow struct {
 	Sku          string
 	PartName     string
 	Description  sql.NullString
-	Price        sql.NullInt32
-	Quantity     sql.NullInt32
+	Price        int32
+	Quantity     int32
 	CarBrandName string
 	CarModelName string
 }

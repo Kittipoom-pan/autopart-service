@@ -6,10 +6,11 @@ DROP TABLE IF EXISTS payment;
 DROP TABLE IF EXISTS order_item;
 
 -- 3️⃣ Order table
+DROP TABLE IF EXISTS stock_movement;
 DROP TABLE IF EXISTS `order`;
+DROP TABLE IF EXISTS order_sequence;
 
 -- 4️⃣ Compatible / stock / cart_item
-DROP TABLE IF EXISTS stock_movement;
 DROP TABLE IF EXISTS compatible_car;
 DROP TABLE IF EXISTS cart_item;
 

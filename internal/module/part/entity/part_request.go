@@ -8,7 +8,7 @@ type PartReq struct {
 	Name        string  `json:"name" db:"name"`
 	SKU         string  `json:"sku" db:"sku"`
 	Description *string `json:"description,omitempty" db:"description"`
-	Price       *int    `json:"price,omitempty" db:"price"`
+	Price       int     `json:"price" db:"price"`
 	IsActive    bool    `json:"is_active" db:"is_active"`
-	Quantity    *int    `json:"quantity,omitempty" db:"quantity"`
+	Quantity    int     `json:"quantity" db:"quantity"`
 }

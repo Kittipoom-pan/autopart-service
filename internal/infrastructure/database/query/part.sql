@@ -1,7 +1,6 @@
 -- name: GetPartByID :one
 SELECT
     part_id,
-    uuid,
     part_brand_id,
     part_type_id,
     sku,
@@ -17,7 +16,6 @@ WHERE part_id = ? AND is_active = 1;
 -- name: GetPartBySKU :one
 SELECT
     part_id,
-    uuid,
     part_brand_id,
     part_type_id,
     sku,
@@ -33,7 +31,6 @@ WHERE sku = ? AND is_active = 1;
 -- name: ListParts :many
 SELECT
     part_id,
-    uuid,
     part_brand_id,
     part_type_id,
     sku,
@@ -50,7 +47,6 @@ ORDER BY created_at;
 -- name: GetPartWithImages :many
 SELECT 
     p.part_id,
-    p.uuid,
     p.sku,
     p.name AS part_name,
     p.description AS part_description,
@@ -73,7 +69,6 @@ ORDER BY i.is_primary DESC, i.sort_image ASC, i.created_at ASC;
 
 -- name: CreatePart :execresult
 INSERT INTO part (
-    uuid,
     part_brand_id,
     part_type_id,
     sku,
@@ -85,7 +80,7 @@ INSERT INTO part (
     created_at,
     created_by
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?);
 
 -- name: UpdatePartByID :execresult
 UPDATE part SET

@@ -15,11 +15,11 @@ func main() {
 		log.Fatal("Failed to load config:", err)
 	}
 
-	db, err := database.NewMySQLDatabase(conf)
+	conn, queries, err := database.NewMySQLDatabase(conf)
 	if err != nil {
 		log.Fatalf("Database connection failed: %v\n", err)
 	}
 
 	logger.InitLogger()
-	server.NewServer(conf, db).Start()
+	server.NewServer(conf, conn, queries).Start()
 }

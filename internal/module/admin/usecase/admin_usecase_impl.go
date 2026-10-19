@@ -11,7 +11,6 @@ import (
 	"github.com/Kittipoom-pan/autopart-service/internal/module/admin/usecase/validation"
 	adminerror "github.com/Kittipoom-pan/autopart-service/pkg/error"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 type adminUsecase struct {
@@ -19,10 +18,10 @@ type adminUsecase struct {
 	logger zerolog.Logger
 }
 
-func NewAdminUsecase(repo repository.AdminRepository) AdminUsecase {
+func NewAdminUsecase(repo repository.AdminRepository, logger zerolog.Logger) AdminUsecase {
 	return &adminUsecase{
 		repo:   repo,
-		logger: log.With().Str("component", "admin_usecase").Logger(),
+		logger: logger,
 	}
 }
 

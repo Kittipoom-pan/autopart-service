@@ -13,12 +13,15 @@ import (
 )
 
 var (
-	once       sync.Once
-	dbInstance *db.Queries
-	dbErr      error
+	once          sync.Once
+	sqlDBInstance *sql.DB
+	dbInstance    *db.Queries
+	dbErr         error
 )
 
-func NewMySQLDatabase(conf *config.Config) (*db.Queries, error) {
+func NewMySQLDatabase(
+	conf *config.Config,
+) (*sql.DB, *db.Queries, error) {
 	once.Do(func() {
 		dsn := fmt.Sprintf(
 			"%s:%s@tcp(%s:%d)/%s?parseTime=true&charset=utf8mb4&loc=Local",
@@ -42,8 +45,10 @@ func NewMySQLDatabase(conf *config.Config) (*db.Queries, error) {
 		}
 
 		fmt.Println("MySQL has been connected.")
+
+		sqlDBInstance = sqlDB
 		dbInstance = db.New(sqlDB)
 	})
 
-	return dbInstance, dbErr
+	return sqlDBInstance, dbInstance, dbErr
 }

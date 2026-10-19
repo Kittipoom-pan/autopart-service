@@ -8,11 +8,11 @@ package db
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const createPart = `-- name: CreatePart :execresult
 INSERT INTO part (
-    uuid,
     part_brand_id,
     part_type_id,
     sku,
@@ -24,25 +24,23 @@ INSERT INTO part (
     created_at,
     created_by
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
 `
 
 type CreatePartParams struct {
-	Uuid        []byte
 	PartBrandID int32
 	PartTypeID  int32
 	Sku         string
 	Name        string
 	Description sql.NullString
-	Price       sql.NullInt32
-	Quantity    sql.NullInt32
-	CreatedAt   sql.NullTime
+	Price       int32
+	Quantity    int32
+	CreatedAt   time.Time
 	CreatedBy   sql.NullInt32
 }
 
 func (q *Queries) CreatePart(ctx context.Context, arg CreatePartParams) (sql.Result, error) {
 	return q.db.ExecContext(ctx, createPart,
-		arg.Uuid,
 		arg.PartBrandID,
 		arg.PartTypeID,
 		arg.Sku,
@@ -76,7 +74,6 @@ func (q *Queries) DeletePartByID(ctx context.Context, arg DeletePartByIDParams) 
 const getPartByID = `-- name: GetPartByID :one
 SELECT
     part_id,
-    uuid,
     part_brand_id,
     part_type_id,
     sku,
@@ -92,16 +89,15 @@ WHERE part_id = ? AND is_active = 1
 
 type GetPartByIDRow struct {
 	PartID      int32
-	Uuid        []byte
 	PartBrandID int32
 	PartTypeID  int32
 	Sku         string
 	Name        string
 	Description sql.NullString
-	Price       sql.NullInt32
-	Quantity    sql.NullInt32
-	IsActive    bool
-	CreatedAt   sql.NullTime
+	Price       int32
+	Quantity    int32
+	IsActive    interface{}
+	CreatedAt   time.Time
 }
 
 func (q *Queries) GetPartByID(ctx context.Context, partID int32) (GetPartByIDRow, error) {
@@ -109,7 +105,6 @@ func (q *Queries) GetPartByID(ctx context.Context, partID int32) (GetPartByIDRow
 	var i GetPartByIDRow
 	err := row.Scan(
 		&i.PartID,
-		&i.Uuid,
 		&i.PartBrandID,
 		&i.PartTypeID,
 		&i.Sku,
@@ -126,7 +121,6 @@ func (q *Queries) GetPartByID(ctx context.Context, partID int32) (GetPartByIDRow
 const getPartBySKU = `-- name: GetPartBySKU :one
 SELECT
     part_id,
-    uuid,
     part_brand_id,
     part_type_id,
     sku,
@@ -142,16 +136,15 @@ WHERE sku = ? AND is_active = 1
 
 type GetPartBySKURow struct {
 	PartID      int32
-	Uuid        []byte
 	PartBrandID int32
 	PartTypeID  int32
 	Sku         string
 	Name        string
 	Description sql.NullString
-	Price       sql.NullInt32
-	Quantity    sql.NullInt32
-	IsActive    bool
-	CreatedAt   sql.NullTime
+	Price       int32
+	Quantity    int32
+	IsActive    interface{}
+	CreatedAt   time.Time
 }
 
 func (q *Queries) GetPartBySKU(ctx context.Context, sku string) (GetPartBySKURow, error) {
@@ -159,7 +152,6 @@ func (q *Queries) GetPartBySKU(ctx context.Context, sku string) (GetPartBySKURow
 	var i GetPartBySKURow
 	err := row.Scan(
 		&i.PartID,
-		&i.Uuid,
 		&i.PartBrandID,
 		&i.PartTypeID,
 		&i.Sku,
@@ -176,7 +168,6 @@ func (q *Queries) GetPartBySKU(ctx context.Context, sku string) (GetPartBySKURow
 const getPartWithImages = `-- name: GetPartWithImages :many
 SELECT 
     p.part_id,
-    p.uuid,
     p.sku,
     p.name AS part_name,
     p.description AS part_description,
@@ -200,19 +191,18 @@ ORDER BY i.is_primary DESC, i.sort_image ASC, i.created_at ASC
 
 type GetPartWithImagesRow struct {
 	PartID          int32
-	Uuid            []byte
 	Sku             string
 	PartName        string
 	PartDescription sql.NullString
-	Price           sql.NullInt32
-	Quantity        sql.NullInt32
+	Price           int32
+	Quantity        int32
 	CarModelID      sql.NullInt32
 	CarModelName    sql.NullString
 	YearFrom        sql.NullInt16
 	YearTo          sql.NullInt16
 	ImageID         sql.NullInt64
 	ImageUrl        sql.NullString
-	IsPrimary       sql.NullBool
+	IsPrimary       interface{}
 	SortImage       sql.NullInt32
 }
 
@@ -227,7 +217,6 @@ func (q *Queries) GetPartWithImages(ctx context.Context, partID int32) ([]GetPar
 		var i GetPartWithImagesRow
 		if err := rows.Scan(
 			&i.PartID,
-			&i.Uuid,
 			&i.Sku,
 			&i.PartName,
 			&i.PartDescription,
@@ -258,7 +247,6 @@ func (q *Queries) GetPartWithImages(ctx context.Context, partID int32) ([]GetPar
 const listParts = `-- name: ListParts :many
 SELECT
     part_id,
-    uuid,
     part_brand_id,
     part_type_id,
     sku,
@@ -275,16 +263,15 @@ ORDER BY created_at
 
 type ListPartsRow struct {
 	PartID      int32
-	Uuid        []byte
 	PartBrandID int32
 	PartTypeID  int32
 	Sku         string
 	Name        string
 	Description sql.NullString
-	Price       sql.NullInt32
-	Quantity    sql.NullInt32
-	IsActive    bool
-	CreatedAt   sql.NullTime
+	Price       int32
+	Quantity    int32
+	IsActive    interface{}
+	CreatedAt   time.Time
 }
 
 func (q *Queries) ListParts(ctx context.Context) ([]ListPartsRow, error) {
@@ -298,7 +285,6 @@ func (q *Queries) ListParts(ctx context.Context) ([]ListPartsRow, error) {
 		var i ListPartsRow
 		if err := rows.Scan(
 			&i.PartID,
-			&i.Uuid,
 			&i.PartBrandID,
 			&i.PartTypeID,
 			&i.Sku,
@@ -343,9 +329,9 @@ type UpdatePartByIDParams struct {
 	Description sql.NullString
 	PartTypeID  int32
 	PartBrandID int32
-	Price       sql.NullInt32
-	Quantity    sql.NullInt32
-	IsActive    bool
+	Price       int32
+	Quantity    int32
+	IsActive    interface{}
 	UpdatedAt   sql.NullTime
 	UpdatedBy   sql.NullInt32
 	PartID      int32
@@ -376,7 +362,7 @@ WHERE part_id = ? AND is_active = 1
 `
 
 type UpdatePartStockByIDParams struct {
-	Quantity  sql.NullInt32
+	Quantity  int32
 	UpdatedAt sql.NullTime
 	UpdatedBy sql.NullInt32
 	PartID    int32

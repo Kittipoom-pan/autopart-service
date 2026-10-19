@@ -10,7 +10,6 @@ import (
 	customerror "github.com/Kittipoom-pan/autopart-service/pkg/error"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 type CustomerController struct {
@@ -18,10 +17,10 @@ type CustomerController struct {
 	logger  zerolog.Logger
 }
 
-func NewCustomerController(usecase usecase.CustomerUsecase) *CustomerController {
+func NewCustomerController(usecase usecase.CustomerUsecase, logger zerolog.Logger) *CustomerController {
 	return &CustomerController{
 		usecase: usecase,
-		logger:  log.With().Str("component", "customer_controller").Logger(),
+		logger:  logger,
 	}
 }
 

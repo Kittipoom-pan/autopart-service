@@ -15,7 +15,7 @@ func ValidatePartRequest(req *entity.PartReq, isUpdate bool) error {
 		return parterror.NewAPIError(common.StatusBadRequest, "SKU is required")
 	}
 
-	if req.Price != nil && *req.Price <= 0 {
+	if req.Price <= 0 {
 		return parterror.NewAPIError(common.StatusBadRequest, "price must be greater than zero")
 	}
 

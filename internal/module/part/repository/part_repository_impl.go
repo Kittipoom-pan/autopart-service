@@ -8,7 +8,6 @@ import (
 	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/part/entity"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 type partRepository struct {
@@ -16,10 +15,10 @@ type partRepository struct {
 	logger  zerolog.Logger
 }
 
-func NewPartRepository(queries *db.Queries) PartRepository {
+func NewPartRepository(queries *db.Queries, logger zerolog.Logger) PartRepository {
 	return &partRepository{
 		queries: queries,
-		logger:  log.With().Str("component", "part_repository").Logger(),
+		logger:  logger,
 	}
 }
 
@@ -35,6 +34,20 @@ func (r *partRepository) GetPartByID(ctx context.Context, id int) (*entity.PartR
 	}
 
 	return entity.MapDbPartToPartRes(part), nil
+}
+
+func (r *partRepository) GetPartBySKU(ctx context.Context, sku string) (*entity.PartRes, error) {
+	part, err := r.queries.GetPartBySKU(ctx, sku)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			r.logger.Warn().Str("sku", sku).Msg("part not found in database")
+			return nil, dberr.NewDBError(dberr.ErrRecordNotFound, "part not found")
+		}
+		r.logger.Error().Err(err).Str("sku", sku).Msg("failed to get part from database")
+		return nil, dberr.NewDBError(dberr.ErrDatabaseInternal, err.Error())
+	}
+
+	return entity.MapDbPartBySKUToPartRes(part), nil
 }
 
 func (r *partRepository) CreatePart(ctx context.Context, part *entity.PartReq, createdBy *int) (int64, error) {
@@ -53,8 +66,8 @@ func (r *partRepository) CreatePart(ctx context.Context, part *entity.PartReq, c
 				Msg("foreign key constraint failed")
 			return 0, dbErr
 		}
-		r.logger.Error().Err(err).Str("sku", params.Sku).Msg("failed to create part in database")
-		return 0, dbErr
+		r.logger.Error().Err(err).Str("sku", params.Sku).Msg("original database error")
+		return 0, dberr.NewDBError(dberr.ErrDatabaseInternal, err.Error())
 	}
 
 	partID, err := result.LastInsertId()

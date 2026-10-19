@@ -8,95 +8,139 @@ package db
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const createOrder = `-- name: CreateOrder :execresult
 INSERT INTO ` + "`" + `order` + "`" + ` (
-    uuid,
+    order_number,
     customer_id,
+    channel,
+    placed_by_admin_user_id,
     customer_payment_method_id,
     cart_id,
     amount,
     address_id,
     discount_id,
     status,
-    created_at,
-    created_by
+    remark,
+    created_at
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateOrderParams struct {
-	Uuid                    []byte
-	CustomerID              int32
+	OrderNumber             string
+	CustomerID              sql.NullInt32
+	Channel                 OrderChannel
+	PlacedByAdminUserID     sql.NullInt32
 	CustomerPaymentMethodID sql.NullInt32
 	CartID                  sql.NullInt32
-	Amount                  sql.NullInt32
+	Amount                  int32
 	AddressID               sql.NullInt32
 	DiscountID              sql.NullInt32
-	Status                  NullOrderStatus
-	CreatedAt               sql.NullTime
-	CreatedBy               sql.NullInt32
+	Status                  OrderStatus
+	Remark                  sql.NullString
+	CreatedAt               time.Time
 }
 
 func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (sql.Result, error) {
 	return q.db.ExecContext(ctx, createOrder,
-		arg.Uuid,
+		arg.OrderNumber,
 		arg.CustomerID,
+		arg.Channel,
+		arg.PlacedByAdminUserID,
 		arg.CustomerPaymentMethodID,
 		arg.CartID,
 		arg.Amount,
 		arg.AddressID,
 		arg.DiscountID,
 		arg.Status,
+		arg.Remark,
 		arg.CreatedAt,
-		arg.CreatedBy,
 	)
 }
 
 const getOrderByID = `-- name: GetOrderByID :one
 SELECT
     order_id,
-    uuid,
+    order_number,
     customer_id,
+    channel,
+    placed_by_admin_user_id,
     customer_payment_method_id,
     cart_id,
     amount,
     address_id,
     discount_id,
     status,
-    created_at
+    remark,
+    created_at,
+    updated_at
 FROM ` + "`" + `order` + "`" + `
 WHERE order_id = ?
 `
 
-type GetOrderByIDRow struct {
-	OrderID                 int32
-	Uuid                    []byte
-	CustomerID              int32
-	CustomerPaymentMethodID sql.NullInt32
-	CartID                  sql.NullInt32
-	Amount                  sql.NullInt32
-	AddressID               sql.NullInt32
-	DiscountID              sql.NullInt32
-	Status                  NullOrderStatus
-	CreatedAt               sql.NullTime
-}
-
-func (q *Queries) GetOrderByID(ctx context.Context, orderID int32) (GetOrderByIDRow, error) {
+func (q *Queries) GetOrderByID(ctx context.Context, orderID int64) (Order, error) {
 	row := q.db.QueryRowContext(ctx, getOrderByID, orderID)
-	var i GetOrderByIDRow
+	var i Order
 	err := row.Scan(
 		&i.OrderID,
-		&i.Uuid,
+		&i.OrderNumber,
 		&i.CustomerID,
+		&i.Channel,
+		&i.PlacedByAdminUserID,
 		&i.CustomerPaymentMethodID,
 		&i.CartID,
 		&i.Amount,
 		&i.AddressID,
 		&i.DiscountID,
 		&i.Status,
+		&i.Remark,
 		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getOrderByOrderNumber = `-- name: GetOrderByOrderNumber :one
+SELECT 
+    order_id, 
+    order_number, 
+    customer_id, 
+    channel, 
+    placed_by_admin_user_id, 
+    customer_payment_method_id, 
+    cart_id, 
+    amount, 
+    address_id, 
+    discount_id, 
+    status, 
+    remark, 
+    created_at, 
+    updated_at
+FROM ` + "`" + `order` + "`" + `
+WHERE order_number = ?
+`
+
+func (q *Queries) GetOrderByOrderNumber(ctx context.Context, orderNumber string) (Order, error) {
+	row := q.db.QueryRowContext(ctx, getOrderByOrderNumber, orderNumber)
+	var i Order
+	err := row.Scan(
+		&i.OrderID,
+		&i.OrderNumber,
+		&i.CustomerID,
+		&i.Channel,
+		&i.PlacedByAdminUserID,
+		&i.CustomerPaymentMethodID,
+		&i.CartID,
+		&i.Amount,
+		&i.AddressID,
+		&i.DiscountID,
+		&i.Status,
+		&i.Remark,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -104,52 +148,47 @@ func (q *Queries) GetOrderByID(ctx context.Context, orderID int32) (GetOrderByID
 const listOrders = `-- name: ListOrders :many
 SELECT
     order_id,
-    uuid,
+    order_number,
     customer_id,
+    channel,
+    placed_by_admin_user_id,
     customer_payment_method_id,
     cart_id,
     amount,
     address_id,
     discount_id,
     status,
-    created_at
+    remark,
+    created_at,
+    updated_at
 FROM ` + "`" + `order` + "`" + `
 ORDER BY created_at DESC
 `
 
-type ListOrdersRow struct {
-	OrderID                 int32
-	Uuid                    []byte
-	CustomerID              int32
-	CustomerPaymentMethodID sql.NullInt32
-	CartID                  sql.NullInt32
-	Amount                  sql.NullInt32
-	AddressID               sql.NullInt32
-	DiscountID              sql.NullInt32
-	Status                  NullOrderStatus
-	CreatedAt               sql.NullTime
-}
-
-func (q *Queries) ListOrders(ctx context.Context) ([]ListOrdersRow, error) {
+func (q *Queries) ListOrders(ctx context.Context) ([]Order, error) {
 	rows, err := q.db.QueryContext(ctx, listOrders)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListOrdersRow
+	var items []Order
 	for rows.Next() {
-		var i ListOrdersRow
+		var i Order
 		if err := rows.Scan(
 			&i.OrderID,
-			&i.Uuid,
+			&i.OrderNumber,
 			&i.CustomerID,
+			&i.Channel,
+			&i.PlacedByAdminUserID,
 			&i.CustomerPaymentMethodID,
 			&i.CartID,
 			&i.Amount,
 			&i.AddressID,
 			&i.DiscountID,
 			&i.Status,
+			&i.Remark,
 			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}

@@ -10,7 +10,6 @@ import (
 	parterror "github.com/Kittipoom-pan/autopart-service/pkg/error"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 type PartController struct {
@@ -18,10 +17,10 @@ type PartController struct {
 	logger  zerolog.Logger
 }
 
-func NewPartController(usecase usecase.PartUsecase) *PartController {
+func NewPartController(usecase usecase.PartUsecase, logger zerolog.Logger) *PartController {
 	return &PartController{
 		usecase: usecase,
-		logger:  log.With().Str("component", "part_controller").Logger(),
+		logger:  logger,
 	}
 }
 
@@ -51,6 +50,23 @@ func (h *PartController) GetPartByID(c *fiber.Ctx) error {
 	}
 
 	part, err := h.usecase.GetPartByID(c.UserContext(), id)
+	if err != nil {
+		return helper.RespondError(c, err)
+	}
+
+	return helper.RespondSuccess(c, fiber.StatusOK, part, "")
+}
+
+func (h *PartController) GetPartBySKU(c *fiber.Ctx) error {
+	sku := c.Params("sku")
+	h.logger.Debug().Str("sku", sku).Msg("Get part by SKU request")
+
+	if sku == "" {
+		h.logger.Warn().Msg("SKU parameter is missing")
+		return helper.RespondError(c, parterror.InvalidRequestData(map[string]string{"sku": "sku is required"}))
+	}
+
+	part, err := h.usecase.GetPartBySKU(c.UserContext(), sku)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
