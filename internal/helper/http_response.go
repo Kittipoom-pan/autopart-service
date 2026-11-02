@@ -37,8 +37,8 @@ func RespondError(c *fiber.Ctx, err error) error {
 	})
 }
 
-func RespondSuccess(c *fiber.Ctx, status int, data interface{}, message string) error {
-	return c.Status(status).JSON(common.BaseResponse{
+func RespondSuccess[T any](c *fiber.Ctx, status int, data T, message string) error {
+	return c.Status(status).JSON(common.BaseResponse[T]{
 		Message: message,
 		Result:  data,
 	})

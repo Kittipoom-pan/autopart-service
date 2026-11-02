@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/Kittipoom-pan/autopart-service/internal/auth"
+	_ "github.com/Kittipoom-pan/autopart-service/internal/common"
 	"github.com/Kittipoom-pan/autopart-service/internal/helper"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/order/entity"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/order/usecase"
@@ -24,6 +25,17 @@ func NewOrderController(usecase usecase.OrderUsecase, logger zerolog.Logger) *Or
 	}
 }
 
+// GetAllOrders godoc
+// @Summary      List orders
+// @Description  ดึงรายการคำสั่งซื้อทั้งหมด
+// @Tags         order
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  common.BaseResponse[[]entity.OrderRes]
+// @Failure      401  {object}  common.BaseErrorResponse
+// @Failure      403  {object}  common.BaseErrorResponse
+// @Failure      500  {object}  common.BaseErrorResponse
+// @Router       /v1/order [get]
 func (h *OrderController) GetAllOrders(c *fiber.Ctx) error {
 	h.logger.Debug().Msg("Get all orders request")
 
@@ -39,6 +51,20 @@ func (h *OrderController) GetAllOrders(c *fiber.Ctx) error {
 	return helper.RespondSuccess(c, fiber.StatusOK, orders, "Orders retrieved successfully")
 }
 
+// GetOrderByID godoc
+// @Summary      Get order
+// @Description  ดึงข้อมูลคำสั่งซื้อตาม ID
+// @Tags         order
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int  true  "Order ID"
+// @Success      200  {object}  common.BaseResponse[entity.OrderRes]
+// @Failure      400  {object}  common.BaseErrorResponse
+// @Failure      401  {object}  common.BaseErrorResponse
+// @Failure      403  {object}  common.BaseErrorResponse
+// @Failure      404  {object}  common.BaseErrorResponse
+// @Failure      500  {object}  common.BaseErrorResponse
+// @Router       /v1/order/{id} [get]
 func (h *OrderController) GetOrderByID(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	h.logger.Debug().Str("order_id", idStr).Msg("Get order request")
@@ -57,6 +83,20 @@ func (h *OrderController) GetOrderByID(c *fiber.Ctx) error {
 	return helper.RespondSuccess(c, fiber.StatusOK, order, "")
 }
 
+// GetOrderByOrderNumber godoc
+// @Summary      Get order by order number
+// @Description  ดึงข้อมูลคำสั่งซื้อตามเลขที่คำสั่งซื้อ
+// @Tags         order
+// @Produce      json
+// @Security     BearerAuth
+// @Param        orderNumber  path      string  true  "Order Number"
+// @Success      200  {object}  common.BaseResponse[entity.OrderRes]
+// @Failure      400  {object}  common.BaseErrorResponse
+// @Failure      401  {object}  common.BaseErrorResponse
+// @Failure      403  {object}  common.BaseErrorResponse
+// @Failure      404  {object}  common.BaseErrorResponse
+// @Failure      500  {object}  common.BaseErrorResponse
+// @Router       /v1/order/order-number/{orderNumber} [get]
 func (h *OrderController) GetOrderByOrderNumber(c *fiber.Ctx) error {
 	orderNumber := c.Params("orderNumber")
 	h.logger.Debug().Str("order_number", orderNumber).Msg("Get order by order number request")
@@ -74,6 +114,20 @@ func (h *OrderController) GetOrderByOrderNumber(c *fiber.Ctx) error {
 	return helper.RespondSuccess(c, fiber.StatusOK, order, "")
 }
 
+// CreateOrderByCustomer godoc
+// @Summary      Create order by customer
+// @Description  สร้างคำสั่งซื้อโดยลูกค้า
+// @Tags         order
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body  body      entity.CustomerCreateOrderReq  true  "Order data"
+// @Success      201  {object}  common.BaseResponse[any]
+// @Failure      400  {object}  common.BaseErrorResponse
+// @Failure      401  {object}  common.BaseErrorResponse
+// @Failure      403  {object}  common.BaseErrorResponse
+// @Failure      500  {object}  common.BaseErrorResponse
+// @Router       /v1/order [post]
 func (h *OrderController) CreateOrderByCustomer(c *fiber.Ctx) error {
 	var req entity.CustomerCreateOrderReq
 	if err := c.BodyParser(&req); err != nil {
@@ -91,9 +145,23 @@ func (h *OrderController) CreateOrderByCustomer(c *fiber.Ctx) error {
 		return helper.RespondError(c, err)
 	}
 
-	return helper.RespondSuccess(c, fiber.StatusCreated, map[string]string{"order_number": orderNo}, "Order created successfully")
+	return helper.RespondSuccess(c, fiber.StatusCreated, entity.OrderCreatedRes{OrderNumber: orderNo}, "Customer created order successfully")
 }
 
+// CreateOrderByAdmin godoc
+// @Summary      Create order by admin
+// @Description  สร้างคำสั่งซื้อโดยแอดมิน
+// @Tags         order
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body  body      entity.AdminCreateOrderReq  true  "Order data"
+// @Success      201  {object}  common.BaseResponse[entity.OrderCreatedRes]
+// @Failure      400  {object}  common.BaseErrorResponse
+// @Failure      401  {object}  common.BaseErrorResponse
+// @Failure      403  {object}  common.BaseErrorResponse
+// @Failure      500  {object}  common.BaseErrorResponse
+// @Router       /v1/order/admin [post]
 func (h *OrderController) CreateOrderByAdmin(c *fiber.Ctx) error {
 	var req entity.AdminCreateOrderReq
 	if err := c.BodyParser(&req); err != nil {
@@ -111,5 +179,5 @@ func (h *OrderController) CreateOrderByAdmin(c *fiber.Ctx) error {
 		return helper.RespondError(c, err)
 	}
 
-	return helper.RespondSuccess(c, fiber.StatusCreated, map[string]string{"order_number": orderNo}, "Order created successfully")
+	return helper.RespondSuccess(c, fiber.StatusCreated, entity.OrderCreatedRes{OrderNumber: orderNo}, "Admin created order successfully")
 }

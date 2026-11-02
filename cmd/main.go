@@ -4,11 +4,20 @@ import (
 	"log"
 
 	"github.com/Kittipoom-pan/autopart-service/config"
+	_ "github.com/Kittipoom-pan/autopart-service/docs"
 	"github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database"
 	"github.com/Kittipoom-pan/autopart-service/internal/logger"
 	"github.com/Kittipoom-pan/autopart-service/internal/server"
 )
 
+// @title        Autopart Service API
+// @version      1.0
+// @description  REST API Autopart Service
+// @BasePath     /
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description  "Bearer <token>"
 func main() {
 	conf, err := config.LoadConfigs()
 	if err != nil {

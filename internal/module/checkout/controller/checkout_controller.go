@@ -1,6 +1,8 @@
 package controller
 
 import (
+	_ "github.com/Kittipoom-pan/autopart-service/internal/common"
+
 	"github.com/Kittipoom-pan/autopart-service/internal/auth"
 	"github.com/Kittipoom-pan/autopart-service/internal/helper"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/checkout/entity"
@@ -22,6 +24,19 @@ func NewCheckoutController(usecase usecase.CheckoutUsecase, logger zerolog.Logge
 	}
 }
 
+// CheckoutPreview godoc
+// @Summary      Preview checkout
+// @Tags         checkout
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body  body      entity.CheckoutPreviewReq  true  "Checkout preview data"
+// @Success 	 200   {object}  common.BaseResponse[entity.CheckoutPreviewRes]
+// @Failure      400   {object}  common.BaseErrorResponse
+// @Failure      401   {object}  common.BaseErrorResponse
+// @Failure      403   {object}  common.BaseErrorResponse
+// @Failure      500   {object}  common.BaseErrorResponse
+// @Router       /v1/checkout/preview [post]
 func (h *CheckoutController) CheckoutPreview(c *fiber.Ctx) error {
 	h.logger.Debug().Msg("Get checkout preview request")
 

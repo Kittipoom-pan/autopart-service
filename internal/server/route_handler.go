@@ -11,6 +11,7 @@ import (
 	"github.com/Kittipoom-pan/autopart-service/internal/module/order"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/part"
 	"github.com/gofiber/fiber/v2"
+	fiberSwagger "github.com/swaggo/fiber-swagger"
 )
 
 func (s *Server) MapHandlers() error {
@@ -83,6 +84,8 @@ func (s *Server) MapHandlers() error {
 		checkoutPrivate, s.Conn, s.Db, s.Cfg,
 		middleware.JWTMiddleware(s.Cfg), s.Logger,
 	)
+
+	s.App.Get("/swagger/*", fiberSwagger.WrapHandler)
 
 	s.App.Use(func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{

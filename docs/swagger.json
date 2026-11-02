@@ -1,0 +1,3194 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "REST API Autopart Service",
+        "title": "Autopart Service API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "basePath": "/",
+    "paths": {
+        "/v1/address": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "ดึงรายการที่อยู่ของลูกค้า",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "address"
+                ],
+                "summary": "List addresses",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_address_entity_AddressRes"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "เพิ่มที่อยู่ใหม่",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "address"
+                ],
+                "summary": "Create address",
+                "parameters": [
+                    {
+                        "description": "Address data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CreateAddressReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-AddressRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/address/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "ดึงที่อยู่ตาม ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "address"
+                ],
+                "summary": "Get address",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Address ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-AddressRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "แก้ไขที่อยู่",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "address"
+                ],
+                "summary": "Update address",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Address ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Address data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UpdateAddressReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-AddressRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "ลบที่อยู่",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "address"
+                ],
+                "summary": "Delete address",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Address ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/address/{id}/default": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "ตั้งที่อยู่เริ่มต้น",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "address"
+                ],
+                "summary": "Set default address",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Address ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-AddressRes"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/admin": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "ดึงรายการผู้ดูแลระบบทั้งหมด",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "List admin users",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_admin_entity_AdminRes"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "สร้างผู้ดูแลระบบใหม่",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Create admin user",
+                "parameters": [
+                    {
+                        "description": "Admin data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/AdminReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/admin/login": {
+            "post": {
+                "description": "เข้าสู่ระบบสำหรับผู้ดูแลระบบ",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Admin login",
+                "parameters": [
+                    {
+                        "description": "Login credentials",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_admin_entity_LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/admin/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "ดึงข้อมูลผู้ดูแลระบบตาม ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Get admin user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Admin ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-AdminRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "อัปเดตข้อมูลผู้ดูแลระบบ",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Update admin user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Admin ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Admin data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/AdminReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "ลบผู้ดูแลระบบ",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Delete admin user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Admin ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/cart": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "ดึงตะกร้าของลูกค้า",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cart"
+                ],
+                "summary": "Get cart",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_cart_entity_CartRes"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/cart/items": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "เพิ่มสินค้าเข้าตะกร้า",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cart"
+                ],
+                "summary": "Add item to cart",
+                "parameters": [
+                    {
+                        "description": "Cart item data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/AddCartItemReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_cart_entity_CartRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/cart/items/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "แก้ไขจำนวนสินค้าในตะกร้า",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cart"
+                ],
+                "summary": "Update cart item quantity",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Cart Item ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Cart item quantity data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UpdateCartItemQuantityReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_cart_entity_CartRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/checkout/preview": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "checkout"
+                ],
+                "summary": "Preview checkout",
+                "parameters": [
+                    {
+                        "description": "Checkout preview data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CheckoutPreviewReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_checkout_entity_CheckoutPreviewRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/customer": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "ดึงรายการลูกค้าทั้งหมด",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customer"
+                ],
+                "summary": "List customers",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_customer_entity_CustomerRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "สร้างลูกค้าใหม่",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customer"
+                ],
+                "summary": "Create customer",
+                "parameters": [
+                    {
+                        "description": "Customer data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CustomerReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/customer/login": {
+            "post": {
+                "description": "เข้าสู่ระบบสำหรับลูกค้า",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customer"
+                ],
+                "summary": "Customer login",
+                "parameters": [
+                    {
+                        "description": "Login credentials",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_customer_entity_LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/customer/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "ดึงข้อมูลลูกค้าตาม ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customer"
+                ],
+                "summary": "Get customer",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Customer ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-CustomerRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "อัปเดตข้อมูลลูกค้า",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customer"
+                ],
+                "summary": "Update customer",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Customer ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Customer data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CustomerReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "ลบลูกค้า",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customer"
+                ],
+                "summary": "Delete customer",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Customer ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/order": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "ดึงรายการคำสั่งซื้อทั้งหมด",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "List orders",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_order_entity_OrderRes"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "สร้างคำสั่งซื้อโดยลูกค้า",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "Create order by customer",
+                "parameters": [
+                    {
+                        "description": "Order data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CustomerCreateOrderReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/order/admin": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "สร้างคำสั่งซื้อโดยแอดมิน",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "Create order by admin",
+                "parameters": [
+                    {
+                        "description": "Order data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/AdminCreateOrderReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_order_entity_OrderCreatedRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/order/order-number/{orderNumber}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "ดึงข้อมูลคำสั่งซื้อตามเลขที่คำสั่งซื้อ",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "Get order by order number",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order Number",
+                        "name": "orderNumber",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-OrderRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/order/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "ดึงข้อมูลคำสั่งซื้อตาม ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "Get order",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-OrderRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/part": {
+            "get": {
+                "description": "ดึงรายการอะไหล่ทั้งหมด",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "part"
+                ],
+                "summary": "List parts",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_part_entity_PartRes"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "สร้างอะไหล่ใหม่ ต้องใช้ JWT",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "part"
+                ],
+                "summary": "Create part",
+                "parameters": [
+                    {
+                        "description": "Part data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PartReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_common_IDResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/part/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "part"
+                ],
+                "summary": "Get part",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Part ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-PartRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "part"
+                ],
+                "summary": "Update part",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Part ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Part data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PartReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "part"
+                ],
+                "summary": "Delete part",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Part ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/payment-method": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "ดึงรายการบัตร/ช่องทางจ่ายที่บันทึกไว้",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payment-method"
+                ],
+                "summary": "List payment methods",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_customer_payment_method_entity_CustomerPaymentMethodRes"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "เพิ่มช่องทางจ่าย",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payment-method"
+                ],
+                "summary": "Create payment method",
+                "parameters": [
+                    {
+                        "description": "Payment method data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CreateCustomerPaymentMethodReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-CustomerPaymentMethodRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/payment-method/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "ดึงช่องทางจ่ายตาม ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payment-method"
+                ],
+                "summary": "Get payment method",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Payment Method ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-CustomerPaymentMethodRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "แก้ไขช่องทางจ่าย",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payment-method"
+                ],
+                "summary": "Update payment method",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Payment Method ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Payment method data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UpdateCustomerPaymentMethodReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-CustomerPaymentMethodRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "ลบช่องทางจ่าย",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payment-method"
+                ],
+                "summary": "Delete payment method",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Payment Method ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/payment-method/{id}/default": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "ตั้งช่องทางจ่ายเริ่มต้น",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payment-method"
+                ],
+                "summary": "Set default payment method",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Payment Method ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-CustomerPaymentMethodRes"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "AddCartItemReq": {
+            "type": "object",
+            "properties": {
+                "part_id": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
+        "AddressRes": {
+            "type": "object",
+            "properties": {
+                "address_id": {
+                    "type": "integer"
+                },
+                "address_line": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "customer_id": {
+                    "type": "integer"
+                },
+                "district": {
+                    "type": "string"
+                },
+                "is_default": {
+                    "type": "boolean"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "province": {
+                    "type": "string"
+                },
+                "province_id": {
+                    "type": "integer"
+                },
+                "recipient_name": {
+                    "type": "string"
+                },
+                "subdistrict": {
+                    "type": "string"
+                },
+                "subdistrict_id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "zip_code": {
+                    "type": "string"
+                }
+            }
+        },
+        "AdminCreateOrderItemReq": {
+            "type": "object",
+            "required": [
+                "part_id",
+                "quantity"
+            ],
+            "properties": {
+                "part_id": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
+        "AdminCreateOrderReq": {
+            "type": "object",
+            "required": [
+                "channel",
+                "items",
+                "payment_method_type_id"
+            ],
+            "properties": {
+                "address_id": {
+                    "type": "integer"
+                },
+                "channel": {
+                    "type": "string"
+                },
+                "customer_id": {
+                    "type": "integer"
+                },
+                "customer_payment_method_id": {
+                    "type": "integer"
+                },
+                "discount_id": {
+                    "type": "integer"
+                },
+                "items": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/AdminCreateOrderItemReq"
+                    }
+                },
+                "payment_method_type_id": {
+                    "type": "integer"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "shipping_address": {
+                    "$ref": "#/definitions/AdminShippingAddressReq"
+                }
+            }
+        },
+        "AdminReq": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "AdminRes": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "AdminShippingAddressReq": {
+            "type": "object",
+            "required": [
+                "address_line",
+                "phone_number",
+                "recipient_name",
+                "subdistrict_id"
+            ],
+            "properties": {
+                "address_line": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "recipient_name": {
+                    "type": "string"
+                },
+                "subdistrict_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "BaseErrorResponse": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "example": {
+                        "id": "invalid part id format"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Validation failed"
+                }
+            }
+        },
+        "BaseResponse-AddressRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "result": {
+                    "$ref": "#/definitions/AddressRes"
+                }
+            }
+        },
+        "BaseResponse-AdminRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "result": {
+                    "$ref": "#/definitions/AdminRes"
+                }
+            }
+        },
+        "BaseResponse-CustomerPaymentMethodRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "result": {
+                    "$ref": "#/definitions/CustomerPaymentMethodRes"
+                }
+            }
+        },
+        "BaseResponse-CustomerRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "result": {
+                    "$ref": "#/definitions/CustomerRes"
+                }
+            }
+        },
+        "BaseResponse-OrderRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "result": {
+                    "$ref": "#/definitions/OrderRes"
+                }
+            }
+        },
+        "BaseResponse-PartRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "result": {
+                    "$ref": "#/definitions/PartRes"
+                }
+            }
+        },
+        "BaseResponse-any": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "result": {}
+            }
+        },
+        "BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_address_entity_AddressRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "result": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/AddressRes"
+                    }
+                }
+            }
+        },
+        "BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_admin_entity_AdminRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "result": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/AdminRes"
+                    }
+                }
+            }
+        },
+        "BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_customer_entity_CustomerRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "result": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CustomerRes"
+                    }
+                }
+            }
+        },
+        "BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_customer_payment_method_entity_CustomerPaymentMethodRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "result": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CustomerPaymentMethodRes"
+                    }
+                }
+            }
+        },
+        "BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_order_entity_OrderRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "result": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/OrderRes"
+                    }
+                }
+            }
+        },
+        "BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_part_entity_PartRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "result": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/PartRes"
+                    }
+                }
+            }
+        },
+        "BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_common_IDResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "result": {
+                    "$ref": "#/definitions/IDResponse"
+                }
+            }
+        },
+        "BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_admin_entity_LoginResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "result": {
+                    "$ref": "#/definitions/LoginResponse"
+                }
+            }
+        },
+        "BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_cart_entity_CartRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "result": {
+                    "$ref": "#/definitions/CartRes"
+                }
+            }
+        },
+        "BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_checkout_entity_CheckoutPreviewRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "result": {
+                    "$ref": "#/definitions/CheckoutPreviewRes"
+                }
+            }
+        },
+        "BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_customer_entity_LoginResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "result": {
+                    "$ref": "#/definitions/LoginResponse"
+                }
+            }
+        },
+        "BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_order_entity_OrderCreatedRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "result": {
+                    "$ref": "#/definitions/OrderCreatedRes"
+                }
+            }
+        },
+        "CartItemRes": {
+            "type": "object",
+            "properties": {
+                "cart_id": {
+                    "type": "integer"
+                },
+                "cart_item_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "part_id": {
+                    "type": "integer"
+                },
+                "part_name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "subtotal": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "CartRes": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "cart_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "customer_id": {
+                    "type": "integer"
+                },
+                "is_checkout": {
+                    "type": "boolean"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CartItemRes"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "CheckoutPreviewItem": {
+            "type": "object",
+            "properties": {
+                "discount_amount": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "part_id": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "subtotal": {
+                    "type": "string"
+                },
+                "total_price": {
+                    "type": "string"
+                },
+                "unit_price": {
+                    "type": "string"
+                }
+            }
+        },
+        "CheckoutPreviewReq": {
+            "type": "object",
+            "properties": {
+                "address_id": {
+                    "type": "integer"
+                },
+                "cart_id": {
+                    "type": "integer"
+                },
+                "customer_payment_method_id": {
+                    "type": "integer"
+                },
+                "discount_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "CheckoutPreviewRes": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "$ref": "#/definitions/AddressRes"
+                },
+                "discount_amount": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CheckoutPreviewItem"
+                    }
+                },
+                "shipping_fee": {
+                    "type": "string"
+                },
+                "subtotal": {
+                    "type": "string"
+                },
+                "total_amount": {
+                    "type": "string"
+                }
+            }
+        },
+        "CreateAddressReq": {
+            "type": "object",
+            "properties": {
+                "address_line": {
+                    "type": "string"
+                },
+                "is_default": {
+                    "type": "boolean"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "recipient_name": {
+                    "type": "string"
+                },
+                "subdistrict_id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "zip_code": {
+                    "type": "string"
+                }
+            }
+        },
+        "CreateCustomerPaymentMethodReq": {
+            "type": "object",
+            "properties": {
+                "account_name": {
+                    "type": "string"
+                },
+                "card_token": {
+                    "type": "string"
+                },
+                "is_default": {
+                    "type": "boolean"
+                },
+                "payment_method_type_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "CustomerCreateOrderReq": {
+            "type": "object",
+            "required": [
+                "address_id",
+                "cart_id",
+                "payment_method_type_id"
+            ],
+            "properties": {
+                "address_id": {
+                    "type": "integer"
+                },
+                "cart_id": {
+                    "type": "integer"
+                },
+                "customer_payment_method_id": {
+                    "type": "integer"
+                },
+                "discount_id": {
+                    "type": "integer"
+                },
+                "payment_method_type_id": {
+                    "type": "integer"
+                },
+                "remark": {
+                    "type": "string"
+                }
+            }
+        },
+        "CustomerPaymentMethodRes": {
+            "type": "object",
+            "properties": {
+                "account_name": {
+                    "type": "string"
+                },
+                "card_token": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "customer_id": {
+                    "type": "integer"
+                },
+                "customer_payment_method_id": {
+                    "type": "integer"
+                },
+                "is_default": {
+                    "type": "boolean"
+                },
+                "payment_method_type_id": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "CustomerReq": {
+            "type": "object",
+            "properties": {
+                "birth_date": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "CustomerRes": {
+            "type": "object",
+            "properties": {
+                "birth_date": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "IDResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "LoginRequest": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "LoginResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "expires_in": {
+                    "type": "integer"
+                }
+            }
+        },
+        "OrderChannel": {
+            "type": "string",
+            "enum": [
+                "web",
+                "mobile",
+                "call",
+                "line",
+                "facebook",
+                "walk_in"
+            ],
+            "x-enum-varnames": [
+                "OrderChannelWeb",
+                "OrderChannelMobile",
+                "OrderChannelCall",
+                "OrderChannelLine",
+                "OrderChannelFacebook",
+                "OrderChannelWalkIn"
+            ]
+        },
+        "OrderCreatedRes": {
+            "type": "object",
+            "properties": {
+                "order_number": {
+                    "type": "string",
+                    "example": "ORD-20261102-0001"
+                }
+            }
+        },
+        "OrderItemRes": {
+            "type": "object",
+            "properties": {
+                "order_id": {
+                    "type": "integer"
+                },
+                "order_item_id": {
+                    "type": "integer"
+                },
+                "part_id": {
+                    "type": "integer"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
+        "OrderRes": {
+            "type": "object",
+            "properties": {
+                "cart_id": {
+                    "type": "integer"
+                },
+                "channel": {
+                    "$ref": "#/definitions/OrderChannel"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "customer_id": {
+                    "type": "integer"
+                },
+                "discount_amount": {
+                    "type": "integer"
+                },
+                "discount_id": {
+                    "type": "integer"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/OrderItemRes"
+                    }
+                },
+                "order_id": {
+                    "type": "integer"
+                },
+                "order_number": {
+                    "type": "string"
+                },
+                "placed_by_admin_user_id": {
+                    "type": "integer"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "shipping_address": {
+                    "$ref": "#/definitions/OrderShippingAddressRes"
+                },
+                "shipping_fee": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/OrderStatus"
+                },
+                "subtotal": {
+                    "type": "integer"
+                },
+                "total_amount": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "OrderShippingAddressRes": {
+            "type": "object",
+            "properties": {
+                "address_line": {
+                    "type": "string"
+                },
+                "district": {
+                    "type": "string"
+                },
+                "order_id": {
+                    "type": "integer"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "province": {
+                    "type": "string"
+                },
+                "recipient_name": {
+                    "type": "string"
+                },
+                "subdistrict": {
+                    "type": "string"
+                },
+                "zip_code": {
+                    "type": "string"
+                }
+            }
+        },
+        "OrderStatus": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "processing",
+                "shipped",
+                "delivered",
+                "cancelled"
+            ],
+            "x-enum-varnames": [
+                "OrderStatusPending",
+                "OrderStatusProcessing",
+                "OrderStatusShipped",
+                "OrderStatusDelivered",
+                "OrderStatusCancelled"
+            ]
+        },
+        "PartReq": {
+            "type": "object",
+            "properties": {
+                "car_brand_id": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "part_brand_id": {
+                    "type": "integer"
+                },
+                "part_id": {
+                    "type": "integer"
+                },
+                "part_type_id": {
+                    "type": "integer"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "weight_g": {
+                    "type": "integer"
+                }
+            }
+        },
+        "PartRes": {
+            "type": "object",
+            "properties": {
+                "car_brand_id": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "part_brand_id": {
+                    "type": "integer"
+                },
+                "part_id": {
+                    "type": "integer"
+                },
+                "part_type_id": {
+                    "type": "integer"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "weight_g": {
+                    "type": "integer"
+                }
+            }
+        },
+        "UpdateAddressReq": {
+            "type": "object",
+            "properties": {
+                "address_line": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "recipient_name": {
+                    "type": "string"
+                },
+                "subdistrict_id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "zip_code": {
+                    "type": "string"
+                }
+            }
+        },
+        "UpdateCartItemQuantityReq": {
+            "type": "object",
+            "properties": {
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
+        "UpdateCustomerPaymentMethodReq": {
+            "type": "object",
+            "properties": {
+                "account_name": {
+                    "type": "string"
+                },
+                "card_token": {
+                    "type": "string"
+                },
+                "payment_method_type_id": {
+                    "type": "integer"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "\"Bearer \u003ctoken\u003e\"",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

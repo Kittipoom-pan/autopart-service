@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/Kittipoom-pan/autopart-service/internal/auth"
+	_ "github.com/Kittipoom-pan/autopart-service/internal/common"
 	"github.com/Kittipoom-pan/autopart-service/internal/helper"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/cart/entity"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/cart/usecase"
@@ -24,6 +25,16 @@ func NewCartController(usecase usecase.CartUsecase, logger zerolog.Logger) *Cart
 	}
 }
 
+// GetCart godoc
+// @Summary      Get cart
+// @Description  ดึงตะกร้าของลูกค้า
+// @Tags         cart
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  common.BaseResponse[entity.CartRes]
+// @Failure      401  {object}  common.BaseErrorResponse
+// @Failure      500  {object}  common.BaseErrorResponse
+// @Router       /v1/cart [get]
 func (h *CartController) GetCart(c *fiber.Ctx) error {
 	h.logger.Debug().Msg("Get cart request")
 
@@ -40,6 +51,19 @@ func (h *CartController) GetCart(c *fiber.Ctx) error {
 	return helper.RespondSuccess(c, fiber.StatusOK, cart, "Cart retrieved successfully")
 }
 
+// AddItem godoc
+// @Summary      Add item to cart
+// @Description  เพิ่มสินค้าเข้าตะกร้า
+// @Tags         cart
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body  body      entity.AddCartItemReq  true  "Cart item data"
+// @Success      200   {object}  common.BaseResponse[entity.CartRes]
+// @Failure      400   {object}  common.BaseErrorResponse
+// @Failure      401   {object}  common.BaseErrorResponse
+// @Failure      500   {object}  common.BaseErrorResponse
+// @Router       /v1/cart/items [post]
 func (h *CartController) AddItem(c *fiber.Ctx) error {
 	h.logger.Debug().Msg("Add item to cart request")
 
@@ -62,6 +86,21 @@ func (h *CartController) AddItem(c *fiber.Ctx) error {
 	return helper.RespondSuccess(c, fiber.StatusOK, cart, "Item added to cart successfully")
 }
 
+// UpdateItemQuantity godoc
+// @Summary      Update cart item quantity
+// @Description  แก้ไขจำนวนสินค้าในตะกร้า
+// @Tags         cart
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id    path      int                               true  "Cart Item ID"
+// @Param        body  body      entity.UpdateCartItemQuantityReq  true  "Cart item quantity data"
+// @Success      200   {object}  common.BaseResponse[entity.CartRes]
+// @Failure      400   {object}  common.BaseErrorResponse
+// @Failure      401   {object}  common.BaseErrorResponse
+// @Failure      404   {object}  common.BaseErrorResponse
+// @Failure      500   {object}  common.BaseErrorResponse
+// @Router       /v1/cart/items/{id} [patch]
 func (h *CartController) UpdateItemQuantity(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	h.logger.Debug().Str("cart_item_id", idStr).Msg("Update cart item quantity request")

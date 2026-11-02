@@ -44,3 +44,7 @@ type OrderShippingAddressRes struct {
 	Province      string `json:"province"`
 	ZipCode       string `json:"zip_code"`
 }
+
+type OrderCreatedRes struct {
+	OrderNumber string `json:"order_number" example:"ORD-20261102-0001"`
+}

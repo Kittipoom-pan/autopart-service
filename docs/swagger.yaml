@@ -1,0 +1,2072 @@
+basePath: /
+definitions:
+  AddCartItemReq:
+    properties:
+      part_id:
+        type: integer
+      quantity:
+        type: integer
+    type: object
+  AddressRes:
+    properties:
+      address_id:
+        type: integer
+      address_line:
+        type: string
+      created_at:
+        type: string
+      customer_id:
+        type: integer
+      district:
+        type: string
+      is_default:
+        type: boolean
+      phone_number:
+        type: string
+      province:
+        type: string
+      province_id:
+        type: integer
+      recipient_name:
+        type: string
+      subdistrict:
+        type: string
+      subdistrict_id:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+      zip_code:
+        type: string
+    type: object
+  AdminCreateOrderItemReq:
+    properties:
+      part_id:
+        type: integer
+      quantity:
+        type: integer
+    required:
+    - part_id
+    - quantity
+    type: object
+  AdminCreateOrderReq:
+    properties:
+      address_id:
+        type: integer
+      channel:
+        type: string
+      customer_id:
+        type: integer
+      customer_payment_method_id:
+        type: integer
+      discount_id:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/AdminCreateOrderItemReq'
+        minItems: 1
+        type: array
+      payment_method_type_id:
+        type: integer
+      remark:
+        type: string
+      shipping_address:
+        $ref: '#/definitions/AdminShippingAddressReq'
+    required:
+    - channel
+    - items
+    - payment_method_type_id
+    type: object
+  AdminReq:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+      username:
+        type: string
+    type: object
+  AdminRes:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      role:
+        type: string
+      username:
+        type: string
+    type: object
+  AdminShippingAddressReq:
+    properties:
+      address_line:
+        type: string
+      phone_number:
+        type: string
+      recipient_name:
+        type: string
+      subdistrict_id:
+        type: integer
+    required:
+    - address_line
+    - phone_number
+    - recipient_name
+    - subdistrict_id
+    type: object
+  BaseErrorResponse:
+    properties:
+      errors:
+        additionalProperties:
+          type: string
+        example:
+          id: invalid part id format
+        type: object
+      message:
+        example: Validation failed
+        type: string
+    type: object
+  BaseResponse-AddressRes:
+    properties:
+      message:
+        example: success
+        type: string
+      result:
+        $ref: '#/definitions/AddressRes'
+    type: object
+  BaseResponse-AdminRes:
+    properties:
+      message:
+        example: success
+        type: string
+      result:
+        $ref: '#/definitions/AdminRes'
+    type: object
+  BaseResponse-CustomerPaymentMethodRes:
+    properties:
+      message:
+        example: success
+        type: string
+      result:
+        $ref: '#/definitions/CustomerPaymentMethodRes'
+    type: object
+  BaseResponse-CustomerRes:
+    properties:
+      message:
+        example: success
+        type: string
+      result:
+        $ref: '#/definitions/CustomerRes'
+    type: object
+  BaseResponse-OrderRes:
+    properties:
+      message:
+        example: success
+        type: string
+      result:
+        $ref: '#/definitions/OrderRes'
+    type: object
+  BaseResponse-PartRes:
+    properties:
+      message:
+        example: success
+        type: string
+      result:
+        $ref: '#/definitions/PartRes'
+    type: object
+  BaseResponse-any:
+    properties:
+      message:
+        example: success
+        type: string
+      result: {}
+    type: object
+  BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_address_entity_AddressRes:
+    properties:
+      message:
+        example: success
+        type: string
+      result:
+        items:
+          $ref: '#/definitions/AddressRes'
+        type: array
+    type: object
+  BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_admin_entity_AdminRes:
+    properties:
+      message:
+        example: success
+        type: string
+      result:
+        items:
+          $ref: '#/definitions/AdminRes'
+        type: array
+    type: object
+  BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_customer_entity_CustomerRes:
+    properties:
+      message:
+        example: success
+        type: string
+      result:
+        items:
+          $ref: '#/definitions/CustomerRes'
+        type: array
+    type: object
+  ? BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_customer_payment_method_entity_CustomerPaymentMethodRes
+  : properties:
+      message:
+        example: success
+        type: string
+      result:
+        items:
+          $ref: '#/definitions/CustomerPaymentMethodRes'
+        type: array
+    type: object
+  BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_order_entity_OrderRes:
+    properties:
+      message:
+        example: success
+        type: string
+      result:
+        items:
+          $ref: '#/definitions/OrderRes'
+        type: array
+    type: object
+  BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_part_entity_PartRes:
+    properties:
+      message:
+        example: success
+        type: string
+      result:
+        items:
+          $ref: '#/definitions/PartRes'
+        type: array
+    type: object
+  BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_common_IDResponse:
+    properties:
+      message:
+        example: success
+        type: string
+      result:
+        $ref: '#/definitions/IDResponse'
+    type: object
+  BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_admin_entity_LoginResponse:
+    properties:
+      message:
+        example: success
+        type: string
+      result:
+        $ref: '#/definitions/LoginResponse'
+    type: object
+  BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_cart_entity_CartRes:
+    properties:
+      message:
+        example: success
+        type: string
+      result:
+        $ref: '#/definitions/CartRes'
+    type: object
+  BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_checkout_entity_CheckoutPreviewRes:
+    properties:
+      message:
+        example: success
+        type: string
+      result:
+        $ref: '#/definitions/CheckoutPreviewRes'
+    type: object
+  BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_customer_entity_LoginResponse:
+    properties:
+      message:
+        example: success
+        type: string
+      result:
+        $ref: '#/definitions/LoginResponse'
+    type: object
+  BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_order_entity_OrderCreatedRes:
+    properties:
+      message:
+        example: success
+        type: string
+      result:
+        $ref: '#/definitions/OrderCreatedRes'
+    type: object
+  CartItemRes:
+    properties:
+      cart_id:
+        type: integer
+      cart_item_id:
+        type: integer
+      created_at:
+        type: string
+      part_id:
+        type: integer
+      part_name:
+        type: string
+      price:
+        type: integer
+      quantity:
+        type: integer
+      sku:
+        type: string
+      subtotal:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  CartRes:
+    properties:
+      amount:
+        type: integer
+      cart_id:
+        type: integer
+      created_at:
+        type: string
+      customer_id:
+        type: integer
+      is_checkout:
+        type: boolean
+      items:
+        items:
+          $ref: '#/definitions/CartItemRes'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  CheckoutPreviewItem:
+    properties:
+      discount_amount:
+        type: string
+      name:
+        type: string
+      part_id:
+        type: integer
+      quantity:
+        type: integer
+      sku:
+        type: string
+      subtotal:
+        type: string
+      total_price:
+        type: string
+      unit_price:
+        type: string
+    type: object
+  CheckoutPreviewReq:
+    properties:
+      address_id:
+        type: integer
+      cart_id:
+        type: integer
+      customer_payment_method_id:
+        type: integer
+      discount_id:
+        type: integer
+    type: object
+  CheckoutPreviewRes:
+    properties:
+      address:
+        $ref: '#/definitions/AddressRes'
+      discount_amount:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/CheckoutPreviewItem'
+        type: array
+      shipping_fee:
+        type: string
+      subtotal:
+        type: string
+      total_amount:
+        type: string
+    type: object
+  CreateAddressReq:
+    properties:
+      address_line:
+        type: string
+      is_default:
+        type: boolean
+      phone_number:
+        type: string
+      recipient_name:
+        type: string
+      subdistrict_id:
+        type: integer
+      title:
+        type: string
+      zip_code:
+        type: string
+    type: object
+  CreateCustomerPaymentMethodReq:
+    properties:
+      account_name:
+        type: string
+      card_token:
+        type: string
+      is_default:
+        type: boolean
+      payment_method_type_id:
+        type: integer
+    type: object
+  CustomerCreateOrderReq:
+    properties:
+      address_id:
+        type: integer
+      cart_id:
+        type: integer
+      customer_payment_method_id:
+        type: integer
+      discount_id:
+        type: integer
+      payment_method_type_id:
+        type: integer
+      remark:
+        type: string
+    required:
+    - address_id
+    - cart_id
+    - payment_method_type_id
+    type: object
+  CustomerPaymentMethodRes:
+    properties:
+      account_name:
+        type: string
+      card_token:
+        type: string
+      created_at:
+        type: string
+      customer_id:
+        type: integer
+      customer_payment_method_id:
+        type: integer
+      is_default:
+        type: boolean
+      payment_method_type_id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  CustomerReq:
+    properties:
+      birth_date:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+      phone_number:
+        type: string
+      username:
+        type: string
+    type: object
+  CustomerRes:
+    properties:
+      birth_date:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_name:
+        type: string
+      phone_number:
+        type: string
+      username:
+        type: string
+    type: object
+  IDResponse:
+    properties:
+      id:
+        example: 1
+        type: integer
+    type: object
+  LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  LoginResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+    type: object
+  OrderChannel:
+    enum:
+    - web
+    - mobile
+    - call
+    - line
+    - facebook
+    - walk_in
+    type: string
+    x-enum-varnames:
+    - OrderChannelWeb
+    - OrderChannelMobile
+    - OrderChannelCall
+    - OrderChannelLine
+    - OrderChannelFacebook
+    - OrderChannelWalkIn
+  OrderCreatedRes:
+    properties:
+      order_number:
+        example: ORD-20261102-0001
+        type: string
+    type: object
+  OrderItemRes:
+    properties:
+      order_id:
+        type: integer
+      order_item_id:
+        type: integer
+      part_id:
+        type: integer
+      price:
+        type: integer
+      quantity:
+        type: integer
+    type: object
+  OrderRes:
+    properties:
+      cart_id:
+        type: integer
+      channel:
+        $ref: '#/definitions/OrderChannel'
+      created_at:
+        type: string
+      customer_id:
+        type: integer
+      discount_amount:
+        type: integer
+      discount_id:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/OrderItemRes'
+        type: array
+      order_id:
+        type: integer
+      order_number:
+        type: string
+      placed_by_admin_user_id:
+        type: integer
+      remark:
+        type: string
+      shipping_address:
+        $ref: '#/definitions/OrderShippingAddressRes'
+      shipping_fee:
+        type: integer
+      status:
+        $ref: '#/definitions/OrderStatus'
+      subtotal:
+        type: integer
+      total_amount:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  OrderShippingAddressRes:
+    properties:
+      address_line:
+        type: string
+      district:
+        type: string
+      order_id:
+        type: integer
+      phone_number:
+        type: string
+      province:
+        type: string
+      recipient_name:
+        type: string
+      subdistrict:
+        type: string
+      zip_code:
+        type: string
+    type: object
+  OrderStatus:
+    enum:
+    - pending
+    - processing
+    - shipped
+    - delivered
+    - cancelled
+    type: string
+    x-enum-varnames:
+    - OrderStatusPending
+    - OrderStatusProcessing
+    - OrderStatusShipped
+    - OrderStatusDelivered
+    - OrderStatusCancelled
+  PartReq:
+    properties:
+      car_brand_id:
+        type: integer
+      description:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      part_brand_id:
+        type: integer
+      part_id:
+        type: integer
+      part_type_id:
+        type: integer
+      price:
+        type: integer
+      quantity:
+        type: integer
+      sku:
+        type: string
+      weight_g:
+        type: integer
+    type: object
+  PartRes:
+    properties:
+      car_brand_id:
+        type: integer
+      description:
+        type: string
+      name:
+        type: string
+      part_brand_id:
+        type: integer
+      part_id:
+        type: integer
+      part_type_id:
+        type: integer
+      price:
+        type: integer
+      quantity:
+        type: integer
+      sku:
+        type: string
+      weight_g:
+        type: integer
+    type: object
+  UpdateAddressReq:
+    properties:
+      address_line:
+        type: string
+      phone_number:
+        type: string
+      recipient_name:
+        type: string
+      subdistrict_id:
+        type: integer
+      title:
+        type: string
+      zip_code:
+        type: string
+    type: object
+  UpdateCartItemQuantityReq:
+    properties:
+      quantity:
+        type: integer
+    type: object
+  UpdateCustomerPaymentMethodReq:
+    properties:
+      account_name:
+        type: string
+      card_token:
+        type: string
+      payment_method_type_id:
+        type: integer
+    type: object
+info:
+  contact: {}
+  description: REST API Autopart Service
+  title: Autopart Service API
+  version: "1.0"
+paths:
+  /v1/address:
+    get:
+      description: ดึงรายการที่อยู่ของลูกค้า
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_address_entity_AddressRes'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List addresses
+      tags:
+      - address
+    post:
+      consumes:
+      - application/json
+      description: เพิ่มที่อยู่ใหม่
+      parameters:
+      - description: Address data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/CreateAddressReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/BaseResponse-AddressRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create address
+      tags:
+      - address
+  /v1/address/{id}:
+    delete:
+      description: ลบที่อยู่
+      parameters:
+      - description: Address ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete address
+      tags:
+      - address
+    get:
+      description: ดึงที่อยู่ตาม ID
+      parameters:
+      - description: Address ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-AddressRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get address
+      tags:
+      - address
+    put:
+      consumes:
+      - application/json
+      description: แก้ไขที่อยู่
+      parameters:
+      - description: Address ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Address data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateAddressReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-AddressRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update address
+      tags:
+      - address
+  /v1/address/{id}/default:
+    patch:
+      description: ตั้งที่อยู่เริ่มต้น
+      parameters:
+      - description: Address ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-AddressRes'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Set default address
+      tags:
+      - address
+  /v1/admin:
+    get:
+      description: ดึงรายการผู้ดูแลระบบทั้งหมด
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_admin_entity_AdminRes'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List admin users
+      tags:
+      - admin
+    post:
+      consumes:
+      - application/json
+      description: สร้างผู้ดูแลระบบใหม่
+      parameters:
+      - description: Admin data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/AdminReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/BaseResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create admin user
+      tags:
+      - admin
+  /v1/admin/{id}:
+    delete:
+      description: ลบผู้ดูแลระบบ
+      parameters:
+      - description: Admin ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete admin user
+      tags:
+      - admin
+    get:
+      description: ดึงข้อมูลผู้ดูแลระบบตาม ID
+      parameters:
+      - description: Admin ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-AdminRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get admin user
+      tags:
+      - admin
+    put:
+      consumes:
+      - application/json
+      description: อัปเดตข้อมูลผู้ดูแลระบบ
+      parameters:
+      - description: Admin ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Admin data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/AdminReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update admin user
+      tags:
+      - admin
+  /v1/admin/login:
+    post:
+      consumes:
+      - application/json
+      description: เข้าสู่ระบบสำหรับผู้ดูแลระบบ
+      parameters:
+      - description: Login credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_admin_entity_LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      summary: Admin login
+      tags:
+      - admin
+  /v1/cart:
+    get:
+      description: ดึงตะกร้าของลูกค้า
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_cart_entity_CartRes'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get cart
+      tags:
+      - cart
+  /v1/cart/items:
+    post:
+      consumes:
+      - application/json
+      description: เพิ่มสินค้าเข้าตะกร้า
+      parameters:
+      - description: Cart item data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/AddCartItemReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_cart_entity_CartRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add item to cart
+      tags:
+      - cart
+  /v1/cart/items/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: แก้ไขจำนวนสินค้าในตะกร้า
+      parameters:
+      - description: Cart Item ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Cart item quantity data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateCartItemQuantityReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_cart_entity_CartRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update cart item quantity
+      tags:
+      - cart
+  /v1/checkout/preview:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Checkout preview data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/CheckoutPreviewReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_checkout_entity_CheckoutPreviewRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Preview checkout
+      tags:
+      - checkout
+  /v1/customer:
+    get:
+      description: ดึงรายการลูกค้าทั้งหมด
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_customer_entity_CustomerRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List customers
+      tags:
+      - customer
+    post:
+      consumes:
+      - application/json
+      description: สร้างลูกค้าใหม่
+      parameters:
+      - description: Customer data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/CustomerReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/BaseResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create customer
+      tags:
+      - customer
+  /v1/customer/{id}:
+    delete:
+      description: ลบลูกค้า
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete customer
+      tags:
+      - customer
+    get:
+      description: ดึงข้อมูลลูกค้าตาม ID
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-CustomerRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get customer
+      tags:
+      - customer
+    put:
+      consumes:
+      - application/json
+      description: อัปเดตข้อมูลลูกค้า
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Customer data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/CustomerReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update customer
+      tags:
+      - customer
+  /v1/customer/login:
+    post:
+      consumes:
+      - application/json
+      description: เข้าสู่ระบบสำหรับลูกค้า
+      parameters:
+      - description: Login credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_customer_entity_LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      summary: Customer login
+      tags:
+      - customer
+  /v1/order:
+    get:
+      description: ดึงรายการคำสั่งซื้อทั้งหมด
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_order_entity_OrderRes'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List orders
+      tags:
+      - order
+    post:
+      consumes:
+      - application/json
+      description: สร้างคำสั่งซื้อโดยลูกค้า
+      parameters:
+      - description: Order data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/CustomerCreateOrderReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/BaseResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create order by customer
+      tags:
+      - order
+  /v1/order/{id}:
+    get:
+      description: ดึงข้อมูลคำสั่งซื้อตาม ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-OrderRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get order
+      tags:
+      - order
+  /v1/order/admin:
+    post:
+      consumes:
+      - application/json
+      description: สร้างคำสั่งซื้อโดยแอดมิน
+      parameters:
+      - description: Order data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/AdminCreateOrderReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_order_entity_OrderCreatedRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create order by admin
+      tags:
+      - order
+  /v1/order/order-number/{orderNumber}:
+    get:
+      description: ดึงข้อมูลคำสั่งซื้อตามเลขที่คำสั่งซื้อ
+      parameters:
+      - description: Order Number
+        in: path
+        name: orderNumber
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-OrderRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get order by order number
+      tags:
+      - order
+  /v1/part:
+    get:
+      description: ดึงรายการอะไหล่ทั้งหมด
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_part_entity_PartRes'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      summary: List parts
+      tags:
+      - part
+    post:
+      consumes:
+      - application/json
+      description: สร้างอะไหล่ใหม่ ต้องใช้ JWT
+      parameters:
+      - description: Part data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/PartReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_common_IDResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create part
+      tags:
+      - part
+  /v1/part/{id}:
+    delete:
+      parameters:
+      - description: Part ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete part
+      tags:
+      - part
+    get:
+      parameters:
+      - description: Part ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-PartRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      summary: Get part
+      tags:
+      - part
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Part ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Part data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/PartReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update part
+      tags:
+      - part
+  /v1/payment-method:
+    get:
+      description: ดึงรายการบัตร/ช่องทางจ่ายที่บันทึกไว้
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_customer_payment_method_entity_CustomerPaymentMethodRes'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List payment methods
+      tags:
+      - payment-method
+    post:
+      consumes:
+      - application/json
+      description: เพิ่มช่องทางจ่าย
+      parameters:
+      - description: Payment method data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/CreateCustomerPaymentMethodReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/BaseResponse-CustomerPaymentMethodRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create payment method
+      tags:
+      - payment-method
+  /v1/payment-method/{id}:
+    delete:
+      description: ลบช่องทางจ่าย
+      parameters:
+      - description: Payment Method ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete payment method
+      tags:
+      - payment-method
+    get:
+      description: ดึงช่องทางจ่ายตาม ID
+      parameters:
+      - description: Payment Method ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-CustomerPaymentMethodRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get payment method
+      tags:
+      - payment-method
+    put:
+      consumes:
+      - application/json
+      description: แก้ไขช่องทางจ่าย
+      parameters:
+      - description: Payment Method ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Payment method data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateCustomerPaymentMethodReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-CustomerPaymentMethodRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update payment method
+      tags:
+      - payment-method
+  /v1/payment-method/{id}/default:
+    patch:
+      description: ตั้งช่องทางจ่ายเริ่มต้น
+      parameters:
+      - description: Payment Method ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/BaseResponse-CustomerPaymentMethodRes'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Set default payment method
+      tags:
+      - payment-method
+securityDefinitions:
+  BearerAuth:
+    description: '"Bearer <token>"'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

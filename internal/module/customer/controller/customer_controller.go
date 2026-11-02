@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/Kittipoom-pan/autopart-service/internal/auth"
+	"github.com/Kittipoom-pan/autopart-service/internal/common"
 	"github.com/Kittipoom-pan/autopart-service/internal/helper"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/entity"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/usecase"
@@ -24,6 +25,18 @@ func NewCustomerController(usecase usecase.CustomerUsecase, logger zerolog.Logge
 	}
 }
 
+// GetAllCustomers godoc
+// @Summary      List customers
+// @Description  ดึงรายการลูกค้าทั้งหมด
+// @Tags         customer
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  common.BaseResponse[[]entity.CustomerRes]
+// @Failure      400  {object}  common.BaseErrorResponse
+// @Failure      401  {object}  common.BaseErrorResponse
+// @Failure      403  {object}  common.BaseErrorResponse
+// @Failure      500  {object}  common.BaseErrorResponse
+// @Router       /v1/customer [get]
 func (h *CustomerController) GetAllCustomers(c *fiber.Ctx) error {
 	h.logger.Debug().Msg("Get all customers request")
 
@@ -38,6 +51,20 @@ func (h *CustomerController) GetAllCustomers(c *fiber.Ctx) error {
 	return helper.RespondSuccess(c, fiber.StatusOK, customers, "Customers retrieved successfully")
 }
 
+// GetCustomerByID godoc
+// @Summary      Get customer
+// @Description  ดึงข้อมูลลูกค้าตาม ID
+// @Tags         customer
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int  true  "Customer ID"
+// @Success      200  {object}  common.BaseResponse[entity.CustomerRes]
+// @Failure      400  {object}  common.BaseErrorResponse
+// @Failure      401  {object}  common.BaseErrorResponse
+// @Failure      403  {object}  common.BaseErrorResponse
+// @Failure      404  {object}  common.BaseErrorResponse
+// @Failure      500  {object}  common.BaseErrorResponse
+// @Router       /v1/customer/{id} [get]
 func (h *CustomerController) GetCustomerByID(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	h.logger.Debug().Str("customer_id", idStr).Msg("Get customer request")
@@ -65,6 +92,20 @@ func (h *CustomerController) GetCustomerByID(c *fiber.Ctx) error {
 	return helper.RespondSuccess(c, fiber.StatusOK, customer, "")
 }
 
+// CreateCustomer godoc
+// @Summary      Create customer
+// @Description  สร้างลูกค้าใหม่
+// @Tags         customer
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body  body      entity.CustomerReq  true  "Customer data"
+// @Success      201  {object}  common.BaseResponse[any]
+// @Failure      400  {object}  common.BaseErrorResponse
+// @Failure      401  {object}  common.BaseErrorResponse
+// @Failure      403  {object}  common.BaseErrorResponse
+// @Failure      500  {object}  common.BaseErrorResponse
+// @Router       /v1/customer [post]
 func (h *CustomerController) CreateCustomer(c *fiber.Ctx) error {
 	customer := new(entity.CustomerReq)
 	if err := c.BodyParser(customer); err != nil {
@@ -77,9 +118,25 @@ func (h *CustomerController) CreateCustomer(c *fiber.Ctx) error {
 		return helper.RespondError(c, err)
 	}
 
-	return helper.RespondSuccess(c, fiber.StatusCreated, fiber.Map{"customer_id": customerID}, "Customer created successfully")
+	return helper.RespondSuccess(c, fiber.StatusCreated, common.IDResponse{ID: customerID}, "Customer created successfully")
 }
 
+// UpdateCustomer godoc
+// @Summary      Update customer
+// @Description  อัปเดตข้อมูลลูกค้า
+// @Tags         customer
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id    path      int                true  "Customer ID"
+// @Param        body  body      entity.CustomerReq  true  "Customer data"
+// @Success      200   {object}  common.BaseResponse[any]
+// @Failure      400   {object}  common.BaseErrorResponse
+// @Failure      401   {object}  common.BaseErrorResponse
+// @Failure      403   {object}  common.BaseErrorResponse
+// @Failure      404   {object}  common.BaseErrorResponse
+// @Failure      500   {object}  common.BaseErrorResponse
+// @Router       /v1/customer/{id} [put]
 func (h *CustomerController) UpdateCustomer(c *fiber.Ctx) error {
 	userID, err := auth.GetUserID(c, h.logger)
 	if err != nil {
@@ -109,9 +166,23 @@ func (h *CustomerController) UpdateCustomer(c *fiber.Ctx) error {
 	}
 
 	h.logger.Info().Int("customer_id", customerID).Msg("Customer updated successfully")
-	return helper.RespondSuccess(c, fiber.StatusOK, nil, "Customer updated successfully")
+	return helper.RespondSuccess[any](c, fiber.StatusOK, nil, "Customer updated successfully")
 }
 
+// DeleteCustomer godoc
+// @Summary      Delete customer
+// @Description  ลบลูกค้า
+// @Tags         customer
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int  true  "Customer ID"
+// @Success      200  {object}  common.BaseResponse[any]
+// @Failure      400  {object}  common.BaseErrorResponse
+// @Failure      401  {object}  common.BaseErrorResponse
+// @Failure      403  {object}  common.BaseErrorResponse
+// @Failure      404  {object}  common.BaseErrorResponse
+// @Failure      500  {object}  common.BaseErrorResponse
+// @Router       /v1/customer/{id} [delete]
 func (h *CustomerController) DeleteCustomer(c *fiber.Ctx) error {
 	userID, err := auth.GetUserID(c, h.logger)
 	if err != nil {
@@ -135,5 +206,5 @@ func (h *CustomerController) DeleteCustomer(c *fiber.Ctx) error {
 	}
 
 	h.logger.Info().Int("customer_id", customerID).Int("by_user", userID).Msg("Customer deleted successfully")
-	return helper.RespondSuccess(c, fiber.StatusOK, nil, "Customer deleted successfully")
+	return helper.RespondSuccess[any](c, fiber.StatusOK, nil, "Customer deleted successfully")
 }

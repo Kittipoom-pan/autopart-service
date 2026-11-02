@@ -1,6 +1,7 @@
 # Autopart-Service
 
-### Create migrate file 
+### Create migrate file
+
 ```bash
 migrate create -ext sql -dir migrations -seq <name>
 ```
@@ -16,12 +17,15 @@ migrate -path migrations -database "mysql://<user>:<password>@tcp(localhost:3306
 
 migrate -path migrations -database "mysql://<user>:<password>@tcp(localhost:3306)/<dbname>" force <version>
 ```
+
 ### Sqlc generate
+
 ```bash
 sqlc generate -f internal/infrastructure/database/sqlc.yaml
 ```
 
 ### Database Migration (false case)
+
 ```bash
 1. migrate -path migrations -database "mysql://<user>:<password>@tcp(localhost:3306)/<dbname>" version
 Output เช่น 3 (dirty) → หมายถึง version ปัจจุบัน = 3 และอยู่ในสถานะ dirty
@@ -62,3 +66,10 @@ bash
 Copy code
 migrate -path migrations -database "mysql://<user>:<password>@tcp(localhost:3306)/<dbname>" version
 Output ควรเป็น version ล่าสุด dirty = false
+```
+
+### Init Swagger
+
+```bash
+swag init -g cmd/main.go -d ./ -o docs --parseInternal --parseDependency --useStructName
+```

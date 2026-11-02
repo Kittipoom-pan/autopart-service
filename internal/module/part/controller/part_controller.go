@@ -4,6 +4,8 @@ import (
 	"strconv"
 
 	"github.com/Kittipoom-pan/autopart-service/internal/auth"
+	"github.com/Kittipoom-pan/autopart-service/internal/common"
+	_ "github.com/Kittipoom-pan/autopart-service/internal/common"
 	"github.com/Kittipoom-pan/autopart-service/internal/helper"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/part/entity"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/part/usecase"
@@ -24,6 +26,14 @@ func NewPartController(usecase usecase.PartUsecase, logger zerolog.Logger) *Part
 	}
 }
 
+// GetAllParts godoc
+// @Summary      List parts
+// @Description  ดึงรายการอะไหล่ทั้งหมด
+// @Tags         part
+// @Produce      json
+// @Success      200  {object}  common.BaseResponse[[]entity.PartRes]
+// @Failure      500  {object}  common.BaseErrorResponse
+// @Router       /v1/part [get]
 func (h *PartController) GetAllParts(c *fiber.Ctx) error {
 	h.logger.Debug().Msg("Get all parts request")
 
@@ -39,6 +49,16 @@ func (h *PartController) GetAllParts(c *fiber.Ctx) error {
 	return helper.RespondSuccess(c, fiber.StatusOK, parts, "Parts retrieved successfully")
 }
 
+// GetPartByID godoc
+// @Summary  Get part
+// @Tags     part
+// @Produce  json
+// @Param    id   path      int  true  "Part ID"
+// @Success 200 {object} common.BaseResponse[entity.PartRes]
+// @Failure  400  {object}  common.BaseErrorResponse
+// @Failure  404  {object}  common.BaseErrorResponse
+// @Failure  500  {object}  common.BaseErrorResponse
+// @Router   /v1/part/{id} [get]
 func (h *PartController) GetPartByID(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	h.logger.Debug().Str("part_id", idStr).Msg("Get part request")
@@ -74,6 +94,20 @@ func (h *PartController) GetPartBySKU(c *fiber.Ctx) error {
 	return helper.RespondSuccess(c, fiber.StatusOK, part, "")
 }
 
+// CreatePart godoc
+// @Summary      Create part
+// @Description  สร้างอะไหล่ใหม่ ต้องใช้ JWT
+// @Tags         part
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body  body      entity.PartReq  true  "Part data"
+// @Success 201 {object} common.BaseResponse[common.IDResponse]
+// @Failure      400   {object}  common.BaseErrorResponse
+// @Failure      401   {object}  common.BaseErrorResponse
+// @Failure      403   {object}  common.BaseErrorResponse
+// @Failure      500   {object}  common.BaseErrorResponse
+// @Router       /v1/part [post]
 func (h *PartController) CreatePart(c *fiber.Ctx) error {
 	userID, err := auth.GetUserID(c, h.logger)
 	if err != nil {
@@ -93,9 +127,24 @@ func (h *PartController) CreatePart(c *fiber.Ctx) error {
 	}
 
 	h.logger.Info().Int64("part_id", partID).Msg("Part created successfully")
-	return helper.RespondSuccess(c, fiber.StatusCreated, fiber.Map{"part_id": partID}, "Part created successfully")
+	return helper.RespondSuccess(c, fiber.StatusCreated, common.IDResponse{ID: partID}, "Part created successfully")
 }
 
+// UpdatePart godoc
+// @Summary      Update part
+// @Tags         part
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id    path      int             true  "Part ID"
+// @Param        body  body      entity.PartReq  true  "Part data"
+// @Success      200   {object}  common.BaseResponse[any]
+// @Failure      400   {object}  common.BaseErrorResponse
+// @Failure      401   {object}  common.BaseErrorResponse
+// @Failure      403   {object}  common.BaseErrorResponse
+// @Failure      404   {object}  common.BaseErrorResponse
+// @Failure      500   {object}  common.BaseErrorResponse
+// @Router       /v1/part/{id} [put]
 func (h *PartController) UpdatePart(c *fiber.Ctx) error {
 	userID, err := auth.GetUserID(c, h.logger)
 	if err != nil {
@@ -120,9 +169,22 @@ func (h *PartController) UpdatePart(c *fiber.Ctx) error {
 	}
 
 	h.logger.Info().Int("part_id", id).Msg("Part updated successfully")
-	return helper.RespondSuccess(c, fiber.StatusOK, nil, "Part updated successfully")
+	return helper.RespondSuccess[any](c, fiber.StatusOK, nil, "Part updated successfully")
 }
 
+// DeletePart godoc
+// @Summary      Delete part
+// @Tags         part
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int  true  "Part ID"
+// @Success      200  {object}  common.BaseResponse[any]
+// @Failure      400  {object}  common.BaseErrorResponse
+// @Failure      401  {object}  common.BaseErrorResponse
+// @Failure      403  {object}  common.BaseErrorResponse
+// @Failure      404  {object}  common.BaseErrorResponse
+// @Failure      500  {object}  common.BaseErrorResponse
+// @Router       /v1/part/{id} [delete]
 func (h *PartController) DeletePart(c *fiber.Ctx) error {
 	userID, err := auth.GetUserID(c, h.logger)
 	if err != nil {
@@ -141,5 +203,5 @@ func (h *PartController) DeletePart(c *fiber.Ctx) error {
 	}
 
 	h.logger.Info().Int("part_id", id).Msg("Part deleted successfully")
-	return helper.RespondSuccess(c, fiber.StatusOK, nil, "Part deleted successfully")
+	return helper.RespondSuccess[any](c, fiber.StatusOK, nil, "Part deleted successfully")
 }

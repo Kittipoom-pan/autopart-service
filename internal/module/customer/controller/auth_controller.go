@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/Kittipoom-pan/autopart-service/config"
+	_ "github.com/Kittipoom-pan/autopart-service/internal/common"
 	"github.com/Kittipoom-pan/autopart-service/internal/helper"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/entity"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/usecase"
@@ -24,6 +25,18 @@ func NewAuthController(usecase usecase.AuthUsecase, cfg *config.Config, logger z
 	}
 }
 
+// Login godoc
+// @Summary      Customer login
+// @Description  เข้าสู่ระบบสำหรับลูกค้า
+// @Tags         customer
+// @Accept       json
+// @Produce      json
+// @Param        body  body      entity.LoginRequest  true  "Login credentials"
+// @Success      200  {object}  common.BaseResponse[entity.LoginResponse]
+// @Failure      400  {object}  common.BaseErrorResponse
+// @Failure      401  {object}  common.BaseErrorResponse
+// @Failure      500  {object}  common.BaseErrorResponse
+// @Router       /v1/customer/login [post]
 func (h *AuthController) Login(c *fiber.Ctx) error {
 	request := new(entity.LoginRequest)
 	if err := c.BodyParser(request); err != nil {
