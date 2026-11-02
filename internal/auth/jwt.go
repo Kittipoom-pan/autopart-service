@@ -9,12 +9,12 @@ import (
 )
 
 type Claims struct {
-	UserID uint32 `json:"user_id"`
+	UserID int32  `json:"user_id"`
 	Role   string `json:"role"`
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(userID uint32, role string, cfg *config.Config) (string, error) {
+func GenerateToken(userID int32, role string, cfg *config.Config) (string, error) {
 	claims := Claims{
 		UserID: userID,
 		Role:   role,

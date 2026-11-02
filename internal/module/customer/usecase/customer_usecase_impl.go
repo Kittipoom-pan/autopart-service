@@ -52,7 +52,7 @@ func (u *customerUsecase) CreateCustomer(ctx context.Context, customer *entity.C
 	hashedPassword, err := auth.HashPassword(customer.Password)
 	if err != nil {
 		u.logger.Error().Err(err).Msg("failed to hash password")
-		return 0, customererror.NewAPIError(common.StatusError, "failed to process password")
+		return 0, customererror.NewAPIError(common.StatusInternalServer, "failed to process password")
 	}
 
 	req := *customer

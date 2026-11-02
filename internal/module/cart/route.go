@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Kittipoom-pan/autopart-service/config"
+	"github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database"
 	"github.com/Kittipoom-pan/autopart-service/internal/middleware"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/cart/controller"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/cart/repository"
@@ -23,8 +24,9 @@ func SetupPrivateRoutes(
 	router.Use(middleware.TimeoutMiddleware(3 * time.Second))
 	router.Use(jwtAuth)
 
+	txManager := database.NewTxManager(conn, logger)
 	repo := repository.NewCartRepository(conn, logger)
-	cartUsecase := usecase.NewCartUsecase(repo, logger)
+	cartUsecase := usecase.NewCartUsecase(repo, txManager, logger)
 	cartController := controller.NewCartController(cartUsecase, logger)
 
 	router.Get("/", cartController.GetCart)

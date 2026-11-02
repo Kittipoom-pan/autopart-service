@@ -101,7 +101,7 @@ func (h *OrderController) CreateOrderByAdmin(c *fiber.Ctx) error {
 		return helper.RespondError(c, customerror.InvalidRequestData(map[string]string{"body": "invalid request body"}))
 	}
 
-	adminID, err := auth.GetUserID(c, h.logger) // ต้องเป็น middleware ของ admin
+	adminID, err := auth.GetUserID(c, h.logger)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}

@@ -26,7 +26,7 @@ func MapDBErrorToAPIError(err error, resource string) error {
 			return customerror.NewNotFoundError(resource)
 		}
 		if errors.Is(dbErr.Err, dberr.ErrDatabaseInternal) {
-			return customerror.NewAPIError(common.StatusError, "database operation failed")
+			return customerror.NewAPIError(common.StatusInternalServer, "database operation failed")
 		}
 	}
 

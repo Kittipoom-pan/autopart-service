@@ -11,7 +11,7 @@ CREATE TABLE customer (
   email VARCHAR(50) NOT NULL,
   password VARCHAR(150) NOT NULL,
   birth_date DATE NULL,
-  phone_number VARCHAR(13) NOT NULL,
+  phone_number VARCHAR(15) NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   created_by INT NULL,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
@@ -45,7 +45,7 @@ CREATE TABLE discount (
   discount_id INT AUTO_INCREMENT PRIMARY KEY,
   code VARCHAR(60) NOT NULL UNIQUE,
   discount_type ENUM('percentage', 'fixed') NOT NULL,
-  amount INT NOT NULL,
+  discount_value INT NOT NULL,
   description VARCHAR(255) NULL,
   min_order_amount INT NOT NULL DEFAULT 0,        
   expiration_date DATE NULL,                      -- NULL = ไม่หมดอายุ
@@ -103,6 +103,7 @@ CREATE TABLE part (
   description TEXT NULL,
   price INT NOT NULL DEFAULT 0,
   quantity INT NOT NULL DEFAULT 0,                -- ต้องตรงกับผลรวมของ stock_movement
+  weight_g INT NULL,
   is_active BIT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   created_by INT NULL,
@@ -116,45 +117,89 @@ CREATE TABLE part (
 -- 3. Customer-related tables
 -- ================================
 
+CREATE TABLE payment_method_type (
+    payment_method_type_id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(20) NOT NULL UNIQUE, -- 'credit_card', 'cod', 'bank_transfer', 'cash'
+    name VARCHAR(40) NOT NULL,       -- ชื่อที่แสดงผล เช่น 'Credit Card', 'Cash on Delivery'
+    is_active BIT(1) NOT NULL DEFAULT 1
+);
+
 -- Table: customer_payment_method
 CREATE TABLE customer_payment_method (
   customer_payment_method_id INT AUTO_INCREMENT PRIMARY KEY,
   customer_id INT NOT NULL,
   account_name VARCHAR(60) NULL,
-  payment_method_type ENUM('credit_card', 'bank_account', 'paypal') NOT NULL,
+  payment_method_type_id INT NOT NULL,
   card_token VARCHAR(255) NULL UNIQUE,
   is_default BIT(1) NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   created_by INT NULL,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   updated_by INT NULL,
-  CONSTRAINT fk_cpm_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
+  CONSTRAINT fk_cpm_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
+  CONSTRAINT fk_cpm_payment_type FOREIGN KEY (payment_method_type_id) REFERENCES payment_method_type(payment_method_type_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+CREATE TABLE `province` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `code` int(11) NOT NULL,
+  `name_in_thai` varchar(150) NOT NULL,
+  `name_in_english` varchar(150) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ux_province_code` (`code`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=78 DEFAULT CHARSET=utf8;
+
+CREATE TABLE `district` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `code` int(11) NOT NULL,
+  `name_in_thai` varchar(150) NOT NULL,
+  `name_in_english` varchar(150) NOT NULL,
+  `province_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ux_district_code` (`code`) USING BTREE,
+  KEY `ix_district_province_id` (`province_id`) USING BTREE,
+  CONSTRAINT `fk_district_province` FOREIGN KEY (`province_id`) REFERENCES `province` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=929 DEFAULT CHARSET=utf8;
+
+CREATE TABLE `subdistrict` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `code` int(11) NOT NULL,
+  `name_in_thai` varchar(150) NOT NULL,
+  `name_in_english` varchar(150) NULL,
+  `district_id` int(11) NOT NULL,
+  zip_code CHAR(5) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ux_subdistrict_id` (`id`) USING BTREE,
+  KEY `ix_subdistrict_district_id` (`district_id`) USING BTREE,
+  CONSTRAINT `fk_subdistrict_district` FOREIGN KEY (`district_id`) REFERENCES `district` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Table: address
 CREATE TABLE address (
   address_id INT AUTO_INCREMENT PRIMARY KEY,
   customer_id INT NOT NULL,
-  title VARCHAR(50) NULL,
-  address_line_1 VARCHAR(150) NOT NULL,
-  address_line_2 VARCHAR(150) NULL,
-  country VARCHAR(50) NOT NULL,
-  city VARCHAR(50) NOT NULL,
-  postal_code VARCHAR(8) NOT NULL,
-  phone_number VARCHAR(13) NOT NULL,
+  title VARCHAR(50) NULL, -- ชื่อเรียกที่อยู่ เช่น บ้าน, ที่ทำงาน
+  recipient_name VARCHAR(100) NOT NULL, -- recipient_name ชื่อผู้รับพัสดุ
+  address_line VARCHAR(255) NOT NULL,
+  subdistrict_id INT NOT NULL,   
+  zip_code CHAR(5) NOT NULL,
+  phone_number VARCHAR(15) NOT NULL,
   is_default BIT(1) NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   created_by INT NULL,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   updated_by INT NULL,
-  CONSTRAINT fk_address_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
+  INDEX idx_address_subdistrict (subdistrict_id),
+  CONSTRAINT fk_address_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
+  CONSTRAINT fk_address_subdistrict FOREIGN KEY (subdistrict_id) REFERENCES subdistrict(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table: cart
 CREATE TABLE cart (
   cart_id INT AUTO_INCREMENT PRIMARY KEY,
   customer_id INT NOT NULL,
-  amount INT NOT NULL DEFAULT 0,
+  subtotal INT NOT NULL DEFAULT 0,                -- ราคารวมสินค้าทั้งหมด (ก่อนหักส่วนลดและยังไม่รวมค่าส่ง)
   is_checkout BIT(1) NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
@@ -219,9 +264,7 @@ CREATE TABLE compatible_car (
 -- ================================
 
 -- Table: `order`
--- customer_id = เจ้าของออเดอร์ ไม่ว่าใครสร้าง
 -- channel: web/mobile = ลูกค้าสั่งเอง, call/line/facebook/walk_in = แอดมินบันทึกให้
--- walk_in ที่ไม่ระบุตัวตน: customer_id และ address_id เป็น NULL ได้ (รับของหน้าร้าน)
 -- หน้าร้าน: ให้แอปตั้ง status = 'delivered' และ payment.status = 'completed' ทันที
 -- ผู้เปลี่ยนสถานะ (ระบบ/ลูกค้า/แอดมิน) เก็บใน order_status_history
 CREATE TABLE `order` (
@@ -230,10 +273,11 @@ CREATE TABLE `order` (
   customer_id INT NULL,
   channel ENUM('web', 'mobile', 'call', 'line', 'facebook', 'walk_in') NOT NULL DEFAULT 'web',
   placed_by_admin_user_id INT NULL,               -- NULL = ลูกค้าสั่งเอง, มีค่า = แอดมินสั่งแทน
-  customer_payment_method_id INT NULL,            -- NULL = เช่น COD / จ่ายหน้าร้าน
   cart_id INT NULL,                               -- ออเดอร์ที่แอดมินคีย์มักไม่มี cart
-  amount INT NOT NULL DEFAULT 0,
-  address_id INT NULL,
+  subtotal INT NOT NULL DEFAULT 0,                -- ราคารวมสินค้าทั้งหมด (ก่อนหักส่วนลดและยังไม่รวมค่าส่ง)
+  discount_amount INT NOT NULL DEFAULT 0,         -- จำนวนเงินส่วนลดที่ใช้จริง (บาท)
+  shipping_fee INT NOT NULL DEFAULT 0,            -- ค่าจัดส่ง
+  total_amount INT NOT NULL DEFAULT 0,            -- ยอดสุทธิที่ต้องจ่ายจริง (Subtotal - Discount + Shipping)
   discount_id INT NULL,                           -- NULL = ไม่ใช้ส่วนลด
   status ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled') NOT NULL DEFAULT 'pending',
   remark VARCHAR(255) NULL,
@@ -242,13 +286,11 @@ CREATE TABLE `order` (
   INDEX idx_order_customer (customer_id),
   CONSTRAINT fk_order_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
   CONSTRAINT fk_order_placed_by_admin FOREIGN KEY (placed_by_admin_user_id) REFERENCES admin_user(admin_user_id),
-  CONSTRAINT fk_order_payment_method FOREIGN KEY (customer_payment_method_id) REFERENCES customer_payment_method(customer_payment_method_id),
   CONSTRAINT fk_order_cart FOREIGN KEY (cart_id) REFERENCES cart(cart_id),
-  CONSTRAINT fk_order_address FOREIGN KEY (address_id) REFERENCES address(address_id),
   CONSTRAINT fk_order_discount FOREIGN KEY (discount_id) REFERENCES discount(discount_id),
-  -- ต้องมี customer_id และ address_id ทุกช่องทาง ยกเว้น walk_in
-  CONSTRAINT chk_order_walkin CHECK (
-    channel = 'walk_in' OR (customer_id IS NOT NULL AND address_id IS NOT NULL)
+  -- ต้องมี customer_id ทุกช่องทาง ยกเว้น walk_in
+ CONSTRAINT chk_order_walkin CHECK (
+    channel = 'walk_in' OR customer_id IS NOT NULL
   ),
   -- web/mobile ต้องไม่มีแอดมิน, ช่องทางอื่นต้องมีแอดมินเป็นผู้บันทึก
   CONSTRAINT chk_order_channel_admin CHECK (
@@ -274,6 +316,33 @@ CREATE TABLE order_sequence (
   `last_value` INT UNSIGNED NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE `order_shipping_address` (
+  `order_id` BIGINT PRIMARY KEY,
+  `recipient_name` VARCHAR(100) NOT NULL,
+  `phone_number` VARCHAR(15) NOT NULL,
+  `address_line` VARCHAR(255) NOT NULL,
+  `subdistrict` VARCHAR(100) NOT NULL,
+  `district` VARCHAR(100) NOT NULL,
+  `province` VARCHAR(100) NOT NULL,
+  `zip_code` CHAR(5) NOT NULL,
+  CONSTRAINT fk_order_shipping FOREIGN KEY (`order_id`) REFERENCES `order`(`order_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE shipping_rate (
+    shipping_rate_id           INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name                       VARCHAR(100) NOT NULL,
+    province_id              INT          NULL COMMENT 'จังหวัดที่ใช้ค่าส่งนี้; NULL = ใช้ได้ทุกจังหวัด',
+    min_weight_g               INT          NOT NULL DEFAULT 0 COMMENT 'รวมค่านี้ (>=)',
+    max_weight_g               INT          NULL COMMENT 'ไม่รวมค่านี้ (<); NULL = ไม่จำกัด ไว้ใช้กำหนดค่าส่งตามช่วงน้ำหนัก เช่น 0–1,000 และ 1,000–5,000 กรัม',
+    fee                        INT          NOT NULL COMMENT 'ค่าจัดส่ง',
+    free_shipping_min_subtotal INT          NULL COMMENT 'ยอดสินค้าหลังหักส่วนลดตั้งแต่เท่านี้ส่งฟรี NULL = ไม่มี',
+    is_active                  TINYINT(1)   NOT NULL DEFAULT 1,
+    created_at                 DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at                 DATETIME     NULL,
+    CONSTRAINT chk_shipping_fee    CHECK (fee >= 0),
+    CONSTRAINT chk_shipping_weight CHECK (max_weight_g IS NULL OR max_weight_g > min_weight_g),
+    KEY idx_shipping_lookup (is_active, province_id, min_weight_g)
+) ENGINE=InnoDB;
 
 -- Table: stock_movement
 -- ขาย (ออนไลน์/หน้าร้าน) ต้องผ่าน order เสมอ: reason = 'sale' และมี order_id
@@ -285,7 +354,6 @@ CREATE TABLE order_sequence (
 CREATE TABLE stock_movement (
   stock_movement_id BIGINT AUTO_INCREMENT PRIMARY KEY,
   part_id INT NOT NULL,
-  part_brand_id INT NULL,
   quantity_change INT NOT NULL,
   price INT NOT NULL DEFAULT 0,
   event_type ENUM('in', 'out') NOT NULL,
@@ -296,7 +364,6 @@ CREATE TABLE stock_movement (
   created_by INT NULL,
   INDEX idx_stock_part (part_id, created_at),
   CONSTRAINT fk_stock_movement_part FOREIGN KEY (part_id) REFERENCES part(part_id),
-  CONSTRAINT fk_stock_movement_part_brand FOREIGN KEY (part_brand_id) REFERENCES part_brand(part_brand_id),
   CONSTRAINT fk_stock_movement_order FOREIGN KEY (order_id) REFERENCES `order`(order_id),
   CONSTRAINT chk_stock_sale_order CHECK (reason <> 'sale' OR order_id IS NOT NULL)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -306,13 +373,16 @@ CREATE TABLE payment (
   payment_id BIGINT AUTO_INCREMENT PRIMARY KEY,
   order_id BIGINT NOT NULL,
   amount INT NOT NULL,
-  payment_method ENUM('credit_card', 'bank_transfer', 'paypal', 'cod', 'cash') NOT NULL,
+  customer_payment_method_id INT NULL, -- ถ้าลูกค้าเลือกตัดบัตรที่บันทึกไว้ (เชื่อมกับตารางเก็บบัตร)
+  payment_method_type_id INT NOT NULL, -- ประเภทการจ่ายเงิน เช่น บัตรเครดิต, COD, โอนเงิน
   status ENUM('pending', 'completed', 'failed') NOT NULL DEFAULT 'pending',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   created_by INT NULL,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   updated_by INT NULL,
-  CONSTRAINT fk_payment_order FOREIGN KEY (order_id) REFERENCES `order`(order_id)
+  CONSTRAINT fk_payment_order FOREIGN KEY (order_id) REFERENCES `order`(order_id),
+  CONSTRAINT fk_payment_cpm FOREIGN KEY (customer_payment_method_id) REFERENCES customer_payment_method(customer_payment_method_id),
+  CONSTRAINT fk_payment_method_type FOREIGN KEY (payment_method_type_id) REFERENCES payment_method_type(payment_method_type_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ================================

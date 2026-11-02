@@ -197,6 +197,16 @@ func (q *Queries) RecalcCartSubtotal(ctx context.Context, cartID int32) (sql.Res
 	return q.db.ExecContext(ctx, recalcCartSubtotal, cartID)
 }
 
+const updateCartCheckoutByID = `-- name: UpdateCartCheckoutByID :execresult
+UPDATE cart
+SET is_checkout = 1, updated_at = NOW()
+WHERE cart_id = ? AND is_checkout = 0
+`
+
+func (q *Queries) UpdateCartCheckoutByID(ctx context.Context, cartID int32) (sql.Result, error) {
+	return q.db.ExecContext(ctx, updateCartCheckoutByID, cartID)
+}
+
 const updateCartItemQuantity = `-- name: UpdateCartItemQuantity :execresult
 UPDATE cart_item
 SET quantity = ?, updated_at = NOW()

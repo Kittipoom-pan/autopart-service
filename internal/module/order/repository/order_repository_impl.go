@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database"
 	dberr "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/dberror"
 	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/order/entity"
@@ -13,7 +14,7 @@ import (
 )
 
 type orderRepository struct {
-	conn    *sql.DB // ใช้เปิด tx
+	conn    *sql.DB
 	queries *db.Queries
 	logger  zerolog.Logger
 }
@@ -22,8 +23,15 @@ func NewOrderRepository(conn *sql.DB, logger zerolog.Logger) OrderRepository {
 	return &orderRepository{conn: conn, queries: db.New(conn), logger: logger}
 }
 
+func (r *orderRepository) getQueries(ctx context.Context) *db.Queries {
+	if tx, ok := database.GetTx(ctx); ok {
+		return r.queries.WithTx(tx)
+	}
+	return r.queries
+}
+
 func (r *orderRepository) GetOrderByID(ctx context.Context, id int) (*entity.OrderRes, error) {
-	order, err := r.queries.GetOrderByID(ctx, int64(id))
+	order, err := r.getQueries(ctx).GetOrderByID(ctx, int64(id))
 	if err != nil {
 		if err == sql.ErrNoRows {
 			r.logger.Warn().Int("order_id", id).Msg("order not found in database")
@@ -37,7 +45,7 @@ func (r *orderRepository) GetOrderByID(ctx context.Context, id int) (*entity.Ord
 }
 
 func (r *orderRepository) GetOrderByOrderNumber(ctx context.Context, orderNumber string) (*entity.OrderRes, error) {
-	order, err := r.queries.GetOrderByOrderNumber(ctx, orderNumber)
+	order, err := r.getQueries(ctx).GetOrderByOrderNumber(ctx, orderNumber)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			r.logger.Warn().Str("order_number", orderNumber).Msg("order not found in database")
@@ -51,7 +59,7 @@ func (r *orderRepository) GetOrderByOrderNumber(ctx context.Context, orderNumber
 }
 
 func (r *orderRepository) GetAllOrders(ctx context.Context) ([]*entity.OrderRes, error) {
-	orders, err := r.queries.ListOrders(ctx)
+	orders, err := r.getQueries(ctx).ListOrders(ctx)
 	if err != nil {
 		r.logger.Error().Err(err).Msg("failed to list orders from database")
 		return nil, dberr.NewDBError(dberr.ErrDatabaseInternal, err.Error())
@@ -66,7 +74,7 @@ func (r *orderRepository) GetAllOrders(ctx context.Context) ([]*entity.OrderRes,
 
 func (r *orderRepository) CreateOrder(ctx context.Context, in *entity.CreateOrderInput, orderNumber string) (int64, error) {
 	params := entity.MapCreateOrderInputToParams(in, orderNumber)
-	result, err := r.queries.CreateOrder(ctx, params)
+	result, err := r.getQueries(ctx).CreateOrder(ctx, params)
 	if err != nil {
 		dbErr := dberr.HandleMySQLError(err)
 		if dberr.IsDuplicateKey(dbErr) {
@@ -92,37 +100,8 @@ func (r *orderRepository) CreateOrder(ctx context.Context, in *entity.CreateOrde
 	return orderID, nil
 }
 
-// fn ได้ repo ตัวใหม่ที่ผูกกับ tx; return error = rollback, nil = commit
-func (r *orderRepository) WithTx(ctx context.Context, fn func(OrderRepository) error) error {
-	tx, err := r.conn.BeginTx(ctx, nil)
-	if err != nil {
-		return dberr.NewDBError(dberr.ErrDatabaseInternal, "begin tx: "+err.Error())
-	}
-
-	txRepo := &orderRepository{conn: r.conn, queries: r.queries.WithTx(tx), logger: r.logger}
-
-	defer func() {
-		if p := recover(); p != nil {
-			_ = tx.Rollback()
-			panic(p)
-		}
-	}()
-
-	if err := fn(txRepo); err != nil {
-		if rbErr := tx.Rollback(); rbErr != nil {
-			r.logger.Error().Err(rbErr).Msg("rollback failed")
-		}
-		return err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return dberr.NewDBError(dberr.ErrDatabaseInternal, "commit tx: "+err.Error())
-	}
-	return nil
-}
-
 func (r *orderRepository) NextOrderSequence(ctx context.Context, seqDate time.Time) (int64, error) {
-	result, err := r.queries.NextOrderSequence(ctx, seqDate)
+	result, err := r.getQueries(ctx).NextOrderSequence(ctx, seqDate)
 	if err != nil {
 		r.logger.Error().Err(err).Time("seq_date", seqDate).Msg("failed to get next order sequence")
 		return 0, dberr.NewDBError(dberr.ErrDatabaseInternal, fmt.Sprintf("next order sequence: %v", err))
@@ -135,4 +114,25 @@ func (r *orderRepository) NextOrderSequence(ctx context.Context, seqDate time.Ti
 	}
 
 	return seq, nil
+}
+
+func (r *orderRepository) CreateOrderItem(ctx context.Context, orderID int64, item *entity.CreateOrderItemInput) error {
+	params := entity.MapCreateOrderItemInputToParams(item)
+	params.OrderID = orderID
+	_, err := r.getQueries(ctx).CreateOrderItem(ctx, params)
+	if err != nil {
+		r.logger.Error().Err(err).Int64("order_id", orderID).Msg("failed to create order item")
+		return dberr.NewDBError(dberr.ErrDatabaseInternal, err.Error())
+	}
+	return nil
+}
+
+func (r *orderRepository) CreateOrderShippingAddress(ctx context.Context, orderID int64, address *entity.CreateOrderShippingAddressInput) error {
+	params := entity.MapCreateOrderShippingAddressInputToParams(orderID, address)
+	_, err := r.getQueries(ctx).CreateOrderShippingAddress(ctx, params)
+	if err != nil {
+		r.logger.Error().Err(err).Int64("order_id", orderID).Msg("failed to create order shipping address")
+		return dberr.NewDBError(dberr.ErrDatabaseInternal, err.Error())
+	}
+	return nil
 }

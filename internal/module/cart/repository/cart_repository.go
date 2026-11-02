@@ -13,6 +13,6 @@ type CartRepository interface {
 	CreateCartItem(ctx context.Context, cartID int32, partID int32, quantity int32) (int64, error)
 	UpdateCartItemQuantity(ctx context.Context, cartItemID int32, cartID int32, quantity int32) error
 	RecalcCartAmount(ctx context.Context, cartID int32) error
+	MarkCartCheckedOut(ctx context.Context, cartID int32) error
 	CheckPartExists(ctx context.Context, partID int32) error
-	WithTx(ctx context.Context, fn func(CartRepository) error) error
 }

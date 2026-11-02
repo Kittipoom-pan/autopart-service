@@ -7,48 +7,71 @@ import (
 )
 
 type Order struct {
-	OrderID                 int32
-	OrderNumber             string
-	CustomerID              *int32 // เปลี่ยนเป็น Pointer เพราะเป็น NULL ได้ (walk_in)
-	Channel                 db.OrderChannel
-	PlacedByAdminUserID     *int32
-	CustomerPaymentMethodID *int32
-	CartID                  *int32
-	Amount                  int32
-	AddressID               *int32 // เปลี่ยนเป็น Pointer เพราะเป็น NULL ได้ (walk_in)
-	DiscountID              *int32
-	Status                  db.OrderStatus
-	Remark                  *string
-	CreatedAt               time.Time
-	UpdatedAt               *time.Time
+	OrderID             int64
+	OrderNumber         string
+	CustomerID          *int32
+	Channel             db.OrderChannel
+	PlacedByAdminUserID *int32
+	CartID              *int32
+	Subtotal            int32
+	DiscountAmount      int32
+	ShippingFee         int32
+	TotalAmount         int32
+	DiscountID          *int32
+	Status              db.OrderStatus
+	Remark              *string
+	CreatedAt           time.Time
+	UpdatedAt           *time.Time
 }
 
-// ใช้สำหรับส่ง Response กลับหา Client
-type OrderRes struct {
-	OrderID                 int32
-	OrderNumber             string
-	CustomerID              *int32 // เปลี่ยนเป็น Pointer รองรับกรณี walk_in
+type OrderItem struct {
+	OrderItemID int64
+	OrderID     int64
+	PartID      int32
+	Quantity    int32
+	Price       int32
+}
+
+type OrderShippingAddress struct {
+	OrderID       int64
+	RecipientName string
+	PhoneNumber   string
+	AddressLine   string
+	Subdistrict   string
+	District      string
+	Province      string
+	ZipCode       string
+}
+
+type CreateOrderInput struct {
+	CustomerID              *int32
 	Channel                 string
 	PlacedByAdminUserID     *int32
-	CustomerPaymentMethodID *int32
 	CartID                  *int32
-	Amount                  int32
-	AddressID               *int32 // เปลี่ยนเป็น Pointer รองรับกรณี walk_in
+	Subtotal                int32
+	DiscountAmount          int32
+	ShippingFee             int32
+	TotalAmount             int32
 	DiscountID              *int32
-	Status                  string
+	PaymentMethodTypeID     int32
+	CustomerPaymentMethodID *int32
+	Items                   []CreateOrderItemInput
+	ShippingAddress         *CreateOrderShippingAddressInput
 	Remark                  *string
-	CreatedAt               time.Time
-	UpdatedAt               *time.Time
 }
 
-// ใช้สำหรับรับ Request จาก Client ตอนสร้าง Order
-type OrderReq struct {
-	CustomerID              *int
-	Channel                 string `json:"channel"` // web, mobile, call, line, etc.
-	CustomerPaymentMethodID *int
-	CartID                  *int
-	Amount                  int
-	AddressID               *int
-	DiscountID              *int
-	Remark                  *string
+type CreateOrderItemInput struct {
+	PartID   int32
+	Quantity int32
+	Price    int32
+}
+
+type CreateOrderShippingAddressInput struct {
+	RecipientName string
+	PhoneNumber   string
+	AddressLine   string
+	Subdistrict   string
+	District      string
+	Province      string
+	ZipCode       string
 }

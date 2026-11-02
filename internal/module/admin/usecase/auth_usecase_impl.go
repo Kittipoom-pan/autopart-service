@@ -49,7 +49,7 @@ func (u *authUsecase) Login(ctx context.Context, request *entity.LoginRequest) (
 	token, err := auth.GenerateToken(admin.ID, admin.Role, u.cfg)
 	if err != nil {
 		u.logger.Error().Err(err).Msg("failed to generate JWT token")
-		return nil, customerror.NewAPIError(common.StatusError, "failed to generate token")
+		return nil, customerror.NewAPIError(common.StatusInternalServer, "failed to generate token")
 	}
 
 	return entity.MapAdminToLoginRes(admin, token, int32(u.cfg.JWT.Expiry)), nil

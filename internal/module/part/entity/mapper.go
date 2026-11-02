@@ -7,27 +7,29 @@ import (
 
 func MapDbPartToPartRes(dbPart db.GetPartByIDRow) *PartRes {
 	return &PartRes{
-		PartID:      uint32(dbPart.PartID),
-		PartBrandID: uint32(dbPart.PartBrandID),
-		PartTypeID:  uint32(dbPart.PartTypeID),
+		PartID:      int32(dbPart.PartID),
+		PartBrandID: int32(dbPart.PartBrandID),
+		PartTypeID:  int32(dbPart.PartTypeID),
 		Name:        dbPart.Name,
 		SKU:         dbPart.Sku,
 		Description: utils.NullStringToStringPtr(dbPart.Description),
-		Price:       int(dbPart.Price),
-		Quantity:    int(dbPart.Quantity),
+		Price:       int32(dbPart.Price),
+		Quantity:    int32(dbPart.Quantity),
+		WeightG:     utils.NullInt32ToInt32Ptr(dbPart.WeightG),
 	}
 }
 
 func MapDbPartBySKUToPartRes(dbPart db.GetPartBySKURow) *PartRes {
 	return &PartRes{
-		PartID:      uint32(dbPart.PartID),
-		PartBrandID: uint32(dbPart.PartBrandID),
-		PartTypeID:  uint32(dbPart.PartTypeID),
+		PartID:      int32(dbPart.PartID),
+		PartBrandID: int32(dbPart.PartBrandID),
+		PartTypeID:  int32(dbPart.PartTypeID),
 		Name:        dbPart.Name,
 		SKU:         dbPart.Sku,
 		Description: utils.NullStringToStringPtr(dbPart.Description),
-		Price:       int(dbPart.Price),
-		Quantity:    int(dbPart.Quantity),
+		Price:       int32(dbPart.Price),
+		Quantity:    int32(dbPart.Quantity),
+		WeightG:     utils.NullInt32ToInt32Ptr(dbPart.WeightG),
 	}
 }
 
@@ -42,19 +44,21 @@ func MapPartToPartParam(req *PartReq, createdBy *int) db.CreatePartParams {
 		Quantity:    int32(req.Quantity),
 		CreatedBy:   utils.IntNullToNullInt32(createdBy),
 		CreatedAt:   utils.NowUTC(),
+		WeightG:     utils.Int32PtrToNullInt32(req.WeightG),
 	}
 }
 
 func MapDbPartsToPartRes(dbPart db.ListPartsRow) *PartRes {
 	return &PartRes{
-		PartID:      uint32(dbPart.PartID),
-		PartBrandID: uint32(dbPart.PartBrandID),
-		PartTypeID:  uint32(dbPart.PartTypeID),
+		PartID:      int32(dbPart.PartID),
+		PartBrandID: int32(dbPart.PartBrandID),
+		PartTypeID:  int32(dbPart.PartTypeID),
 		Name:        dbPart.Name,
 		SKU:         dbPart.Sku,
 		Description: utils.NullStringToStringPtr(dbPart.Description),
-		Price:       int(dbPart.Price),
-		Quantity:    int(dbPart.Quantity),
+		Price:       int32(dbPart.Price),
+		Quantity:    int32(dbPart.Quantity),
+		WeightG:     utils.NullInt32ToInt32Ptr(dbPart.WeightG),
 	}
 }
 
@@ -71,6 +75,7 @@ func MapUpdatePartParams(id int, req *PartReq, updatedBy int) db.UpdatePartByIDP
 		IsActive:    req.IsActive,
 		UpdatedBy:   utils.IntNullToNullInt32(&updatedBy),
 		UpdatedAt:   utils.NullTimeNow(),
+		WeightG:     utils.Int32PtrToNullInt32(req.WeightG),
 	}
 }
 

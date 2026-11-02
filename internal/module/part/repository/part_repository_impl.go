@@ -36,6 +36,34 @@ func (r *partRepository) GetPartByID(ctx context.Context, id int) (*entity.PartR
 	return entity.MapDbPartToPartRes(part), nil
 }
 
+func (r *partRepository) GetPartsByIDs(ctx context.Context, ids []int32) (map[int32]*entity.PartRes, error) {
+	result := make(map[int32]*entity.PartRes, len(ids))
+	if len(ids) == 0 {
+		return result, nil
+	}
+
+	// ตัด id ซ้ำ (cart ไม่ควรมี part ซ้ำ แต่กันไว้)
+	seen := make(map[int32]struct{}, len(ids))
+	unique := make([]int32, 0, len(ids))
+	for _, id := range ids {
+		if _, ok := seen[id]; !ok {
+			seen[id] = struct{}{}
+			unique = append(unique, id)
+		}
+	}
+
+	rows, err := r.queries.GetPartsByIDs(ctx, unique)
+	if err != nil {
+		r.logger.Error().Err(err).Int("count", len(unique)).Msg("failed to get parts by ids")
+		return nil, dberr.NewDBError(dberr.ErrDatabaseInternal, err.Error())
+	}
+
+	for _, row := range rows {
+		result[row.PartID] = entity.MapDbPartToPartRes(db.GetPartByIDRow(row))
+	}
+	return result, nil
+}
+
 func (r *partRepository) GetPartBySKU(ctx context.Context, sku string) (*entity.PartRes, error) {
 	part, err := r.queries.GetPartBySKU(ctx, sku)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Kittipoom-pan/autopart-service/internal/helper"
+	"github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database"
 	dberr "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/dberror"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/cart/entity"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/cart/repository"
@@ -13,14 +14,16 @@ import (
 )
 
 type cartUsecase struct {
-	repo   repository.CartRepository
-	logger zerolog.Logger
+	repo      repository.CartRepository
+	txManager database.TxManager
+	logger    zerolog.Logger
 }
 
-func NewCartUsecase(repo repository.CartRepository, logger zerolog.Logger) CartUsecase {
+func NewCartUsecase(repo repository.CartRepository, txManager database.TxManager, logger zerolog.Logger) CartUsecase {
 	return &cartUsecase{
-		repo:   repo,
-		logger: logger,
+		repo:      repo,
+		txManager: txManager,
+		logger:    logger,
 	}
 }
 
@@ -55,28 +58,28 @@ func (u *cartUsecase) AddItem(ctx context.Context, customerID int32, req *entity
 	}
 
 	var updatedCart *entity.CartRes
-	err = u.repo.WithTx(ctx, func(tx repository.CartRepository) error {
-		existingItem, err := tx.GetCartItemByCartAndPart(ctx, cart.CartID, req.PartID)
+	err = u.txManager.WithinTransaction(ctx, func(ctx context.Context) error {
+		existingItem, err := u.repo.GetCartItemByCartAndPart(ctx, cart.CartID, req.PartID)
 		if err != nil && !dberr.IsRecordNotFound(err) {
 			return helper.MapDBErrorToAPIError(err, "Cart item")
 		}
 
 		if existingItem != nil {
 			newQuantity := existingItem.Quantity + req.Quantity
-			if err := tx.UpdateCartItemQuantity(ctx, existingItem.CartItemID, cart.CartID, newQuantity); err != nil {
+			if err := u.repo.UpdateCartItemQuantity(ctx, existingItem.CartItemID, cart.CartID, newQuantity); err != nil {
 				return helper.MapDBErrorToAPIError(err, "Cart item")
 			}
 		} else {
-			if _, err := tx.CreateCartItem(ctx, cart.CartID, req.PartID, req.Quantity); err != nil {
+			if _, err := u.repo.CreateCartItem(ctx, cart.CartID, req.PartID, req.Quantity); err != nil {
 				return helper.MapDBErrorToAPIError(err, "Cart item")
 			}
 		}
 
-		if err := tx.RecalcCartAmount(ctx, cart.CartID); err != nil {
+		if err := u.repo.RecalcCartAmount(ctx, cart.CartID); err != nil {
 			return helper.MapDBErrorToAPIError(err, "Cart")
 		}
 
-		updatedCart, err = tx.GetActiveCartByCustomerID(ctx, customerID)
+		updatedCart, err = u.repo.GetActiveCartByCustomerID(ctx, customerID)
 		if err != nil {
 			return helper.MapDBErrorToAPIError(err, "Cart")
 		}
@@ -118,16 +121,16 @@ func (u *cartUsecase) UpdateItemQuantity(ctx context.Context, customerID int32, 
 	}
 
 	var updatedCart *entity.CartRes
-	err = u.repo.WithTx(ctx, func(tx repository.CartRepository) error {
-		if err := tx.UpdateCartItemQuantity(ctx, cartItemID, cart.CartID, req.Quantity); err != nil {
+	err = u.txManager.WithinTransaction(ctx, func(ctx context.Context) error {
+		if err := u.repo.UpdateCartItemQuantity(ctx, cartItemID, cart.CartID, req.Quantity); err != nil {
 			return helper.MapDBErrorToAPIError(err, "Cart item")
 		}
 
-		if err := tx.RecalcCartAmount(ctx, cart.CartID); err != nil {
+		if err := u.repo.RecalcCartAmount(ctx, cart.CartID); err != nil {
 			return helper.MapDBErrorToAPIError(err, "Cart")
 		}
 
-		updatedCart, err = tx.GetActiveCartByCustomerID(ctx, customerID)
+		updatedCart, err = u.repo.GetActiveCartByCustomerID(ctx, customerID)
 		if err != nil {
 			return helper.MapDBErrorToAPIError(err, "Cart")
 		}

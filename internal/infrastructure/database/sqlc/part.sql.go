@@ -8,6 +8,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"time"
 )
 
@@ -20,11 +21,12 @@ INSERT INTO part (
     description,
     price,
     quantity,
+    weight_g,
     is_active,
     created_at,
     created_by
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
 `
 
 type CreatePartParams struct {
@@ -35,6 +37,7 @@ type CreatePartParams struct {
 	Description sql.NullString
 	Price       int32
 	Quantity    int32
+	WeightG     sql.NullInt32
 	CreatedAt   time.Time
 	CreatedBy   sql.NullInt32
 }
@@ -48,6 +51,7 @@ func (q *Queries) CreatePart(ctx context.Context, arg CreatePartParams) (sql.Res
 		arg.Description,
 		arg.Price,
 		arg.Quantity,
+		arg.WeightG,
 		arg.CreatedAt,
 		arg.CreatedBy,
 	)
@@ -81,6 +85,7 @@ SELECT
     description,
     price,
     quantity,
+    weight_g,
     is_active,
     created_at
 FROM part
@@ -96,6 +101,7 @@ type GetPartByIDRow struct {
 	Description sql.NullString
 	Price       int32
 	Quantity    int32
+	WeightG     sql.NullInt32
 	IsActive    interface{}
 	CreatedAt   time.Time
 }
@@ -112,6 +118,7 @@ func (q *Queries) GetPartByID(ctx context.Context, partID int32) (GetPartByIDRow
 		&i.Description,
 		&i.Price,
 		&i.Quantity,
+		&i.WeightG,
 		&i.IsActive,
 		&i.CreatedAt,
 	)
@@ -128,6 +135,7 @@ SELECT
     description,
     price,
     quantity,
+    weight_g,
     is_active,
     created_at
 FROM part
@@ -143,6 +151,7 @@ type GetPartBySKURow struct {
 	Description sql.NullString
 	Price       int32
 	Quantity    int32
+	WeightG     sql.NullInt32
 	IsActive    interface{}
 	CreatedAt   time.Time
 }
@@ -159,6 +168,7 @@ func (q *Queries) GetPartBySKU(ctx context.Context, sku string) (GetPartBySKURow
 		&i.Description,
 		&i.Price,
 		&i.Quantity,
+		&i.WeightG,
 		&i.IsActive,
 		&i.CreatedAt,
 	)
@@ -173,6 +183,7 @@ SELECT
     p.description AS part_description,
     p.price,
     p.quantity,
+    p.weight_g,
     cm.car_model_id,
     cm.name AS car_model_name,
     COALESCE(cc.year_from, cm.year_from) AS year_from,
@@ -185,7 +196,7 @@ FROM part p
 LEFT JOIN compatible_car cc ON p.part_id = cc.part_id
 LEFT JOIN car_model cm ON cc.car_model_id = cm.car_model_id
 LEFT JOIN image i ON i.reference_type = 'part' AND i.reference_id = p.part_id
-WHERE p.part_id = ?
+WHERE p.part_id = ? and p.is_active = 1
 ORDER BY i.is_primary DESC, i.sort_image ASC, i.created_at ASC
 `
 
@@ -196,6 +207,7 @@ type GetPartWithImagesRow struct {
 	PartDescription sql.NullString
 	Price           int32
 	Quantity        int32
+	WeightG         sql.NullInt32
 	CarModelID      sql.NullInt32
 	CarModelName    sql.NullString
 	YearFrom        sql.NullInt16
@@ -222,6 +234,7 @@ func (q *Queries) GetPartWithImages(ctx context.Context, partID int32) ([]GetPar
 			&i.PartDescription,
 			&i.Price,
 			&i.Quantity,
+			&i.WeightG,
 			&i.CarModelID,
 			&i.CarModelName,
 			&i.YearFrom,
@@ -230,6 +243,82 @@ func (q *Queries) GetPartWithImages(ctx context.Context, partID int32) ([]GetPar
 			&i.ImageUrl,
 			&i.IsPrimary,
 			&i.SortImage,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPartsByIDs = `-- name: GetPartsByIDs :many
+SELECT
+    part_id,
+    part_brand_id,
+    part_type_id,
+    sku,
+    name,
+    description,
+    price,
+    quantity,
+    weight_g,
+    is_active,
+    created_at
+FROM part
+WHERE part_id IN (/*SLICE:part_ids*/?) AND is_active = 1
+`
+
+type GetPartsByIDsRow struct {
+	PartID      int32
+	PartBrandID int32
+	PartTypeID  int32
+	Sku         string
+	Name        string
+	Description sql.NullString
+	Price       int32
+	Quantity    int32
+	WeightG     sql.NullInt32
+	IsActive    interface{}
+	CreatedAt   time.Time
+}
+
+func (q *Queries) GetPartsByIDs(ctx context.Context, partIds []int32) ([]GetPartsByIDsRow, error) {
+	query := getPartsByIDs
+	var queryParams []interface{}
+	if len(partIds) > 0 {
+		for _, v := range partIds {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:part_ids*/?", strings.Repeat(",?", len(partIds))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:part_ids*/?", "NULL", 1)
+	}
+	rows, err := q.db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPartsByIDsRow
+	for rows.Next() {
+		var i GetPartsByIDsRow
+		if err := rows.Scan(
+			&i.PartID,
+			&i.PartBrandID,
+			&i.PartTypeID,
+			&i.Sku,
+			&i.Name,
+			&i.Description,
+			&i.Price,
+			&i.Quantity,
+			&i.WeightG,
+			&i.IsActive,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -254,6 +343,7 @@ SELECT
     description,
     price,
     quantity,
+    weight_g,
     is_active,
     created_at
 FROM part
@@ -270,6 +360,7 @@ type ListPartsRow struct {
 	Description sql.NullString
 	Price       int32
 	Quantity    int32
+	WeightG     sql.NullInt32
 	IsActive    interface{}
 	CreatedAt   time.Time
 }
@@ -292,6 +383,7 @@ func (q *Queries) ListParts(ctx context.Context) ([]ListPartsRow, error) {
 			&i.Description,
 			&i.Price,
 			&i.Quantity,
+			&i.WeightG,
 			&i.IsActive,
 			&i.CreatedAt,
 		); err != nil {
@@ -317,6 +409,7 @@ UPDATE part SET
     part_brand_id = ?,
     price = ?,
     quantity = ?,
+    weight_g = ?,
     is_active = ?,
     updated_at = ?,
     updated_by = ?
@@ -331,6 +424,7 @@ type UpdatePartByIDParams struct {
 	PartBrandID int32
 	Price       int32
 	Quantity    int32
+	WeightG     sql.NullInt32
 	IsActive    interface{}
 	UpdatedAt   sql.NullTime
 	UpdatedBy   sql.NullInt32
@@ -346,6 +440,7 @@ func (q *Queries) UpdatePartByID(ctx context.Context, arg UpdatePartByIDParams) 
 		arg.PartBrandID,
 		arg.Price,
 		arg.Quantity,
+		arg.WeightG,
 		arg.IsActive,
 		arg.UpdatedAt,
 		arg.UpdatedBy,

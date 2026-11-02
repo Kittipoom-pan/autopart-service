@@ -17,31 +17,31 @@ INSERT INTO ` + "`" + `order` + "`" + ` (
     customer_id,
     channel,
     placed_by_admin_user_id,
-    customer_payment_method_id,
     cart_id,
-    amount,
-    address_id,
+    subtotal,
+    discount_amount,
+    shipping_fee,
+    total_amount,
     discount_id,
     status,
-    remark,
-    created_at
+    remark
 )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateOrderParams struct {
-	OrderNumber             string
-	CustomerID              sql.NullInt32
-	Channel                 OrderChannel
-	PlacedByAdminUserID     sql.NullInt32
-	CustomerPaymentMethodID sql.NullInt32
-	CartID                  sql.NullInt32
-	Amount                  int32
-	AddressID               sql.NullInt32
-	DiscountID              sql.NullInt32
-	Status                  OrderStatus
-	Remark                  sql.NullString
-	CreatedAt               time.Time
+	OrderNumber         string
+	CustomerID          sql.NullInt32
+	Channel             OrderChannel
+	PlacedByAdminUserID sql.NullInt32
+	CartID              sql.NullInt32
+	Subtotal            int32
+	DiscountAmount      int32
+	ShippingFee         int32
+	TotalAmount         int32
+	DiscountID          sql.NullInt32
+	Status              OrderStatus
+	Remark              sql.NullString
 }
 
 func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (sql.Result, error) {
@@ -50,14 +50,64 @@ func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (sql.R
 		arg.CustomerID,
 		arg.Channel,
 		arg.PlacedByAdminUserID,
-		arg.CustomerPaymentMethodID,
 		arg.CartID,
-		arg.Amount,
-		arg.AddressID,
+		arg.Subtotal,
+		arg.DiscountAmount,
+		arg.ShippingFee,
+		arg.TotalAmount,
 		arg.DiscountID,
 		arg.Status,
 		arg.Remark,
-		arg.CreatedAt,
+	)
+}
+
+const createOrderItem = `-- name: CreateOrderItem :execresult
+INSERT INTO order_item (order_id, part_id, quantity, price)
+VALUES (?, ?, ?, ?)
+`
+
+type CreateOrderItemParams struct {
+	OrderID  int64
+	PartID   int32
+	Quantity int32
+	Price    int32
+}
+
+func (q *Queries) CreateOrderItem(ctx context.Context, arg CreateOrderItemParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, createOrderItem,
+		arg.OrderID,
+		arg.PartID,
+		arg.Quantity,
+		arg.Price,
+	)
+}
+
+const createOrderShippingAddress = `-- name: CreateOrderShippingAddress :execresult
+INSERT INTO order_shipping_address (order_id, recipient_name, phone_number, address_line, subdistrict, district, province, zip_code)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+`
+
+type CreateOrderShippingAddressParams struct {
+	OrderID       int64
+	RecipientName string
+	PhoneNumber   string
+	AddressLine   string
+	Subdistrict   string
+	District      string
+	Province      string
+	ZipCode       string
+}
+
+func (q *Queries) CreateOrderShippingAddress(ctx context.Context, arg CreateOrderShippingAddressParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, createOrderShippingAddress,
+		arg.OrderID,
+		arg.RecipientName,
+		arg.PhoneNumber,
+		arg.AddressLine,
+		arg.Subdistrict,
+		arg.District,
+		arg.Province,
+		arg.ZipCode,
 	)
 }
 
@@ -68,10 +118,11 @@ SELECT
     customer_id,
     channel,
     placed_by_admin_user_id,
-    customer_payment_method_id,
     cart_id,
-    amount,
-    address_id,
+    subtotal,
+    discount_amount,
+    shipping_fee,
+    total_amount,
     discount_id,
     status,
     remark,
@@ -90,10 +141,11 @@ func (q *Queries) GetOrderByID(ctx context.Context, orderID int64) (Order, error
 		&i.CustomerID,
 		&i.Channel,
 		&i.PlacedByAdminUserID,
-		&i.CustomerPaymentMethodID,
 		&i.CartID,
-		&i.Amount,
-		&i.AddressID,
+		&i.Subtotal,
+		&i.DiscountAmount,
+		&i.ShippingFee,
+		&i.TotalAmount,
 		&i.DiscountID,
 		&i.Status,
 		&i.Remark,
@@ -104,20 +156,21 @@ func (q *Queries) GetOrderByID(ctx context.Context, orderID int64) (Order, error
 }
 
 const getOrderByOrderNumber = `-- name: GetOrderByOrderNumber :one
-SELECT 
-    order_id, 
-    order_number, 
-    customer_id, 
-    channel, 
-    placed_by_admin_user_id, 
-    customer_payment_method_id, 
-    cart_id, 
-    amount, 
-    address_id, 
-    discount_id, 
-    status, 
-    remark, 
-    created_at, 
+SELECT
+    order_id,
+    order_number,
+    customer_id,
+    channel,
+    placed_by_admin_user_id,
+    cart_id,
+    subtotal,
+    discount_amount,
+    shipping_fee,
+    total_amount,
+    discount_id,
+    status,
+    remark,
+    created_at,
     updated_at
 FROM ` + "`" + `order` + "`" + `
 WHERE order_number = ?
@@ -132,10 +185,11 @@ func (q *Queries) GetOrderByOrderNumber(ctx context.Context, orderNumber string)
 		&i.CustomerID,
 		&i.Channel,
 		&i.PlacedByAdminUserID,
-		&i.CustomerPaymentMethodID,
 		&i.CartID,
-		&i.Amount,
-		&i.AddressID,
+		&i.Subtotal,
+		&i.DiscountAmount,
+		&i.ShippingFee,
+		&i.TotalAmount,
 		&i.DiscountID,
 		&i.Status,
 		&i.Remark,
@@ -152,10 +206,11 @@ SELECT
     customer_id,
     channel,
     placed_by_admin_user_id,
-    customer_payment_method_id,
     cart_id,
-    amount,
-    address_id,
+    subtotal,
+    discount_amount,
+    shipping_fee,
+    total_amount,
     discount_id,
     status,
     remark,
@@ -180,10 +235,11 @@ func (q *Queries) ListOrders(ctx context.Context) ([]Order, error) {
 			&i.CustomerID,
 			&i.Channel,
 			&i.PlacedByAdminUserID,
-			&i.CustomerPaymentMethodID,
 			&i.CartID,
-			&i.Amount,
-			&i.AddressID,
+			&i.Subtotal,
+			&i.DiscountAmount,
+			&i.ShippingFee,
+			&i.TotalAmount,
 			&i.DiscountID,
 			&i.Status,
 			&i.Remark,
@@ -201,4 +257,14 @@ func (q *Queries) ListOrders(ctx context.Context) ([]Order, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const nextOrderSequence = `-- name: NextOrderSequence :execresult
+INSERT INTO order_sequence (seq_date, ` + "`" + `last_value` + "`" + `)
+VALUES (?, LAST_INSERT_ID(1))
+ON DUPLICATE KEY UPDATE ` + "`" + `last_value` + "`" + ` = LAST_INSERT_ID(` + "`" + `last_value` + "`" + ` + 1)
+`
+
+func (q *Queries) NextOrderSequence(ctx context.Context, seqDate time.Time) (sql.Result, error) {
+	return q.db.ExecContext(ctx, nextOrderSequence, seqDate)
 }

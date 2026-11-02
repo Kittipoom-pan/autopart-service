@@ -71,3 +71,8 @@ SELECT
     updated_at
 FROM cart_item
 WHERE cart_item_id = ?;
+
+-- name: UpdateCartCheckoutByID :execresult
+UPDATE cart
+SET is_checkout = 1, updated_at = NOW()
+WHERE cart_id = ? AND is_checkout = 0;

@@ -7,7 +7,7 @@ import (
 
 func MapDbAdminToAdminRes(dbAdmin db.GetAdminUserRow) *AdminRes {
 	return &AdminRes{
-		ID:       uint32(dbAdmin.AdminUserID),
+		ID:       int32(dbAdmin.AdminUserID),
 		Username: dbAdmin.Username,
 		Email:    dbAdmin.Email.String,
 		Role:     string(dbAdmin.Role),
@@ -16,7 +16,7 @@ func MapDbAdminToAdminRes(dbAdmin db.GetAdminUserRow) *AdminRes {
 
 func MapDbAdminToAdminEntity(dbAdmin db.GetAdminByUsernameRow) *Admin {
 	return &Admin{
-		ID:       uint32(dbAdmin.AdminUserID),
+		ID:       int32(dbAdmin.AdminUserID),
 		Username: dbAdmin.Username,
 		Role:     string(dbAdmin.Role),
 		Password: dbAdmin.Password,
@@ -36,7 +36,7 @@ func MapAdminToAdminParam(admin *AdminReq, createBy *int) db.CreateAdminParams {
 
 func MapDbAdminsToAdminEntity(dbAdmin db.ListAdminUsersRow) *AdminRes {
 	return &AdminRes{
-		ID:       uint32(dbAdmin.AdminUserID),
+		ID:       int32(dbAdmin.AdminUserID),
 		Username: dbAdmin.Username,
 		Email:    utils.NullStringToString(dbAdmin.Email),
 		Role:     string(dbAdmin.Role),

@@ -13,7 +13,7 @@ func GetUserID(c *fiber.Ctx, logger zerolog.Logger) (int, error) {
 		return 0, apperror.NewUnauthorizedError("Invalid token")
 	}
 
-	userID, ok := userIDRaw.(uint32)
+	userID, ok := userIDRaw.(int32)
 	if !ok {
 		logger.Error().Interface("user_id", userIDRaw).Msg("user_id has unexpected type")
 		return 0, apperror.NewUnauthorizedError("Invalid token")

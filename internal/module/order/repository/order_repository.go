@@ -13,5 +13,6 @@ type OrderRepository interface {
 	GetAllOrders(ctx context.Context) ([]*entity.OrderRes, error)
 	CreateOrder(ctx context.Context, in *entity.CreateOrderInput, orderNumber string) (int64, error)
 	NextOrderSequence(ctx context.Context, seqDate time.Time) (int64, error)
-	WithTx(ctx context.Context, fn func(OrderRepository) error) error
+	CreateOrderItem(ctx context.Context, orderID int64, item *entity.CreateOrderItemInput) error
+	CreateOrderShippingAddress(ctx context.Context, orderID int64, address *entity.CreateOrderShippingAddressInput) error
 }

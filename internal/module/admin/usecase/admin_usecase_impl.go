@@ -52,7 +52,7 @@ func (u *adminUsecase) CreateAdmin(ctx context.Context, admin *entity.AdminReq, 
 	hashedPassword, err := auth.HashPassword(admin.Password)
 	if err != nil {
 		u.logger.Error().Err(err).Msg("failed to hash password")
-		return 0, adminerror.NewAPIError(common.StatusError, "failed to process password")
+		return 0, adminerror.NewAPIError(common.StatusInternalServer, "failed to process password")
 	}
 
 	req := *admin
@@ -76,7 +76,7 @@ func (u *adminUsecase) UpdateAdmin(ctx context.Context, adminID int, userID int,
 	hashedPassword, err := auth.HashPassword(admin.Password)
 	if err != nil {
 		u.logger.Error().Err(err).Msg("failed to hash password")
-		return adminerror.NewAPIError(common.StatusError, "failed to process password")
+		return adminerror.NewAPIError(common.StatusInternalServer, "failed to process password")
 	}
 
 	req := *admin

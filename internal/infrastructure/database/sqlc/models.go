@@ -53,49 +53,6 @@ func (ns NullAdminUserRole) Value() (driver.Value, error) {
 	return string(ns.AdminUserRole), nil
 }
 
-type CustomerPaymentMethodPaymentMethodType string
-
-const (
-	CustomerPaymentMethodPaymentMethodTypeCreditCard  CustomerPaymentMethodPaymentMethodType = "credit_card"
-	CustomerPaymentMethodPaymentMethodTypeBankAccount CustomerPaymentMethodPaymentMethodType = "bank_account"
-	CustomerPaymentMethodPaymentMethodTypePaypal      CustomerPaymentMethodPaymentMethodType = "paypal"
-)
-
-func (e *CustomerPaymentMethodPaymentMethodType) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = CustomerPaymentMethodPaymentMethodType(s)
-	case string:
-		*e = CustomerPaymentMethodPaymentMethodType(s)
-	default:
-		return fmt.Errorf("unsupported scan type for CustomerPaymentMethodPaymentMethodType: %T", src)
-	}
-	return nil
-}
-
-type NullCustomerPaymentMethodPaymentMethodType struct {
-	CustomerPaymentMethodPaymentMethodType CustomerPaymentMethodPaymentMethodType
-	Valid                                  bool // Valid is true if CustomerPaymentMethodPaymentMethodType is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullCustomerPaymentMethodPaymentMethodType) Scan(value interface{}) error {
-	if value == nil {
-		ns.CustomerPaymentMethodPaymentMethodType, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.CustomerPaymentMethodPaymentMethodType.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullCustomerPaymentMethodPaymentMethodType) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.CustomerPaymentMethodPaymentMethodType), nil
-}
-
 type DiscountDiscountType string
 
 const (
@@ -229,51 +186,6 @@ func (ns NullOrderStatus) Value() (driver.Value, error) {
 	return string(ns.OrderStatus), nil
 }
 
-type PaymentPaymentMethod string
-
-const (
-	PaymentPaymentMethodCreditCard   PaymentPaymentMethod = "credit_card"
-	PaymentPaymentMethodBankTransfer PaymentPaymentMethod = "bank_transfer"
-	PaymentPaymentMethodPaypal       PaymentPaymentMethod = "paypal"
-	PaymentPaymentMethodCod          PaymentPaymentMethod = "cod"
-	PaymentPaymentMethodCash         PaymentPaymentMethod = "cash"
-)
-
-func (e *PaymentPaymentMethod) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = PaymentPaymentMethod(s)
-	case string:
-		*e = PaymentPaymentMethod(s)
-	default:
-		return fmt.Errorf("unsupported scan type for PaymentPaymentMethod: %T", src)
-	}
-	return nil
-}
-
-type NullPaymentPaymentMethod struct {
-	PaymentPaymentMethod PaymentPaymentMethod
-	Valid                bool // Valid is true if PaymentPaymentMethod is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullPaymentPaymentMethod) Scan(value interface{}) error {
-	if value == nil {
-		ns.PaymentPaymentMethod, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.PaymentPaymentMethod.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullPaymentPaymentMethod) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.PaymentPaymentMethod), nil
-}
-
 type PaymentStatus string
 
 const (
@@ -405,20 +317,19 @@ func (ns NullStockMovementReason) Value() (driver.Value, error) {
 }
 
 type Address struct {
-	AddressID    int32
-	CustomerID   int32
-	Title        sql.NullString
-	AddressLine1 string
-	AddressLine2 sql.NullString
-	Country      string
-	City         string
-	PostalCode   string
-	PhoneNumber  string
-	IsDefault    interface{}
-	CreatedAt    time.Time
-	CreatedBy    sql.NullInt32
-	UpdatedAt    sql.NullTime
-	UpdatedBy    sql.NullInt32
+	AddressID     int32
+	CustomerID    int32
+	Title         sql.NullString
+	RecipientName string
+	AddressLine   string
+	SubdistrictID int32
+	ZipCode       string
+	PhoneNumber   string
+	IsDefault     interface{}
+	CreatedAt     time.Time
+	CreatedBy     sql.NullInt32
+	UpdatedAt     sql.NullTime
+	UpdatedBy     sql.NullInt32
 }
 
 type AdminToken struct {
@@ -460,7 +371,7 @@ type CarModel struct {
 type Cart struct {
 	CartID     int32
 	CustomerID int32
-	Amount     int32
+	Subtotal   int32
 	IsCheckout interface{}
 	CreatedAt  time.Time
 	UpdatedAt  sql.NullTime
@@ -503,7 +414,7 @@ type CustomerPaymentMethod struct {
 	CustomerPaymentMethodID int32
 	CustomerID              int32
 	AccountName             sql.NullString
-	PaymentMethodType       CustomerPaymentMethodPaymentMethodType
+	PaymentMethodTypeID     int32
 	CardToken               sql.NullString
 	IsDefault               interface{}
 	CreatedAt               time.Time
@@ -525,7 +436,7 @@ type Discount struct {
 	DiscountID     int32
 	Code           string
 	DiscountType   DiscountDiscountType
-	Amount         int32
+	DiscountValue  int32
 	Description    sql.NullString
 	MinOrderAmount int32
 	ExpirationDate sql.NullTime
@@ -534,6 +445,14 @@ type Discount struct {
 	CreatedBy      sql.NullInt32
 	UpdatedAt      sql.NullTime
 	UpdatedBy      sql.NullInt32
+}
+
+type District struct {
+	ID            int32
+	Code          int32
+	NameInThai    string
+	NameInEnglish string
+	ProvinceID    int32
 }
 
 type Image struct {
@@ -550,20 +469,21 @@ type Image struct {
 }
 
 type Order struct {
-	OrderID                 int64
-	OrderNumber             string
-	CustomerID              sql.NullInt32
-	Channel                 OrderChannel
-	PlacedByAdminUserID     sql.NullInt32
-	CustomerPaymentMethodID sql.NullInt32
-	CartID                  sql.NullInt32
-	Amount                  int32
-	AddressID               sql.NullInt32
-	DiscountID              sql.NullInt32
-	Status                  OrderStatus
-	Remark                  sql.NullString
-	CreatedAt               time.Time
-	UpdatedAt               sql.NullTime
+	OrderID             int64
+	OrderNumber         string
+	CustomerID          sql.NullInt32
+	Channel             OrderChannel
+	PlacedByAdminUserID sql.NullInt32
+	CartID              sql.NullInt32
+	Subtotal            int32
+	DiscountAmount      int32
+	ShippingFee         int32
+	TotalAmount         int32
+	DiscountID          sql.NullInt32
+	Status              OrderStatus
+	Remark              sql.NullString
+	CreatedAt           time.Time
+	UpdatedAt           sql.NullTime
 }
 
 type OrderItem struct {
@@ -579,6 +499,17 @@ type OrderSequence struct {
 	LastValue uint32
 }
 
+type OrderShippingAddress struct {
+	OrderID       int64
+	RecipientName string
+	PhoneNumber   string
+	AddressLine   string
+	Subdistrict   string
+	District      string
+	Province      string
+	ZipCode       string
+}
+
 type Part struct {
 	PartID      int32
 	PartBrandID int32
@@ -588,6 +519,7 @@ type Part struct {
 	Description sql.NullString
 	Price       int32
 	Quantity    int32
+	WeightG     sql.NullInt32
 	IsActive    interface{}
 	CreatedAt   time.Time
 	CreatedBy   sql.NullInt32
@@ -609,21 +541,53 @@ type PartType struct {
 }
 
 type Payment struct {
-	PaymentID     int64
-	OrderID       int64
-	Amount        int32
-	PaymentMethod PaymentPaymentMethod
-	Status        PaymentStatus
-	CreatedAt     time.Time
-	CreatedBy     sql.NullInt32
-	UpdatedAt     sql.NullTime
-	UpdatedBy     sql.NullInt32
+	PaymentID               int64
+	OrderID                 int64
+	Amount                  int32
+	CustomerPaymentMethodID sql.NullInt32
+	PaymentMethodTypeID     int32
+	Status                  PaymentStatus
+	CreatedAt               time.Time
+	CreatedBy               sql.NullInt32
+	UpdatedAt               sql.NullTime
+	UpdatedBy               sql.NullInt32
+}
+
+type PaymentMethodType struct {
+	PaymentMethodTypeID int32
+	Code                string
+	Name                string
+	IsActive            interface{}
+}
+
+type Province struct {
+	ID            int32
+	Code          int32
+	NameInThai    string
+	NameInEnglish string
+}
+
+type ShippingRate struct {
+	ShippingRateID int32
+	Name           string
+	// จังหวัดที่ใช้ค่าส่งนี้; NULL = ใช้ได้ทุกจังหวัด
+	ProvinceID sql.NullInt32
+	// รวมค่านี้ (>=)
+	MinWeightG int32
+	// ไม่รวมค่านี้ (<); NULL = ไม่จำกัด ไว้ใช้กำหนดค่าส่งตามช่วงน้ำหนัก เช่น 0–1,000 และ 1,000–5,000 กรัม
+	MaxWeightG sql.NullInt32
+	// ค่าจัดส่ง
+	Fee int32
+	// ยอดสินค้าหลังหักส่วนลดตั้งแต่เท่านี้ส่งฟรี NULL = ไม่มี
+	FreeShippingMinSubtotal sql.NullInt32
+	IsActive                bool
+	CreatedAt               time.Time
+	UpdatedAt               sql.NullTime
 }
 
 type StockMovement struct {
 	StockMovementID int64
 	PartID          int32
-	PartBrandID     sql.NullInt32
 	QuantityChange  int32
 	Price           int32
 	EventType       StockMovementEventType
@@ -632,4 +596,13 @@ type StockMovement struct {
 	Remark          sql.NullString
 	CreatedAt       time.Time
 	CreatedBy       sql.NullInt32
+}
+
+type Subdistrict struct {
+	ID            int32
+	Code          int32
+	NameInThai    string
+	NameInEnglish sql.NullString
+	DistrictID    int32
+	ZipCode       string
 }

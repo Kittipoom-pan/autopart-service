@@ -8,10 +8,27 @@ SELECT
     description,
     price,
     quantity,
+    weight_g,
     is_active,
     created_at
 FROM part
 WHERE part_id = ? AND is_active = 1;
+
+-- name: GetPartsByIDs :many
+SELECT
+    part_id,
+    part_brand_id,
+    part_type_id,
+    sku,
+    name,
+    description,
+    price,
+    quantity,
+    weight_g,
+    is_active,
+    created_at
+FROM part
+WHERE part_id IN (sqlc.slice('part_ids')) AND is_active = 1;
 
 -- name: GetPartBySKU :one
 SELECT
@@ -23,6 +40,7 @@ SELECT
     description,
     price,
     quantity,
+    weight_g,
     is_active,
     created_at
 FROM part
@@ -38,6 +56,7 @@ SELECT
     description,
     price,
     quantity,
+    weight_g,
     is_active,
     created_at
 FROM part
@@ -52,6 +71,7 @@ SELECT
     p.description AS part_description,
     p.price,
     p.quantity,
+    p.weight_g,
     cm.car_model_id,
     cm.name AS car_model_name,
     COALESCE(cc.year_from, cm.year_from) AS year_from,
@@ -64,7 +84,7 @@ FROM part p
 LEFT JOIN compatible_car cc ON p.part_id = cc.part_id
 LEFT JOIN car_model cm ON cc.car_model_id = cm.car_model_id
 LEFT JOIN image i ON i.reference_type = 'part' AND i.reference_id = p.part_id
-WHERE p.part_id = ?
+WHERE p.part_id = ? and p.is_active = 1
 ORDER BY i.is_primary DESC, i.sort_image ASC, i.created_at ASC;
 
 -- name: CreatePart :execresult
@@ -76,11 +96,12 @@ INSERT INTO part (
     description,
     price,
     quantity,
+    weight_g,
     is_active,
     created_at,
     created_by
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?);
 
 -- name: UpdatePartByID :execresult
 UPDATE part SET
@@ -91,6 +112,7 @@ UPDATE part SET
     part_brand_id = ?,
     price = ?,
     quantity = ?,
+    weight_g = ?,
     is_active = ?,
     updated_at = ?,
     updated_by = ?

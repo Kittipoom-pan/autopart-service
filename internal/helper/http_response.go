@@ -32,7 +32,7 @@ func RespondError(c *fiber.Ctx, err error) error {
 		})
 	}
 
-	return c.Status(common.StatusError).JSON(common.BaseErrorResponse{
+	return c.Status(common.StatusInternalServer).JSON(common.BaseErrorResponse{
 		Message: "Internal server error",
 	})
 }

@@ -7,7 +7,7 @@ import (
 
 func MapDbCustomerToCustomerRes(dbCustomer db.GetCustomerRow) *CustomerRes {
 	return &CustomerRes{
-		ID:          uint32(dbCustomer.CustomerID),
+		ID:          int32(dbCustomer.CustomerID),
 		FirstName:   dbCustomer.FirstName,
 		LastName:    dbCustomer.LastName,
 		Username:    dbCustomer.Username,
@@ -19,7 +19,7 @@ func MapDbCustomerToCustomerRes(dbCustomer db.GetCustomerRow) *CustomerRes {
 
 func MapDbCustomerToCustomerEntity(dbCustomer db.GetCustomerByUsernameRow) *Customer {
 	return &Customer{
-		ID:       uint32(dbCustomer.CustomerID),
+		ID:       int32(dbCustomer.CustomerID),
 		Username: dbCustomer.Username,
 		Password: dbCustomer.Password,
 	}
@@ -41,7 +41,7 @@ func MapCustomerToCustomerParam(customer *CustomerReq, createBy *int) db.CreateC
 
 func MapDbCustomersToCustomerRes(dbCustomer db.ListCustomersRow) *CustomerRes {
 	return &CustomerRes{
-		ID:          uint32(dbCustomer.CustomerID),
+		ID:          int32(dbCustomer.CustomerID),
 		FirstName:   dbCustomer.FirstName,
 		LastName:    dbCustomer.LastName,
 		Username:    dbCustomer.Username,
