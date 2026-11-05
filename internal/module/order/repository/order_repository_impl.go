@@ -72,8 +72,11 @@ func (r *orderRepository) GetAllOrders(ctx context.Context) ([]*entity.OrderRes,
 	return orderEntities, nil
 }
 
-func (r *orderRepository) CreateOrder(ctx context.Context, in *entity.CreateOrderInput, orderNumber string) (int64, error) {
-	params := entity.MapCreateOrderInputToParams(in, orderNumber)
+func (r *orderRepository) CreateOrder(ctx context.Context, order *entity.CreateOrderInput, orderNumber string) (int64, error) {
+	r.logger.Info().Interface("order_req", order).Msg("creating order")
+	params := entity.MapCreateOrderInputToParams(order, orderNumber)
+	r.logger.Info().Interface("order_params", params).Msg("creating order")
+
 	result, err := r.getQueries(ctx).CreateOrder(ctx, params)
 	if err != nil {
 		dbErr := dberr.HandleMySQLError(err)

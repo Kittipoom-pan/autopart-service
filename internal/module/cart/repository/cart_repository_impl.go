@@ -102,6 +102,21 @@ func (r *cartRepository) CreateCartItem(ctx context.Context, cartID int32, partI
 	return id, nil
 }
 
+func (r *cartRepository) GetOrCreateActiveCartID(ctx context.Context, customerID int32) (int32, error) {
+	res, err := r.getQueries(ctx).GetOrCreateActiveCart(ctx, customerID)
+	if err != nil {
+		r.logger.Error().Err(err).Int32("customer_id", customerID).Msg("failed to get or create active cart")
+		return 0, dberr.NewDBError(dberr.ErrDatabaseInternal, err.Error())
+	}
+
+	id, err := res.LastInsertId()
+	if err != nil {
+		r.logger.Error().Err(err).Int32("customer_id", customerID).Msg("failed to read cart id")
+		return 0, dberr.NewDBError(dberr.ErrDatabaseInternal, err.Error())
+	}
+	return int32(id), nil
+}
+
 func (r *cartRepository) UpdateCartItemQuantity(ctx context.Context, cartItemID int32, cartID int32, quantity int32) error {
 	_, err := r.getQueries(ctx).UpdateCartItemQuantity(ctx, db.UpdateCartItemQuantityParams{
 		Quantity:   quantity,

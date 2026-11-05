@@ -5,23 +5,6 @@ import (
 	"github.com/Kittipoom-pan/autopart-service/pkg/utils"
 )
 
-func parseBool(v interface{}) bool {
-	switch val := v.(type) {
-	case bool:
-		return val
-	case []byte:
-		return len(val) > 0 && val[0] == 1
-	case int64:
-		return val == 1
-	case int32:
-		return val == 1
-	case int:
-		return val == 1
-	default:
-		return false
-	}
-}
-
 func MapDbCustomerPaymentMethodToRes(dbMethod db.CustomerPaymentMethod) *CustomerPaymentMethodRes {
 	return &CustomerPaymentMethodRes{
 		CustomerPaymentMethodID: dbMethod.CustomerPaymentMethodID,
@@ -29,7 +12,7 @@ func MapDbCustomerPaymentMethodToRes(dbMethod db.CustomerPaymentMethod) *Custome
 		AccountName:             utils.NullStringToStringPtr(dbMethod.AccountName),
 		PaymentMethodTypeID:     dbMethod.PaymentMethodTypeID,
 		CardToken:               utils.NullStringToStringPtr(dbMethod.CardToken),
-		IsDefault:               parseBool(dbMethod.IsDefault),
+		IsDefault:               utils.ParseBool(dbMethod.IsDefault),
 		CreatedAt:               dbMethod.CreatedAt,
 		UpdatedAt:               utils.NullTimeToTimePtr(dbMethod.UpdatedAt),
 	}

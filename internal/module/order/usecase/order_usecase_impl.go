@@ -300,21 +300,21 @@ func (u *orderUsecase) calculateOrderPricing(
 
 func (u *orderUsecase) createOrder(
 	ctx context.Context,
-	in *entity.CreateOrderInput,
+	order *entity.CreateOrderInput,
 	shippingDest *shippingEntity.ShippingDestination,
 ) (string, error) {
 	if shippingDest == nil {
 		return "", customerror.InvalidRequestData(map[string]string{"shipping_address": "required"})
 	}
-	if in.PaymentMethodTypeID <= 0 {
+	if order.PaymentMethodTypeID <= 0 {
 		return "", customerror.InvalidRequestData(map[string]string{"payment_method_type_id": "required"})
 	}
 
-	items, err := normalizeItems(in.Items)
+	items, err := normalizeItems(order.Items)
 	if err != nil {
 		return "", err
 	}
-	in.Items = items
+	order.Items = items
 
 	var (
 		orderNo string
@@ -324,8 +324,8 @@ func (u *orderUsecase) createOrder(
 	err = u.txManager.WithinTransaction(ctx, func(ctx context.Context) error {
 		// ปิด cart เป็นขั้นแรก: UPDATE ... WHERE is_checkout = 0 จะล็อกแถว cart
 		// request ที่ซ้อนกันจะได้ 0 แถวและ fail ทันที ก่อนไปแตะสต็อกหรือสร้าง order
-		if in.CartID != nil {
-			if err := u.cartRepo.MarkCartCheckedOut(ctx, *in.CartID); err != nil {
+		if order.CartID != nil {
+			if err := u.cartRepo.MarkCartCheckedOut(ctx, *order.CartID); err != nil {
 				if errors.Is(err, cartRepository.ErrCartAlreadyCheckedOut) {
 					return customerror.NewAPIError(common.StatusConflict, "cart already checked out")
 				}
@@ -333,46 +333,46 @@ func (u *orderUsecase) createOrder(
 			}
 		}
 
-		parts, err := u.fillItemPrices(ctx, in.Items)
+		parts, err := u.fillItemPrices(ctx, order.Items)
 		if err != nil {
 			return err
 		}
 
-		pricing, err := u.calculateOrderPricing(ctx, in.Items, parts, in.DiscountID, shippingDest)
+		pricing, err := u.calculateOrderPricing(ctx, order.Items, parts, order.DiscountID, shippingDest)
 		if err != nil {
 			return err
 		}
-		in.Subtotal = pricing.Subtotal
-		in.DiscountAmount = pricing.DiscountAmount
-		in.ShippingFee = pricing.ShippingFee
-		in.TotalAmount = pricing.TotalAmount
+		order.Subtotal = pricing.Subtotal
+		order.DiscountAmount = pricing.DiscountAmount
+		order.ShippingFee = pricing.ShippingFee
+		order.TotalAmount = pricing.TotalAmount
 
 		no, err := u.generateOrderNo(ctx, utils.NowUTC())
 		if err != nil {
 			return err
 		}
 
-		id, err := u.repo.CreateOrder(ctx, in, no)
+		id, err := u.repo.CreateOrder(ctx, order, no)
 		if err != nil {
 			return helper.MapDBErrorToAPIError(err, "Order")
 		}
 
-		for i := range in.Items {
-			if err := u.repo.CreateOrderItem(ctx, id, &in.Items[i]); err != nil {
+		for i := range order.Items {
+			if err := u.repo.CreateOrderItem(ctx, id, &order.Items[i]); err != nil {
 				return helper.MapDBErrorToAPIError(err, "OrderItem")
 			}
 		}
 
-		if in.ShippingAddress != nil {
-			if err := u.repo.CreateOrderShippingAddress(ctx, id, in.ShippingAddress); err != nil {
+		if order.ShippingAddress != nil {
+			if err := u.repo.CreateOrderShippingAddress(ctx, id, order.ShippingAddress); err != nil {
 				return helper.MapDBErrorToAPIError(err, "OrderShippingAddress")
 			}
 		}
 
 		// ตัดสต็อก stock_movement (reason=sale) ต่อ item
 		// items ถูกเรียงตาม PartID แล้ว จึงล็อกแถว part ในลำดับเดียวกันทุก order
-		stockItems := make([]stockEntity.StockDeductItem, len(in.Items))
-		for i, item := range in.Items {
+		stockItems := make([]stockEntity.StockDeductItem, len(order.Items))
+		for i, item := range order.Items {
 			stockItems[i] = stockEntity.StockDeductItem{
 				PartID:   item.PartID,
 				Quantity: item.Quantity,
@@ -380,17 +380,17 @@ func (u *orderUsecase) createOrder(
 			}
 		}
 
-		if err := u.stockUsecase.DeductStockForOrder(ctx, id, stockItems, in.PlacedByAdminUserID); err != nil {
+		if err := u.stockUsecase.DeductStockForOrder(ctx, id, stockItems, order.PlacedByAdminUserID); err != nil {
 			return err
 		}
 
 		if err := u.paymentUsecase.CreatePendingPayment(ctx, &paymentEntity.CreatePaymentInput{
 			OrderID:                 id,
-			Amount:                  in.TotalAmount,
-			CustomerID:              in.CustomerID,
-			PaymentMethodTypeID:     in.PaymentMethodTypeID,
-			CustomerPaymentMethodID: in.CustomerPaymentMethodID,
-			CreatedBy:               in.PlacedByAdminUserID,
+			Amount:                  order.TotalAmount,
+			CustomerID:              order.CustomerID,
+			PaymentMethodTypeID:     order.PaymentMethodTypeID,
+			CustomerPaymentMethodID: order.CustomerPaymentMethodID,
+			CreatedBy:               order.PlacedByAdminUserID,
 		}); err != nil {
 			return err
 		}
@@ -406,10 +406,10 @@ func (u *orderUsecase) createOrder(
 	u.logger.Info().
 		Str("order_number", orderNo).
 		Int64("order_id", orderID).
-		Int32("subtotal", in.Subtotal).
-		Int32("discount_amount", in.DiscountAmount).
-		Int32("shipping_fee", in.ShippingFee).
-		Int32("total_amount", in.TotalAmount).
+		Int32("subtotal", order.Subtotal).
+		Int32("discount_amount", order.DiscountAmount).
+		Int32("shipping_fee", order.ShippingFee).
+		Int32("total_amount", order.TotalAmount).
 		Msg("order created successfully")
 
 	return orderNo, nil

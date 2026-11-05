@@ -15,4 +15,5 @@ type CartRepository interface {
 	RecalcCartAmount(ctx context.Context, cartID int32) error
 	MarkCartCheckedOut(ctx context.Context, cartID int32) error
 	CheckPartExists(ctx context.Context, partID int32) error
+	GetOrCreateActiveCartID(ctx context.Context, customerID int32) (int32, error)
 }

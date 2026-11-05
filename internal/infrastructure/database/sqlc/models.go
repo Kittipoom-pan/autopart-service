@@ -149,6 +149,7 @@ const (
 	OrderStatusShipped    OrderStatus = "shipped"
 	OrderStatusDelivered  OrderStatus = "delivered"
 	OrderStatusCancelled  OrderStatus = "cancelled"
+	OrderStatusCompleted  OrderStatus = "completed"
 )
 
 func (e *OrderStatus) Scan(src interface{}) error {
@@ -323,7 +324,6 @@ type Address struct {
 	RecipientName string
 	AddressLine   string
 	SubdistrictID int32
-	ZipCode       string
 	PhoneNumber   string
 	IsDefault     interface{}
 	CreatedAt     time.Time
@@ -369,12 +369,13 @@ type CarModel struct {
 }
 
 type Cart struct {
-	CartID     int32
-	CustomerID int32
-	Subtotal   int32
-	IsCheckout interface{}
-	CreatedAt  time.Time
-	UpdatedAt  sql.NullTime
+	CartID           int32
+	CustomerID       int32
+	Subtotal         int32
+	IsCheckout       interface{}
+	ActiveCustomerID sql.NullInt32
+	CreatedAt        time.Time
+	UpdatedAt        sql.NullTime
 }
 
 type CartItem struct {

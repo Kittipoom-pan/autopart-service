@@ -11,15 +11,6 @@ import (
 	"time"
 )
 
-const createCart = `-- name: CreateCart :execresult
-INSERT INTO cart (customer_id, subtotal, is_checkout)
-VALUES (?, 0, 0)
-`
-
-func (q *Queries) CreateCart(ctx context.Context, customerID int32) (sql.Result, error) {
-	return q.db.ExecContext(ctx, createCart, customerID)
-}
-
 const createCartItem = `-- name: CreateCartItem :execresult
 INSERT INTO cart_item (cart_id, part_id, quantity)
 VALUES (?, ?, ?)
@@ -49,9 +40,18 @@ ORDER BY cart_id DESC
 LIMIT 1
 `
 
-func (q *Queries) GetCartByCustomerID(ctx context.Context, customerID int32) (Cart, error) {
+type GetCartByCustomerIDRow struct {
+	CartID     int32
+	CustomerID int32
+	Subtotal   int32
+	IsCheckout interface{}
+	CreatedAt  time.Time
+	UpdatedAt  sql.NullTime
+}
+
+func (q *Queries) GetCartByCustomerID(ctx context.Context, customerID int32) (GetCartByCustomerIDRow, error) {
 	row := q.db.QueryRowContext(ctx, getCartByCustomerID, customerID)
-	var i Cart
+	var i GetCartByCustomerIDRow
 	err := row.Scan(
 		&i.CartID,
 		&i.CustomerID,
@@ -118,6 +118,16 @@ func (q *Queries) GetCartItemByID(ctx context.Context, cartItemID int32) (CartIt
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const getOrCreateActiveCart = `-- name: GetOrCreateActiveCart :execresult
+INSERT INTO cart (customer_id)
+VALUES (?)
+ON DUPLICATE KEY UPDATE cart_id = LAST_INSERT_ID(cart_id)
+`
+
+func (q *Queries) GetOrCreateActiveCart(ctx context.Context, customerID int32) (sql.Result, error) {
+	return q.db.ExecContext(ctx, getOrCreateActiveCart, customerID)
 }
 
 const listCartItemsWithPart = `-- name: ListCartItemsWithPart :many

@@ -46,36 +46,43 @@ func (u *cartUsecase) AddItem(ctx context.Context, customerID int32, req *entity
 		return nil, err
 	}
 
-	// Requires an existing cart
-	cart, err := u.repo.GetActiveCartByCustomerID(ctx, customerID)
-	if err != nil {
-		return nil, helper.MapDBErrorToAPIError(err, "Cart")
-	}
-
-	// Verify part exists
+	// ตรวจ part ก่อนเข้า tx จะได้ไม่สร้าง cart เปล่าจาก request ที่ผิด
 	if err := u.repo.CheckPartExists(ctx, req.PartID); err != nil {
 		return nil, helper.MapDBErrorToAPIError(err, "Part")
 	}
 
-	var updatedCart *entity.CartRes
-	err = u.txManager.WithinTransaction(ctx, func(ctx context.Context) error {
-		existingItem, err := u.repo.GetCartItemByCartAndPart(ctx, cart.CartID, req.PartID)
+	var (
+		cartID      int32
+		updatedCart *entity.CartRes
+	)
+
+	err := u.txManager.WithinTransaction(ctx, func(ctx context.Context) error {
+		// หา active cart ของลูกค้า ถ้ายังไม่มี (ลูกค้าใหม่ หรือเพิ่ง checkout) ให้สร้างให้
+		// statement นี้ล็อกแถว cart ไว้จนจบ tx ด้วย: AddItem ของ cart เดียวกันจึงเข้าคิวทีละ request
+		// และชนกับ MarkCartCheckedOut ของ createOrder ได้อย่างปลอดภัย (ล็อกแถว cart เหมือนกัน)
+		id, err := u.repo.GetOrCreateActiveCartID(ctx, customerID)
+		if err != nil {
+			return helper.MapDBErrorToAPIError(err, "Cart")
+		}
+		cartID = id
+
+		existingItem, err := u.repo.GetCartItemByCartAndPart(ctx, cartID, req.PartID)
 		if err != nil && !dberr.IsRecordNotFound(err) {
 			return helper.MapDBErrorToAPIError(err, "Cart item")
 		}
 
 		if existingItem != nil {
 			newQuantity := existingItem.Quantity + req.Quantity
-			if err := u.repo.UpdateCartItemQuantity(ctx, existingItem.CartItemID, cart.CartID, newQuantity); err != nil {
+			if err := u.repo.UpdateCartItemQuantity(ctx, existingItem.CartItemID, cartID, newQuantity); err != nil {
 				return helper.MapDBErrorToAPIError(err, "Cart item")
 			}
 		} else {
-			if _, err := u.repo.CreateCartItem(ctx, cart.CartID, req.PartID, req.Quantity); err != nil {
+			if _, err := u.repo.CreateCartItem(ctx, cartID, req.PartID, req.Quantity); err != nil {
 				return helper.MapDBErrorToAPIError(err, "Cart item")
 			}
 		}
 
-		if err := u.repo.RecalcCartAmount(ctx, cart.CartID); err != nil {
+		if err := u.repo.RecalcCartAmount(ctx, cartID); err != nil {
 			return helper.MapDBErrorToAPIError(err, "Cart")
 		}
 
@@ -86,12 +93,11 @@ func (u *cartUsecase) AddItem(ctx context.Context, customerID int32, req *entity
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
 
-	u.logger.Info().Int32("cart_id", cart.CartID).Int32("part_id", req.PartID).Msg("item added to cart successfully")
+	u.logger.Info().Int32("cart_id", cartID).Int32("part_id", req.PartID).Msg("item added to cart successfully")
 	return updatedCart, nil
 }
 

@@ -18,7 +18,7 @@ SELECT
     a.recipient_name,
     a.address_line,
     a.subdistrict_id,
-    a.zip_code,
+    s.zip_code,
     a.phone_number,
     a.is_default,
     s.name_in_thai AS subdistrict,

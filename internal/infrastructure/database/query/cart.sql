@@ -11,9 +11,10 @@ WHERE customer_id = ? AND is_checkout = 0
 ORDER BY cart_id DESC
 LIMIT 1;
 
--- name: CreateCart :execresult
-INSERT INTO cart (customer_id, subtotal, is_checkout)
-VALUES (?, 0, 0);
+-- name: GetOrCreateActiveCart :execresult
+INSERT INTO cart (customer_id)
+VALUES (?)
+ON DUPLICATE KEY UPDATE cart_id = LAST_INSERT_ID(cart_id);
 
 -- name: RecalcCartSubtotal :execresult
 UPDATE cart

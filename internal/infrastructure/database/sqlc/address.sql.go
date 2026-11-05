@@ -36,13 +36,12 @@ INSERT INTO address (
     recipient_name,
     address_line,
     subdistrict_id,
-    zip_code,
     phone_number,
     is_default,
     created_at,
     created_by
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateAddressParams struct {
@@ -51,7 +50,6 @@ type CreateAddressParams struct {
 	RecipientName string
 	AddressLine   string
 	SubdistrictID int32
-	ZipCode       string
 	PhoneNumber   string
 	IsDefault     interface{}
 	CreatedAt     time.Time
@@ -65,7 +63,6 @@ func (q *Queries) CreateAddress(ctx context.Context, arg CreateAddressParams) (s
 		arg.RecipientName,
 		arg.AddressLine,
 		arg.SubdistrictID,
-		arg.ZipCode,
 		arg.PhoneNumber,
 		arg.IsDefault,
 		arg.CreatedAt,
@@ -95,7 +92,7 @@ SELECT
     a.recipient_name,
     a.address_line,
     a.subdistrict_id,
-    a.zip_code,
+    s.zip_code,
     a.phone_number,
     a.is_default,
     a.created_at,
@@ -165,27 +162,44 @@ func (q *Queries) GetAddressByIDAndCustomer(ctx context.Context, arg GetAddressB
 
 const getDefaultAddressByCustomerID = `-- name: GetDefaultAddressByCustomerID :one
 SELECT
-    address_id,
-    customer_id,
-    title,
-    recipient_name,
-    address_line,
-    subdistrict_id,
-    zip_code,
-    phone_number,
-    is_default,
-    created_at,
-    created_by,
-    updated_at,
-    updated_by
-FROM address
-WHERE customer_id = ? AND is_default = 1
+    a.address_id,
+    a.customer_id,
+    a.title,
+    a.recipient_name,
+    a.address_line,
+    a.subdistrict_id,
+    s.zip_code,
+    a.phone_number,
+    a.is_default,
+    a.created_at,
+    a.created_by,
+    a.updated_at,
+    a.updated_by
+FROM address a
+JOIN subdistrict s ON s.id = a.subdistrict_id
+WHERE a.customer_id = ? AND a.is_default = 1
 LIMIT 1
 `
 
-func (q *Queries) GetDefaultAddressByCustomerID(ctx context.Context, customerID int32) (Address, error) {
+type GetDefaultAddressByCustomerIDRow struct {
+	AddressID     int32
+	CustomerID    int32
+	Title         sql.NullString
+	RecipientName string
+	AddressLine   string
+	SubdistrictID int32
+	ZipCode       string
+	PhoneNumber   string
+	IsDefault     interface{}
+	CreatedAt     time.Time
+	CreatedBy     sql.NullInt32
+	UpdatedAt     sql.NullTime
+	UpdatedBy     sql.NullInt32
+}
+
+func (q *Queries) GetDefaultAddressByCustomerID(ctx context.Context, customerID int32) (GetDefaultAddressByCustomerIDRow, error) {
 	row := q.db.QueryRowContext(ctx, getDefaultAddressByCustomerID, customerID)
-	var i Address
+	var i GetDefaultAddressByCustomerIDRow
 	err := row.Scan(
 		&i.AddressID,
 		&i.CustomerID,
@@ -243,33 +257,50 @@ func (q *Queries) GetSubdistrictDetailByID(ctx context.Context, id int32) (GetSu
 
 const listAddressesByCustomerID = `-- name: ListAddressesByCustomerID :many
 SELECT
-    address_id,
-    customer_id,
-    title,
-    recipient_name,
-    address_line,
-    subdistrict_id,
-    zip_code,
-    phone_number,
-    is_default,
-    created_at,
-    created_by,
-    updated_at,
-    updated_by
-FROM address
-WHERE customer_id = ?
-ORDER BY is_default DESC, created_at DESC
+    a.address_id,
+    a.customer_id,
+    a.title,
+    a.recipient_name,
+    a.address_line,
+    a.subdistrict_id,
+    s.zip_code,
+    a.phone_number,
+    a.is_default,
+    a.created_at,
+    a.created_by,
+    a.updated_at,
+    a.updated_by
+FROM address a
+JOIN subdistrict s ON s.id = a.subdistrict_id
+WHERE a.customer_id = ?
+ORDER BY a.is_default DESC, a.created_at DESC
 `
 
-func (q *Queries) ListAddressesByCustomerID(ctx context.Context, customerID int32) ([]Address, error) {
+type ListAddressesByCustomerIDRow struct {
+	AddressID     int32
+	CustomerID    int32
+	Title         sql.NullString
+	RecipientName string
+	AddressLine   string
+	SubdistrictID int32
+	ZipCode       string
+	PhoneNumber   string
+	IsDefault     interface{}
+	CreatedAt     time.Time
+	CreatedBy     sql.NullInt32
+	UpdatedAt     sql.NullTime
+	UpdatedBy     sql.NullInt32
+}
+
+func (q *Queries) ListAddressesByCustomerID(ctx context.Context, customerID int32) ([]ListAddressesByCustomerIDRow, error) {
 	rows, err := q.db.QueryContext(ctx, listAddressesByCustomerID, customerID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Address
+	var items []ListAddressesByCustomerIDRow
 	for rows.Next() {
-		var i Address
+		var i ListAddressesByCustomerIDRow
 		if err := rows.Scan(
 			&i.AddressID,
 			&i.CustomerID,
@@ -328,7 +359,6 @@ UPDATE address SET
     recipient_name = ?,
     address_line = ?,
     subdistrict_id = ?,
-    zip_code = ?,
     phone_number = ?,
     is_default = ?,
     updated_at = ?,
@@ -341,7 +371,6 @@ type UpdateAddressParams struct {
 	RecipientName string
 	AddressLine   string
 	SubdistrictID int32
-	ZipCode       string
 	PhoneNumber   string
 	IsDefault     interface{}
 	UpdatedAt     sql.NullTime
@@ -356,7 +385,6 @@ func (q *Queries) UpdateAddress(ctx context.Context, arg UpdateAddressParams) (s
 		arg.RecipientName,
 		arg.AddressLine,
 		arg.SubdistrictID,
-		arg.ZipCode,
 		arg.PhoneNumber,
 		arg.IsDefault,
 		arg.UpdatedAt,

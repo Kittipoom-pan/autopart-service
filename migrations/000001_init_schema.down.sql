@@ -22,6 +22,10 @@ DROP TABLE IF EXISTS cart;
 DROP TABLE IF EXISTS address;
 DROP TABLE IF EXISTS subdistrict;
 DROP TABLE IF EXISTS district;
+
+-- shipping rate references province
+DROP TABLE IF EXISTS shipping_rate;
+
 DROP TABLE IF EXISTS province;
 DROP TABLE IF EXISTS customer_payment_method;
 DROP TABLE IF EXISTS payment_method_type;
@@ -32,7 +36,6 @@ DROP TABLE IF EXISTS admin_token;
 
 -- 8️⃣ Part table
 DROP TABLE IF EXISTS part;
-DROP TABLE IF EXISTS shipping_rate;
 
 -- 9️⃣ Car model
 DROP TABLE IF EXISTS car_model;

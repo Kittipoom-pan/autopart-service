@@ -6,7 +6,7 @@ SELECT
     a.recipient_name,
     a.address_line,
     a.subdistrict_id,
-    a.zip_code,
+    s.zip_code,
     a.phone_number,
     a.is_default,
     a.created_at,
@@ -38,40 +38,42 @@ WHERE s.id = ?;
 
 -- name: ListAddressesByCustomerID :many
 SELECT
-    address_id,
-    customer_id,
-    title,
-    recipient_name,
-    address_line,
-    subdistrict_id,
-    zip_code,
-    phone_number,
-    is_default,
-    created_at,
-    created_by,
-    updated_at,
-    updated_by
-FROM address
-WHERE customer_id = ?
-ORDER BY is_default DESC, created_at DESC;
+    a.address_id,
+    a.customer_id,
+    a.title,
+    a.recipient_name,
+    a.address_line,
+    a.subdistrict_id,
+    s.zip_code,
+    a.phone_number,
+    a.is_default,
+    a.created_at,
+    a.created_by,
+    a.updated_at,
+    a.updated_by
+FROM address a
+JOIN subdistrict s ON s.id = a.subdistrict_id
+WHERE a.customer_id = ?
+ORDER BY a.is_default DESC, a.created_at DESC;
 
 -- name: GetDefaultAddressByCustomerID :one
 SELECT
-    address_id,
-    customer_id,
-    title,
-    recipient_name,
-    address_line,
-    subdistrict_id,
-    zip_code,
-    phone_number,
-    is_default,
-    created_at,
-    created_by,
-    updated_at,
-    updated_by
-FROM address
-WHERE customer_id = ? AND is_default = 1
+    a.address_id,
+    a.customer_id,
+    a.title,
+    a.recipient_name,
+    a.address_line,
+    a.subdistrict_id,
+    s.zip_code,
+    a.phone_number,
+    a.is_default,
+    a.created_at,
+    a.created_by,
+    a.updated_at,
+    a.updated_by
+FROM address a
+JOIN subdistrict s ON s.id = a.subdistrict_id
+WHERE a.customer_id = ? AND a.is_default = 1
 LIMIT 1;
 
 -- name: CreateAddress :execresult
@@ -81,13 +83,12 @@ INSERT INTO address (
     recipient_name,
     address_line,
     subdistrict_id,
-    zip_code,
     phone_number,
     is_default,
     created_at,
     created_by
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: UpdateAddress :execresult
 UPDATE address SET
@@ -95,7 +96,6 @@ UPDATE address SET
     recipient_name = ?,
     address_line = ?,
     subdistrict_id = ?,
-    zip_code = ?,
     phone_number = ?,
     is_default = ?,
     updated_at = ?,

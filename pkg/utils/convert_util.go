@@ -67,6 +67,13 @@ func NullInt32ToInt32Ptr(ni sql.NullInt32) *int32 {
 	return nil
 }
 
+func Int32ToInt32Ptr(ni int32) *int32 {
+	if ni != 0 {
+		return &ni
+	}
+	return nil
+}
+
 func ToInt64Ptr(ni sql.NullInt64) *int64 {
 	if ni.Valid {
 		return &ni.Int64
@@ -127,4 +134,15 @@ func NullOrderStatusToStatus(ns db.NullOrderStatus) *db.OrderStatus {
 	}
 	status := ns.OrderStatus
 	return &status
+}
+
+func ParseBool(v interface{}) bool {
+	switch val := v.(type) {
+	case bool:
+		return val
+	case []byte:
+		return len(val) > 0 && val[0] == 1
+	default:
+		return false
+	}
 }

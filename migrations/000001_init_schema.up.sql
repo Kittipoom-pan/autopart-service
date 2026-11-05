@@ -110,7 +110,8 @@ CREATE TABLE part (
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   updated_by INT NULL,
   CONSTRAINT fk_part_part_brand FOREIGN KEY (part_brand_id) REFERENCES part_brand(part_brand_id),
-  CONSTRAINT fk_part_part_type FOREIGN KEY (part_type_id) REFERENCES part_type(part_type_id)
+  CONSTRAINT fk_part_part_type FOREIGN KEY (part_type_id) REFERENCES part_type(part_type_id),
+  CONSTRAINT chk_part_values  CHECK (quantity >= 0 AND price >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ================================
@@ -183,7 +184,6 @@ CREATE TABLE address (
   recipient_name VARCHAR(100) NOT NULL, -- recipient_name ชื่อผู้รับพัสดุ
   address_line VARCHAR(255) NOT NULL,
   subdistrict_id INT NOT NULL,   
-  zip_code CHAR(5) NOT NULL,
   phone_number VARCHAR(15) NOT NULL,
   is_default BIT(1) NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -201,9 +201,15 @@ CREATE TABLE cart (
   customer_id INT NOT NULL,
   subtotal INT NOT NULL DEFAULT 0,                -- ราคารวมสินค้าทั้งหมด (ก่อนหักส่วนลดและยังไม่รวมค่าส่ง)
   is_checkout BIT(1) NOT NULL DEFAULT 0,
+  -- จำกัดให้ลูกค้ามี Active Cart ได้เพียง 1 ใบ
+  active_customer_id INT
+    GENERATED ALWAYS AS (
+        IF(is_checkout = 0, customer_id, NULL)
+    ) STORED,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  CONSTRAINT fk_cart_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
+  CONSTRAINT fk_cart_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
+  CONSTRAINT uq_cart_one_active UNIQUE (active_customer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table: cart_item
@@ -279,7 +285,7 @@ CREATE TABLE `order` (
   shipping_fee INT NOT NULL DEFAULT 0,            -- ค่าจัดส่ง
   total_amount INT NOT NULL DEFAULT 0,            -- ยอดสุทธิที่ต้องจ่ายจริง (Subtotal - Discount + Shipping)
   discount_id INT NULL,                           -- NULL = ไม่ใช้ส่วนลด
-  status ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled') NOT NULL DEFAULT 'pending',
+  status ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled', 'completed') NOT NULL DEFAULT 'pending',
   remark VARCHAR(255) NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
@@ -288,15 +294,20 @@ CREATE TABLE `order` (
   CONSTRAINT fk_order_placed_by_admin FOREIGN KEY (placed_by_admin_user_id) REFERENCES admin_user(admin_user_id),
   CONSTRAINT fk_order_cart FOREIGN KEY (cart_id) REFERENCES cart(cart_id),
   CONSTRAINT fk_order_discount FOREIGN KEY (discount_id) REFERENCES discount(discount_id),
+  UNIQUE KEY uq_order_cart (cart_id),
+  CONSTRAINT chk_order_amounts CHECK (
+    subtotal >= 0 AND discount_amount >= 0 AND shipping_fee >= 0
+    AND total_amount = subtotal - discount_amount + shipping_fee),
   -- ต้องมี customer_id ทุกช่องทาง ยกเว้น walk_in
- CONSTRAINT chk_order_walkin CHECK (
+  CONSTRAINT chk_order_walkin CHECK (
     channel = 'walk_in' OR customer_id IS NOT NULL
   ),
   -- web/mobile ต้องไม่มีแอดมิน, ช่องทางอื่นต้องมีแอดมินเป็นผู้บันทึก
   CONSTRAINT chk_order_channel_admin CHECK (
     (channel IN ('web', 'mobile') AND placed_by_admin_user_id IS NULL)
     OR (channel NOT IN ('web', 'mobile') AND placed_by_admin_user_id IS NOT NULL)
-  )
+  ),
+  INDEX idx_order_status_created (status, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table: order_item
@@ -307,7 +318,9 @@ CREATE TABLE order_item (
   quantity INT NOT NULL,
   price INT NOT NULL,                             -- ราคา ณ ตอนสั่งซื้อ
   CONSTRAINT fk_order_item_order FOREIGN KEY (order_id) REFERENCES `order`(order_id) ON DELETE CASCADE,
-  CONSTRAINT fk_order_item_part FOREIGN KEY (part_id) REFERENCES part(part_id)
+  CONSTRAINT fk_order_item_part FOREIGN KEY (part_id) REFERENCES part(part_id),
+  UNIQUE KEY uq_order_item_part (order_id, part_id),
+  CONSTRAINT chk_order_item_values CHECK (quantity > 0 AND price >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table: order_sequence
@@ -331,14 +344,15 @@ CREATE TABLE `order_shipping_address` (
 CREATE TABLE shipping_rate (
     shipping_rate_id           INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
     name                       VARCHAR(100) NOT NULL,
-    province_id              INT          NULL COMMENT 'จังหวัดที่ใช้ค่าส่งนี้; NULL = ใช้ได้ทุกจังหวัด',
+    province_id                INT          NULL COMMENT 'จังหวัดที่ใช้ค่าส่งนี้; NULL = ใช้ได้ทุกจังหวัด',
     min_weight_g               INT          NOT NULL DEFAULT 0 COMMENT 'รวมค่านี้ (>=)',
     max_weight_g               INT          NULL COMMENT 'ไม่รวมค่านี้ (<); NULL = ไม่จำกัด ไว้ใช้กำหนดค่าส่งตามช่วงน้ำหนัก เช่น 0–1,000 และ 1,000–5,000 กรัม',
     fee                        INT          NOT NULL COMMENT 'ค่าจัดส่ง',
     free_shipping_min_subtotal INT          NULL COMMENT 'ยอดสินค้าหลังหักส่วนลดตั้งแต่เท่านี้ส่งฟรี NULL = ไม่มี',
     is_active                  TINYINT(1)   NOT NULL DEFAULT 1,
-    created_at                 DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at                 DATETIME     NULL,
+    created_at                 TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at                 TIMESTAMP     NULL,
+    CONSTRAINT fk_shipping_rate_province  FOREIGN KEY (province_id) REFERENCES province(id),
     CONSTRAINT chk_shipping_fee    CHECK (fee >= 0),
     CONSTRAINT chk_shipping_weight CHECK (max_weight_g IS NULL OR max_weight_g > min_weight_g),
     KEY idx_shipping_lookup (is_active, province_id, min_weight_g)
@@ -365,7 +379,8 @@ CREATE TABLE stock_movement (
   INDEX idx_stock_part (part_id, created_at),
   CONSTRAINT fk_stock_movement_part FOREIGN KEY (part_id) REFERENCES part(part_id),
   CONSTRAINT fk_stock_movement_order FOREIGN KEY (order_id) REFERENCES `order`(order_id),
-  CONSTRAINT chk_stock_sale_order CHECK (reason <> 'sale' OR order_id IS NOT NULL)
+  CONSTRAINT chk_stock_sale_order CHECK (reason <> 'sale' OR order_id IS NOT NULL),
+  CONSTRAINT chk_stock_direction CHECK ((event_type = 'in'  AND quantity_change > 0) OR (event_type = 'out' AND quantity_change < 0))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table: payment

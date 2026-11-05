@@ -18,9 +18,6 @@ func ValidateCreateAddressRequest(req *entity.CreateAddressReq) error {
 	if req.SubdistrictID <= 0 {
 		return customerror.NewAPIError(common.StatusBadRequest, "subdistrict_id is required")
 	}
-	if strings.TrimSpace(req.ZipCode) == "" {
-		return customerror.NewAPIError(common.StatusBadRequest, "zip_code is required")
-	}
 	if strings.TrimSpace(req.PhoneNumber) == "" {
 		return customerror.NewAPIError(common.StatusBadRequest, "phone_number is required")
 	}
@@ -39,9 +36,6 @@ func ValidateUpdateAddressRequest(addressID int32, req *entity.UpdateAddressReq)
 	}
 	if req.SubdistrictID <= 0 {
 		return customerror.NewAPIError(common.StatusBadRequest, "subdistrict_id is required")
-	}
-	if strings.TrimSpace(req.ZipCode) == "" {
-		return customerror.NewAPIError(common.StatusBadRequest, "zip_code is required")
 	}
 	if strings.TrimSpace(req.PhoneNumber) == "" {
 		return customerror.NewAPIError(common.StatusBadRequest, "phone_number is required")

@@ -12,7 +12,6 @@ import (
 
 // @title        Autopart Service API
 // @version      1.0
-// @description  REST API Autopart Service
 // @BasePath     /
 // @securityDefinitions.apikey BearerAuth
 // @in header
