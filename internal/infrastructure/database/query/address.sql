@@ -10,9 +10,9 @@ SELECT
     a.phone_number,
     a.is_default,
     a.created_at,
-    a.created_by,
+    a.created_by_admin_id,
     a.updated_at,
-    a.updated_by,
+    a.updated_by_admin_id,
     s.name_in_thai AS subdistrict,
     d.name_in_thai AS district,
     d.province_id AS province_id,
@@ -48,9 +48,9 @@ SELECT
     a.phone_number,
     a.is_default,
     a.created_at,
-    a.created_by,
+    a.created_by_admin_id,
     a.updated_at,
-    a.updated_by
+    a.updated_by_admin_id
 FROM address a
 JOIN subdistrict s ON s.id = a.subdistrict_id
 WHERE a.customer_id = ?
@@ -68,9 +68,9 @@ SELECT
     a.phone_number,
     a.is_default,
     a.created_at,
-    a.created_by,
+    a.created_by_admin_id,
     a.updated_at,
-    a.updated_by
+    a.updated_by_admin_id
 FROM address a
 JOIN subdistrict s ON s.id = a.subdistrict_id
 WHERE a.customer_id = ? AND a.is_default = 1
@@ -86,7 +86,7 @@ INSERT INTO address (
     phone_number,
     is_default,
     created_at,
-    created_by
+    created_by_admin_id
 )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 
@@ -99,21 +99,21 @@ UPDATE address SET
     phone_number = ?,
     is_default = ?,
     updated_at = ?,
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE address_id = ? AND customer_id = ?;
 
 -- name: ClearDefaultAddress :execresult
 UPDATE address SET
     is_default = 0,
     updated_at = ?,
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE customer_id = ?;
 
 -- name: SetDefaultAddress :execresult
 UPDATE address SET
     is_default = 1,
     updated_at = ?,
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE address_id = ? AND customer_id = ?;
 
 -- name: DeleteAddress :execresult

@@ -9,7 +9,7 @@ SELECT
     is_primary,
     sort_image,
     created_at,
-    created_by
+    created_by_admin_id
 FROM image
 WHERE reference_type = ? AND reference_id = ?
 ORDER BY is_primary DESC, sort_image ASC, created_at ASC;
@@ -25,7 +25,7 @@ SELECT
     is_primary,
     sort_image,
     created_at,
-    created_by
+    created_by_admin_id
 FROM image
 WHERE reference_type = ? AND reference_id = ? AND is_primary = 1
 LIMIT 1;
@@ -40,7 +40,7 @@ INSERT INTO image (
     is_primary,
     sort_image,
     created_at,
-    created_by
+    created_by_admin_id
 )
 VALUES (
     ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?
@@ -54,7 +54,7 @@ SET
     alt_text = ?,
     is_primary = ?,
     sort_image = ?,
-    created_by = ?
+    created_by_admin_id = ?
 WHERE image_id = ?;
 
 -- name: DeleteImage :execresult

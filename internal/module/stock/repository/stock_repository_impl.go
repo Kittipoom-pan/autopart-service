@@ -31,9 +31,9 @@ func (r *stockRepository) getQueries(ctx context.Context) *db.Queries {
 
 func (r *stockRepository) DeductStock(ctx context.Context, partID int32, quantity int32, updatedBy *int32) error {
 	result, err := r.getQueries(ctx).DeductPartStock(ctx, db.DeductPartStockParams{
-		Quantity:  quantity,
-		UpdatedBy: utils.Int32PtrToNullInt32(updatedBy),
-		PartID:    partID,
+		Quantity:         quantity,
+		UpdatedByAdminID: utils.Int32PtrToNullInt32(updatedBy),
+		PartID:           partID,
 	})
 	if err != nil {
 		r.logger.Error().Err(err).Int32("part_id", partID).Msg("failed to deduct part stock")
@@ -63,14 +63,14 @@ func (r *stockRepository) CreateStockMovement(ctx context.Context, in *entity.St
 	}
 
 	_, err := r.getQueries(ctx).CreateStockMovement(ctx, db.CreateStockMovementParams{
-		PartID:         in.PartID,
-		QuantityChange: in.QuantityChange,
-		Price:          in.Price,
-		EventType:      in.EventType,
-		Reason:         in.Reason,
-		OrderID:        orderID,
-		Remark:         utils.StringPtrToNullString(in.Remark),
-		CreatedBy:      utils.Int32PtrToNullInt32(in.CreatedBy),
+		PartID:           in.PartID,
+		QuantityChange:   in.QuantityChange,
+		Price:            in.Price,
+		EventType:        in.EventType,
+		Reason:           in.Reason,
+		OrderID:          orderID,
+		Remark:           utils.StringPtrToNullString(in.Remark),
+		CreatedByAdminID: utils.Int32PtrToNullInt32(in.CreatedBy),
 	})
 	if err != nil {
 		r.logger.Error().Err(err).Int32("part_id", in.PartID).Msg("failed to create stock movement")

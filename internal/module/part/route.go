@@ -17,7 +17,7 @@ import (
 func SetupPrivateRoutes(router fiber.Router, db *db.Queries, cfg *config.Config, jwtAuth fiber.Handler, logger zerolog.Logger) {
 	router.Use(middleware.TimeoutMiddleware(3 * time.Second))
 	router.Use(jwtAuth)
-	router.Use(middleware.RequireRoles(auth.RoleSuperAdmin, auth.RoleStaff, auth.RoleCustomer))
+	router.Use(middleware.RequireRoles(auth.RoleSuperAdmin, auth.RoleStaff))
 
 	repo := repository.NewPartRepository(db, logger)
 	partUsecase := usecase.NewPartUsecase(repo, logger)

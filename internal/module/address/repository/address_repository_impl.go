@@ -134,10 +134,10 @@ func (r *addressRepository) DeleteAddress(ctx context.Context, addressID int32, 
 
 func (r *addressRepository) SetDefaultAddress(ctx context.Context, addressID int32, customerID int32, updatedBy *int32) error {
 	result, err := r.getQueries(ctx).SetDefaultAddress(ctx, db.SetDefaultAddressParams{
-		UpdatedAt:  utils.NullTimeNow(),
-		UpdatedBy:  utils.Int32PtrToNullInt32(updatedBy),
-		AddressID:  addressID,
-		CustomerID: customerID,
+		UpdatedAt:        utils.NullTimeNow(),
+		UpdatedByAdminID: utils.Int32PtrToNullInt32(updatedBy),
+		AddressID:        addressID,
+		CustomerID:       customerID,
 	})
 	if err != nil {
 		r.logger.Error().Err(err).Int32("address_id", addressID).Int32("customer_id", customerID).Msg("failed to set default address")
@@ -158,9 +158,9 @@ func (r *addressRepository) SetDefaultAddress(ctx context.Context, addressID int
 
 func (r *addressRepository) ClearDefaultAddresses(ctx context.Context, customerID int32, updatedBy *int32) error {
 	if _, err := r.getQueries(ctx).ClearDefaultAddress(ctx, db.ClearDefaultAddressParams{
-		UpdatedAt:  utils.NullTimeNow(),
-		UpdatedBy:  utils.Int32PtrToNullInt32(updatedBy),
-		CustomerID: customerID,
+		UpdatedAt:        utils.NullTimeNow(),
+		UpdatedByAdminID: utils.Int32PtrToNullInt32(updatedBy),
+		CustomerID:       customerID,
 	}); err != nil {
 		r.logger.Error().Err(err).Int32("customer_id", customerID).Msg("failed to clear default addresses")
 		return dberr.NewDBError(dberr.ErrDatabaseInternal, err.Error())

@@ -24,22 +24,22 @@ INSERT INTO part (
     weight_g,
     is_active,
     created_at,
-    created_by
+    created_by_admin_id
 )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
 `
 
 type CreatePartParams struct {
-	PartBrandID int32
-	PartTypeID  int32
-	Sku         string
-	Name        string
-	Description sql.NullString
-	Price       int32
-	Quantity    int32
-	WeightG     sql.NullInt32
-	CreatedAt   time.Time
-	CreatedBy   sql.NullInt32
+	PartBrandID      int32
+	PartTypeID       int32
+	Sku              string
+	Name             string
+	Description      sql.NullString
+	Price            int32
+	Quantity         int32
+	WeightG          sql.NullInt32
+	CreatedAt        time.Time
+	CreatedByAdminID sql.NullInt32
 }
 
 func (q *Queries) CreatePart(ctx context.Context, arg CreatePartParams) (sql.Result, error) {
@@ -53,7 +53,7 @@ func (q *Queries) CreatePart(ctx context.Context, arg CreatePartParams) (sql.Res
 		arg.Quantity,
 		arg.WeightG,
 		arg.CreatedAt,
-		arg.CreatedBy,
+		arg.CreatedByAdminID,
 	)
 }
 
@@ -61,18 +61,18 @@ const deletePartByID = `-- name: DeletePartByID :execresult
 UPDATE part SET
     is_active = 0,
     updated_at = ?,
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE part_id = ? AND is_active = 1
 `
 
 type DeletePartByIDParams struct {
-	UpdatedAt sql.NullTime
-	UpdatedBy sql.NullInt32
-	PartID    int32
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
+	PartID           int32
 }
 
 func (q *Queries) DeletePartByID(ctx context.Context, arg DeletePartByIDParams) (sql.Result, error) {
-	return q.db.ExecContext(ctx, deletePartByID, arg.UpdatedAt, arg.UpdatedBy, arg.PartID)
+	return q.db.ExecContext(ctx, deletePartByID, arg.UpdatedAt, arg.UpdatedByAdminID, arg.PartID)
 }
 
 const getPartByID = `-- name: GetPartByID :one
@@ -412,23 +412,23 @@ UPDATE part SET
     weight_g = ?,
     is_active = ?,
     updated_at = ?,
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE part_id = ? AND is_active = 1
 `
 
 type UpdatePartByIDParams struct {
-	Sku         string
-	Name        string
-	Description sql.NullString
-	PartTypeID  int32
-	PartBrandID int32
-	Price       int32
-	Quantity    int32
-	WeightG     sql.NullInt32
-	IsActive    interface{}
-	UpdatedAt   sql.NullTime
-	UpdatedBy   sql.NullInt32
-	PartID      int32
+	Sku              string
+	Name             string
+	Description      sql.NullString
+	PartTypeID       int32
+	PartBrandID      int32
+	Price            int32
+	Quantity         int32
+	WeightG          sql.NullInt32
+	IsActive         interface{}
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
+	PartID           int32
 }
 
 func (q *Queries) UpdatePartByID(ctx context.Context, arg UpdatePartByIDParams) (sql.Result, error) {
@@ -443,7 +443,7 @@ func (q *Queries) UpdatePartByID(ctx context.Context, arg UpdatePartByIDParams) 
 		arg.WeightG,
 		arg.IsActive,
 		arg.UpdatedAt,
-		arg.UpdatedBy,
+		arg.UpdatedByAdminID,
 		arg.PartID,
 	)
 }
@@ -452,22 +452,22 @@ const updatePartStockByID = `-- name: UpdatePartStockByID :execresult
 UPDATE part SET
     quantity = ?,
     updated_at = ?,
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE part_id = ? AND is_active = 1
 `
 
 type UpdatePartStockByIDParams struct {
-	Quantity  int32
-	UpdatedAt sql.NullTime
-	UpdatedBy sql.NullInt32
-	PartID    int32
+	Quantity         int32
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
+	PartID           int32
 }
 
 func (q *Queries) UpdatePartStockByID(ctx context.Context, arg UpdatePartStockByIDParams) (sql.Result, error) {
 	return q.db.ExecContext(ctx, updatePartStockByID,
 		arg.Quantity,
 		arg.UpdatedAt,
-		arg.UpdatedBy,
+		arg.UpdatedByAdminID,
 		arg.PartID,
 	)
 }

@@ -24,3 +24,8 @@ func (c OrderChannel) IsValidOrderChannel() bool {
 		return false
 	}
 }
+
+// String ช่วยแปลง OrderChannel ให้กลับเป็น string ธรรมดาได้อย่างสะดวก
+func (c OrderChannel) String() string {
+	return string(c)
+}

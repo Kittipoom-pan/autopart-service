@@ -7,5 +7,5 @@ import (
 )
 
 type PaymentUsecase interface {
-	CreatePendingPayment(ctx context.Context, in *entity.CreatePaymentInput) error
+	CreatePayment(ctx context.Context, in *entity.CreatePaymentInput, isCompletePayment bool) error
 }

@@ -35,8 +35,9 @@ func (r *paymentRepository) CreatePayment(ctx context.Context, in *entity.Create
 		Amount:                  in.Amount,
 		CustomerPaymentMethodID: utils.Int32PtrToNullInt32(in.CustomerPaymentMethodID),
 		PaymentMethodTypeID:     in.PaymentMethodTypeID,
-		Status:                  db.PaymentStatusPending,
-		CreatedBy:               utils.Int32PtrToNullInt32(in.CreatedBy),
+		Status:                  in.Status,
+		PaidAt:                  utils.TimePtrToNullTime(in.PaidAt),
+		CreatedByAdminID:        utils.Int32PtrToNullInt32(in.CreatedBy),
 	})
 	if err != nil {
 		r.logger.Error().Err(err).Int64("order_id", in.OrderID).Msg("failed to create payment")

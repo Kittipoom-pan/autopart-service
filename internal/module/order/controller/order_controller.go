@@ -156,7 +156,7 @@ func (h *OrderController) CreateOrderByCustomer(c *fiber.Ctx) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        body  body      entity.AdminCreateOrderReq  true  "Order data"
-// @Success      201  {object}  common.BaseResponse[entity.OrderCreatedRes]
+// @Success      201  {object}  common.BaseResponse[entity.AdminCreateOrderReq]
 // @Failure      400  {object}  common.BaseErrorResponse
 // @Failure      401  {object}  common.BaseErrorResponse
 // @Failure      403  {object}  common.BaseErrorResponse

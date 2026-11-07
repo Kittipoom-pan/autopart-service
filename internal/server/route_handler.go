@@ -18,11 +18,11 @@ func (s *Server) MapHandlers() error {
 	v1 := s.App.Group("/v1")
 
 	customerPublic := v1.Group("/customer")
-	customer.SetupPublicRoutes(customerPublic, s.Db, s.Cfg, s.Logger)
+	customer.SetupPublicRoutes(customerPublic, s.Conn, s.Cfg, s.Logger)
 
 	customerPrivate := v1.Group("/customer")
 	customer.SetupPrivateRoutes(
-		customerPrivate, s.Db, s.Cfg,
+		customerPrivate, s.Conn, s.Cfg,
 		middleware.JWTMiddleware(s.Cfg), s.Logger,
 	)
 

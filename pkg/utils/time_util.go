@@ -28,3 +28,25 @@ func NullTimeToDateStr(t sql.NullTime) *string {
 	s := t.Time.Format(time.DateOnly)
 	return &s
 }
+
+func NullTimeToTimePtr(nt sql.NullTime) *time.Time {
+	if nt.Valid {
+		return &nt.Time
+	}
+	return nil
+}
+
+// time.Time → NullTime
+func TimeToNullTime(t time.Time) sql.NullTime {
+	if t.IsZero() {
+		return sql.NullTime{Valid: false}
+	}
+	return sql.NullTime{Time: t.UTC(), Valid: true}
+}
+
+func TimePtrToNullTime(t *time.Time) sql.NullTime {
+	if t == nil || t.IsZero() {
+		return sql.NullTime{Valid: false}
+	}
+	return sql.NullTime{Time: t.UTC(), Valid: true}
+}

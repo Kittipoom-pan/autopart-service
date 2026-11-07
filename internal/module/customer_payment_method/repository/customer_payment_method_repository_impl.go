@@ -106,7 +106,7 @@ func (r *customerPaymentMethodRepository) SetDefaultCustomerPaymentMethod(ctx co
 	err := r.getQueries(ctx).SetDefaultCustomerPaymentMethod(ctx, db.SetDefaultCustomerPaymentMethodParams{
 		CustomerPaymentMethodID: id,
 		CustomerID:              customerID,
-		UpdatedBy:               utils.Int32PtrToNullInt32(updatedBy),
+		UpdatedByAdminID:        utils.Int32PtrToNullInt32(updatedBy),
 	})
 	if err != nil {
 		r.logger.Error().Err(err).Int32("customer_payment_method_id", id).Int32("customer_id", customerID).Msg("failed to set default customer payment method")
@@ -118,8 +118,8 @@ func (r *customerPaymentMethodRepository) SetDefaultCustomerPaymentMethod(ctx co
 
 func (r *customerPaymentMethodRepository) ClearDefaultCustomerPaymentMethods(ctx context.Context, customerID int32, updatedBy *int32) error {
 	err := r.getQueries(ctx).ClearDefaultCustomerPaymentMethods(ctx, db.ClearDefaultCustomerPaymentMethodsParams{
-		CustomerID: customerID,
-		UpdatedBy:  utils.Int32PtrToNullInt32(updatedBy),
+		CustomerID:       customerID,
+		UpdatedByAdminID: utils.Int32PtrToNullInt32(updatedBy),
 	})
 	if err != nil {
 		r.logger.Error().Err(err).Int32("customer_id", customerID).Msg("failed to clear default customer payment methods")

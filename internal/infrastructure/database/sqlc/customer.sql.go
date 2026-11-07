@@ -25,9 +25,9 @@ type AdminListCustomersParams struct {
 
 type AdminListCustomersRow struct {
 	CustomerID int32
-	FirstName  string
-	LastName   string
-	Username   string
+	FirstName  sql.NullString
+	LastName   sql.NullString
+	Username   sql.NullString
 	IsActive   interface{}
 	CreatedAt  time.Time
 }
@@ -67,22 +67,22 @@ const adminUpdateCustomerStatus = `-- name: AdminUpdateCustomerStatus :execresul
 UPDATE customer SET
     is_active = ?,
     updated_at = ?,
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE customer_id = ?
 `
 
 type AdminUpdateCustomerStatusParams struct {
-	IsActive   interface{}
-	UpdatedAt  sql.NullTime
-	UpdatedBy  sql.NullInt32
-	CustomerID int32
+	IsActive         interface{}
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
+	CustomerID       int32
 }
 
 func (q *Queries) AdminUpdateCustomerStatus(ctx context.Context, arg AdminUpdateCustomerStatusParams) (sql.Result, error) {
 	return q.db.ExecContext(ctx, adminUpdateCustomerStatus,
 		arg.IsActive,
 		arg.UpdatedAt,
-		arg.UpdatedBy,
+		arg.UpdatedByAdminID,
 		arg.CustomerID,
 	)
 }
@@ -97,21 +97,21 @@ INSERT INTO customer (
     birth_date,
     phone_number,
     created_at,
-    created_by
+    created_by_admin_id
 )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateCustomerParams struct {
-	FirstName   string
-	LastName    string
-	Username    string
-	Email       string
-	Password    string
-	BirthDate   sql.NullTime
-	PhoneNumber string
-	CreatedAt   time.Time
-	CreatedBy   sql.NullInt32
+	FirstName        sql.NullString
+	LastName         sql.NullString
+	Username         sql.NullString
+	Email            sql.NullString
+	Password         sql.NullString
+	BirthDate        sql.NullTime
+	PhoneNumber      sql.NullString
+	CreatedAt        time.Time
+	CreatedByAdminID sql.NullInt32
 }
 
 func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) (sql.Result, error) {
@@ -124,8 +124,63 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) 
 		arg.BirthDate,
 		arg.PhoneNumber,
 		arg.CreatedAt,
-		arg.CreatedBy,
+		arg.CreatedByAdminID,
 	)
+}
+
+const deleteCustomer = `-- name: DeleteCustomer :execresult
+UPDATE customer
+SET first_name = NULL,
+    last_name = NULL,
+    username = NULL,
+    email = NULL,
+    password = NULL,
+    phone_number = NULL,
+    birth_date = NULL,
+    is_active = 0,
+    deleted_at = CURRENT_TIMESTAMP,
+    updated_by_admin_id = ?
+WHERE customer_id = ? AND is_active = 1
+`
+
+type DeleteCustomerParams struct {
+	UpdatedByAdminID sql.NullInt32
+	CustomerID       int32
+}
+
+func (q *Queries) DeleteCustomer(ctx context.Context, arg DeleteCustomerParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, deleteCustomer, arg.UpdatedByAdminID, arg.CustomerID)
+}
+
+const deleteCustomerAddresses = `-- name: DeleteCustomerAddresses :exec
+DELETE FROM address WHERE customer_id = ?
+`
+
+func (q *Queries) DeleteCustomerAddresses(ctx context.Context, customerID int32) error {
+	_, err := q.db.ExecContext(ctx, deleteCustomerAddresses, customerID)
+	return err
+}
+
+const deleteCustomerPaymentMethods = `-- name: DeleteCustomerPaymentMethods :exec
+UPDATE customer_payment_method
+SET account_name = NULL,
+    card_token = NULL,
+    is_default = 0
+WHERE customer_id = ?
+`
+
+func (q *Queries) DeleteCustomerPaymentMethods(ctx context.Context, customerID int32) error {
+	_, err := q.db.ExecContext(ctx, deleteCustomerPaymentMethods, customerID)
+	return err
+}
+
+const deleteCustomerTokens = `-- name: DeleteCustomerTokens :exec
+DELETE FROM customer_token WHERE customer_id = ?
+`
+
+func (q *Queries) DeleteCustomerTokens(ctx context.Context, customerID int32) error {
+	_, err := q.db.ExecContext(ctx, deleteCustomerTokens, customerID)
+	return err
 }
 
 const getCustomer = `-- name: GetCustomer :one
@@ -134,12 +189,12 @@ SELECT customer_id, first_name, last_name, username, email, birth_date, phone_nu
 
 type GetCustomerRow struct {
 	CustomerID  int32
-	FirstName   string
-	LastName    string
-	Username    string
-	Email       string
+	FirstName   sql.NullString
+	LastName    sql.NullString
+	Username    sql.NullString
+	Email       sql.NullString
 	BirthDate   sql.NullTime
-	PhoneNumber string
+	PhoneNumber sql.NullString
 	IsActive    interface{}
 	CreatedAt   time.Time
 }
@@ -167,11 +222,11 @@ SELECT customer_id, username, password FROM customer WHERE username = ? and is_a
 
 type GetCustomerByUsernameRow struct {
 	CustomerID int32
-	Username   string
-	Password   string
+	Username   sql.NullString
+	Password   sql.NullString
 }
 
-func (q *Queries) GetCustomerByUsername(ctx context.Context, username string) (GetCustomerByUsernameRow, error) {
+func (q *Queries) GetCustomerByUsername(ctx context.Context, username sql.NullString) (GetCustomerByUsernameRow, error) {
 	row := q.db.QueryRowContext(ctx, getCustomerByUsername, username)
 	var i GetCustomerByUsernameRow
 	err := row.Scan(&i.CustomerID, &i.Username, &i.Password)
@@ -184,12 +239,12 @@ SELECT customer_id, first_name, last_name, username, email, birth_date, phone_nu
 
 type ListCustomersRow struct {
 	CustomerID  int32
-	FirstName   string
-	LastName    string
-	Username    string
-	Email       string
+	FirstName   sql.NullString
+	LastName    sql.NullString
+	Username    sql.NullString
+	Email       sql.NullString
 	BirthDate   sql.NullTime
-	PhoneNumber string
+	PhoneNumber sql.NullString
 	IsActive    interface{}
 	CreatedAt   time.Time
 }
@@ -227,6 +282,22 @@ func (q *Queries) ListCustomers(ctx context.Context) ([]ListCustomersRow, error)
 	return items, nil
 }
 
+const lockCustomerForDelete = `-- name: LockCustomerForDelete :one
+
+SELECT customer_id FROM customer 
+WHERE customer_id = ? AND is_active = 1 
+FOR UPDATE
+`
+
+// ============================================================
+// Below are queries for delete customer data.
+func (q *Queries) LockCustomerForDelete(ctx context.Context, customerID int32) (int32, error) {
+	row := q.db.QueryRowContext(ctx, lockCustomerForDelete, customerID)
+	var customer_id int32
+	err := row.Scan(&customer_id)
+	return customer_id, err
+}
+
 const updateCustomer = `-- name: UpdateCustomer :execresult
 UPDATE customer SET
     first_name = ?,
@@ -236,20 +307,20 @@ UPDATE customer SET
     birth_date = ?,
     phone_number = ?,
     updated_at = ?,
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE customer_id = ? and is_active = 1
 `
 
 type UpdateCustomerParams struct {
-	FirstName   string
-	LastName    string
-	Username    string
-	Email       string
-	BirthDate   sql.NullTime
-	PhoneNumber string
-	UpdatedAt   sql.NullTime
-	UpdatedBy   sql.NullInt32
-	CustomerID  int32
+	FirstName        sql.NullString
+	LastName         sql.NullString
+	Username         sql.NullString
+	Email            sql.NullString
+	BirthDate        sql.NullTime
+	PhoneNumber      sql.NullString
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
+	CustomerID       int32
 }
 
 func (q *Queries) UpdateCustomer(ctx context.Context, arg UpdateCustomerParams) (sql.Result, error) {
@@ -261,7 +332,7 @@ func (q *Queries) UpdateCustomer(ctx context.Context, arg UpdateCustomerParams) 
 		arg.BirthDate,
 		arg.PhoneNumber,
 		arg.UpdatedAt,
-		arg.UpdatedBy,
+		arg.UpdatedByAdminID,
 		arg.CustomerID,
 	)
 }
@@ -270,22 +341,22 @@ const updateCustomerIsActive = `-- name: UpdateCustomerIsActive :execresult
 UPDATE customer SET
     is_active = ?,
     updated_at = ?,
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE customer_id = ? and is_active = 1
 `
 
 type UpdateCustomerIsActiveParams struct {
-	IsActive   interface{}
-	UpdatedAt  sql.NullTime
-	UpdatedBy  sql.NullInt32
-	CustomerID int32
+	IsActive         interface{}
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
+	CustomerID       int32
 }
 
 func (q *Queries) UpdateCustomerIsActive(ctx context.Context, arg UpdateCustomerIsActiveParams) (sql.Result, error) {
 	return q.db.ExecContext(ctx, updateCustomerIsActive,
 		arg.IsActive,
 		arg.UpdatedAt,
-		arg.UpdatedBy,
+		arg.UpdatedByAdminID,
 		arg.CustomerID,
 	)
 }
@@ -294,22 +365,22 @@ const updateCustomerPassword = `-- name: UpdateCustomerPassword :execresult
 UPDATE customer SET
     password = ?,
     updated_at = ?,
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE customer_id = ? and is_active = 1
 `
 
 type UpdateCustomerPasswordParams struct {
-	Password   string
-	UpdatedAt  sql.NullTime
-	UpdatedBy  sql.NullInt32
-	CustomerID int32
+	Password         sql.NullString
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
+	CustomerID       int32
 }
 
 func (q *Queries) UpdateCustomerPassword(ctx context.Context, arg UpdateCustomerPasswordParams) (sql.Result, error) {
 	return q.db.ExecContext(ctx, updateCustomerPassword,
 		arg.Password,
 		arg.UpdatedAt,
-		arg.UpdatedBy,
+		arg.UpdatedByAdminID,
 		arg.CustomerID,
 	)
 }

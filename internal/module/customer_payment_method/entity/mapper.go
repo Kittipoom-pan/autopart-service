@@ -33,7 +33,7 @@ func MapCreateCustomerPaymentMethodReqToParams(req *CreateCustomerPaymentMethodR
 		PaymentMethodTypeID: req.PaymentMethodTypeID,
 		CardToken:           utils.StringPtrToNullString(req.CardToken),
 		IsDefault:           req.IsDefault,
-		CreatedBy:           utils.Int32PtrToNullInt32(createdBy),
+		CreatedByAdminID:    utils.Int32PtrToNullInt32(createdBy),
 	}
 }
 
@@ -42,7 +42,7 @@ func MapUpdateCustomerPaymentMethodReqToParams(req *UpdateCustomerPaymentMethodR
 		AccountName:             utils.StringPtrToNullString(req.AccountName),
 		PaymentMethodTypeID:     req.PaymentMethodTypeID,
 		CardToken:               utils.StringPtrToNullString(req.CardToken),
-		UpdatedBy:               utils.Int32PtrToNullInt32(updatedBy),
+		UpdatedByAdminID:        utils.Int32PtrToNullInt32(updatedBy),
 		CustomerPaymentMethodID: id,
 		CustomerID:              customerID,
 	}

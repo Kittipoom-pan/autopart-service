@@ -12,17 +12,17 @@ import (
 )
 
 const createAdmin = `-- name: CreateAdmin :execresult
-INSERT INTO admin_user (username, role, email, password, created_at, created_by)
+INSERT INTO admin_user (username, role, email, password, created_at, created_by_admin_id)
 VALUES (?, ?, ?, ?, ?, ?)
 `
 
 type CreateAdminParams struct {
-	Username  string
-	Role      AdminUserRole
-	Email     sql.NullString
-	Password  string
-	CreatedAt time.Time
-	CreatedBy sql.NullInt32
+	Username         string
+	Role             AdminUserRole
+	Email            sql.NullString
+	Password         string
+	CreatedAt        time.Time
+	CreatedByAdminID sql.NullInt32
 }
 
 func (q *Queries) CreateAdmin(ctx context.Context, arg CreateAdminParams) (sql.Result, error) {
@@ -32,7 +32,7 @@ func (q *Queries) CreateAdmin(ctx context.Context, arg CreateAdminParams) (sql.R
 		arg.Email,
 		arg.Password,
 		arg.CreatedAt,
-		arg.CreatedBy,
+		arg.CreatedByAdminID,
 	)
 }
 
@@ -132,18 +132,18 @@ UPDATE admin_user SET
     email = ?,
     role = ?,
     updated_at = ?,
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE admin_user_id = ? and is_active = 1
 `
 
 type UpdateAdminParams struct {
-	Username    string
-	Password    string
-	Email       sql.NullString
-	Role        AdminUserRole
-	UpdatedAt   sql.NullTime
-	UpdatedBy   sql.NullInt32
-	AdminUserID int32
+	Username         string
+	Password         string
+	Email            sql.NullString
+	Role             AdminUserRole
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
+	AdminUserID      int32
 }
 
 func (q *Queries) UpdateAdmin(ctx context.Context, arg UpdateAdminParams) (sql.Result, error) {
@@ -153,7 +153,7 @@ func (q *Queries) UpdateAdmin(ctx context.Context, arg UpdateAdminParams) (sql.R
 		arg.Email,
 		arg.Role,
 		arg.UpdatedAt,
-		arg.UpdatedBy,
+		arg.UpdatedByAdminID,
 		arg.AdminUserID,
 	)
 }
@@ -162,22 +162,22 @@ const updateAdminIsActive = `-- name: UpdateAdminIsActive :execresult
 UPDATE admin_user SET
     is_active = ?,
     updated_at = ?,
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE admin_user_id = ?
 `
 
 type UpdateAdminIsActiveParams struct {
-	IsActive    interface{}
-	UpdatedAt   sql.NullTime
-	UpdatedBy   sql.NullInt32
-	AdminUserID int32
+	IsActive         interface{}
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
+	AdminUserID      int32
 }
 
 func (q *Queries) UpdateAdminIsActive(ctx context.Context, arg UpdateAdminIsActiveParams) (sql.Result, error) {
 	return q.db.ExecContext(ctx, updateAdminIsActive,
 		arg.IsActive,
 		arg.UpdatedAt,
-		arg.UpdatedBy,
+		arg.UpdatedByAdminID,
 		arg.AdminUserID,
 	)
 }

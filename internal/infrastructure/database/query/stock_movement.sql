@@ -3,7 +3,7 @@ UPDATE part
 SET
     quantity = quantity - sqlc.arg(quantity),
     updated_at = NOW(),
-    updated_by = sqlc.arg(updated_by)
+    updated_by_admin_id = sqlc.arg(updated_by_admin_id)
 WHERE part_id = sqlc.arg(part_id)
   AND is_active = 1
   AND quantity >= sqlc.arg(quantity);
@@ -17,6 +17,6 @@ INSERT INTO stock_movement (
     reason,
     order_id,
     remark,
-    created_by
+    created_by_admin_id
 )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?);

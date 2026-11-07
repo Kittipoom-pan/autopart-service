@@ -14,6 +14,7 @@ type Config struct {
 	Server *Server
 	Db     *Db
 	JWT    *JWT
+	Upload *Upload
 }
 
 type Server struct {
@@ -32,6 +33,13 @@ type Db struct {
 type JWT struct {
 	Secret string
 	Expiry int
+}
+
+type Upload struct {
+	Dir          string
+	BaseURL      string
+	MaxSizeBytes int64
+	MaxWidth     int
 }
 
 var (
@@ -62,6 +70,12 @@ func LoadConfigs() (*Config, error) {
 			JWT: &JWT{
 				Secret: os.Getenv("JWT_SECRET_KEY"),
 				Expiry: utils.GetEnvAsInt("JWT_EXPIRY", 3600), // default 1 hours
+			},
+			Upload: &Upload{
+				Dir:          utils.GetEnv("UPLOAD_DIR", "uploads"),
+				BaseURL:      utils.GetEnv("UPLOAD_BASE_URL", "/uploads"),
+				MaxSizeBytes: int64(utils.GetEnvAsInt("UPLOAD_MAX_SIZE_MB", 5)) * 1024 * 1024,
+				MaxWidth:     utils.GetEnvAsInt("UPLOAD_MAX_WIDTH", 1200),
 			},
 		}
 

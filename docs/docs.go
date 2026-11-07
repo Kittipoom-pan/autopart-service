@@ -1279,6 +1279,94 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/image": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "อัปโหลดรูปภาพ (multipart/form-data) รองรับ .jpg, .jpeg, .png, .webp ขนาดไม่เกิน 5MB ระบบจะย่อความกว้างไม่เกิน 1200px และแปลงเป็น .webp",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "image"
+                ],
+                "summary": "Upload image",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Image file (.jpg, .jpeg, .png, .webp) max 5MB",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Reference ID",
+                        "name": "reference_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Reference type (part, customer, order, car_brand, car_model, part_brand, part_type)",
+                        "name": "reference_type",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Alternative text",
+                        "name": "alt_text",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_image_entity_ImageRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/order": {
             "get": {
                 "security": [
@@ -1416,7 +1504,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_order_entity_OrderCreatedRes"
+                            "$ref": "#/definitions/BaseResponse-AdminCreateOrderReq"
                         }
                     },
                     "400": {
@@ -2210,13 +2298,7 @@ const docTemplate = `{
                 "subdistrict": {
                     "type": "string"
                 },
-                "subdistrict_id": {
-                    "type": "integer"
-                },
                 "title": {
-                    "type": "string"
-                },
-                "updated_at": {
                     "type": "string"
                 },
                 "zip_code": {
@@ -2364,6 +2446,18 @@ const docTemplate = `{
                 },
                 "result": {
                     "$ref": "#/definitions/AddressRes"
+                }
+            }
+        },
+        "BaseResponse-AdminCreateOrderReq": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "result": {
+                    "$ref": "#/definitions/AdminCreateOrderReq"
                 }
             }
         },
@@ -2587,7 +2681,7 @@ const docTemplate = `{
                 }
             }
         },
-        "BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_order_entity_OrderCreatedRes": {
+        "BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_image_entity_ImageRes": {
             "type": "object",
             "properties": {
                 "message": {
@@ -2595,21 +2689,15 @@ const docTemplate = `{
                     "example": "success"
                 },
                 "result": {
-                    "$ref": "#/definitions/OrderCreatedRes"
+                    "$ref": "#/definitions/ImageRes"
                 }
             }
         },
         "CartItemRes": {
             "type": "object",
             "properties": {
-                "cart_id": {
-                    "type": "integer"
-                },
                 "cart_item_id": {
                     "type": "integer"
-                },
-                "created_at": {
-                    "type": "string"
                 },
                 "part_id": {
                     "type": "integer"
@@ -2627,30 +2715,16 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "subtotal": {
+                    "description": "Price * Quantity",
                     "type": "integer"
-                },
-                "updated_at": {
-                    "type": "string"
                 }
             }
         },
         "CartRes": {
             "type": "object",
             "properties": {
-                "amount": {
-                    "type": "integer"
-                },
                 "cart_id": {
                     "type": "integer"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "customer_id": {
-                    "type": "integer"
-                },
-                "is_checkout": {
-                    "type": "boolean"
                 },
                 "items": {
                     "type": "array",
@@ -2658,8 +2732,8 @@ const docTemplate = `{
                         "$ref": "#/definitions/CartItemRes"
                     }
                 },
-                "updated_at": {
-                    "type": "string"
+                "subtotal": {
+                    "type": "integer"
                 }
             }
         },
@@ -2754,9 +2828,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "title": {
-                    "type": "string"
-                },
-                "zip_code": {
                     "type": "string"
                 }
             }
@@ -2896,6 +2967,46 @@ const docTemplate = `{
                 }
             }
         },
+        "ImageRes": {
+            "type": "object",
+            "properties": {
+                "alt_text": {
+                    "type": "string",
+                    "example": "brake pad front"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "file_name": {
+                    "type": "string",
+                    "example": "b3c1f0e2-4a5d-4f2b-9c3a-1234567890ab.webp"
+                },
+                "image_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "image_url": {
+                    "type": "string",
+                    "example": "/uploads/part/b3c1f0e2-4a5d-4f2b-9c3a-1234567890ab.webp"
+                },
+                "is_primary": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "reference_id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "reference_type": {
+                    "type": "string",
+                    "example": "part"
+                },
+                "sort_image": {
+                    "type": "integer",
+                    "example": 0
+                }
+            }
+        },
         "LoginRequest": {
             "type": "object",
             "properties": {
@@ -2936,15 +3047,6 @@ const docTemplate = `{
                 "OrderChannelFacebook",
                 "OrderChannelWalkIn"
             ]
-        },
-        "OrderCreatedRes": {
-            "type": "object",
-            "properties": {
-                "order_number": {
-                    "type": "string",
-                    "example": "ORD-20261102-0001"
-                }
-            }
         },
         "OrderItemRes": {
             "type": "object",
@@ -2999,7 +3101,7 @@ const docTemplate = `{
                 "order_number": {
                     "type": "string"
                 },
-                "placed_by_admin_user_id": {
+                "placed_by_admin_id": {
                     "type": "integer"
                 },
                 "remark": {
@@ -3061,14 +3163,16 @@ const docTemplate = `{
                 "processing",
                 "shipped",
                 "delivered",
-                "cancelled"
+                "cancelled",
+                "completed"
             ],
             "x-enum-varnames": [
                 "OrderStatusPending",
                 "OrderStatusProcessing",
                 "OrderStatusShipped",
                 "OrderStatusDelivered",
-                "OrderStatusCancelled"
+                "OrderStatusCancelled",
+                "OrderStatusCompleted"
             ]
         },
         "PartReq": {
@@ -3161,9 +3265,6 @@ const docTemplate = `{
                 },
                 "title": {
                     "type": "string"
-                },
-                "zip_code": {
-                    "type": "string"
                 }
             }
         },
@@ -3207,7 +3308,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Autopart Service API",
-	Description:      "REST API Autopart Service",
+	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

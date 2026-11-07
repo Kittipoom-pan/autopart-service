@@ -7,21 +7,21 @@ import (
 )
 
 type Order struct {
-	OrderID             int64
-	OrderNumber         string
-	CustomerID          *int32
-	Channel             db.OrderChannel
-	PlacedByAdminUserID *int32
-	CartID              *int32
-	Subtotal            int32
-	DiscountAmount      int32
-	ShippingFee         int32
-	TotalAmount         int32
-	DiscountID          *int32
-	Status              db.OrderStatus
-	Remark              *string
-	CreatedAt           time.Time
-	UpdatedAt           *time.Time
+	OrderID         int64
+	OrderNumber     string
+	CustomerID      *int32
+	Channel         db.OrderChannel
+	PlacedByAdminID *int32
+	CartID          *int32
+	Subtotal        int32
+	DiscountAmount  int32
+	ShippingFee     int32
+	TotalAmount     int32
+	DiscountID      *int32
+	Status          db.OrderStatus
+	Remark          *string
+	CreatedAt       time.Time
+	UpdatedAt       *time.Time
 }
 
 type OrderItem struct {
@@ -46,7 +46,7 @@ type OrderShippingAddress struct {
 type CreateOrderInput struct {
 	CustomerID              *int32
 	Channel                 string
-	PlacedByAdminUserID     *int32
+	PlacedByAdminID         *int32
 	CartID                  *int32
 	Subtotal                int32
 	DiscountAmount          int32

@@ -318,18 +318,18 @@ func (ns NullStockMovementReason) Value() (driver.Value, error) {
 }
 
 type Address struct {
-	AddressID     int32
-	CustomerID    int32
-	Title         sql.NullString
-	RecipientName string
-	AddressLine   string
-	SubdistrictID int32
-	PhoneNumber   string
-	IsDefault     interface{}
-	CreatedAt     time.Time
-	CreatedBy     sql.NullInt32
-	UpdatedAt     sql.NullTime
-	UpdatedBy     sql.NullInt32
+	AddressID        int32
+	CustomerID       int32
+	Title            sql.NullString
+	RecipientName    string
+	AddressLine      string
+	SubdistrictID    int32
+	PhoneNumber      string
+	IsDefault        interface{}
+	CreatedAt        time.Time
+	CreatedByAdminID sql.NullInt32
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
 }
 
 type AdminToken struct {
@@ -342,30 +342,38 @@ type AdminToken struct {
 }
 
 type AdminUser struct {
-	AdminUserID int32
-	Username    string
-	Email       sql.NullString
-	Password    string
-	Role        AdminUserRole
-	CreatedAt   time.Time
-	CreatedBy   sql.NullInt32
-	UpdatedAt   sql.NullTime
-	UpdatedBy   sql.NullInt32
-	IsActive    interface{}
+	AdminUserID      int32
+	Username         string
+	Email            sql.NullString
+	Password         string
+	Role             AdminUserRole
+	IsActive         interface{}
+	CreatedAt        time.Time
+	CreatedByAdminID sql.NullInt32
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
 }
 
 type CarBrand struct {
-	CarBrandID  int32
-	Name        string
-	Description sql.NullString
+	CarBrandID       int32
+	Name             string
+	Description      sql.NullString
+	CreatedAt        time.Time
+	CreatedByAdminID sql.NullInt32
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
 }
 
 type CarModel struct {
-	CarModelID int32
-	CarBrandID int32
-	Name       string
-	YearFrom   sql.NullInt16
-	YearTo     sql.NullInt16
+	CarModelID       int32
+	CarBrandID       int32
+	Name             string
+	YearFrom         sql.NullInt16
+	YearTo           sql.NullInt16
+	CreatedAt        time.Time
+	CreatedByAdminID sql.NullInt32
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
 }
 
 type Cart struct {
@@ -396,19 +404,20 @@ type CompatibleCar struct {
 }
 
 type Customer struct {
-	CustomerID  int32
-	FirstName   string
-	LastName    string
-	Username    string
-	Email       string
-	Password    string
-	BirthDate   sql.NullTime
-	PhoneNumber string
-	CreatedAt   time.Time
-	CreatedBy   sql.NullInt32
-	UpdatedAt   sql.NullTime
-	UpdatedBy   sql.NullInt32
-	IsActive    interface{}
+	CustomerID       int32
+	FirstName        sql.NullString
+	LastName         sql.NullString
+	Username         sql.NullString
+	Email            sql.NullString
+	Password         sql.NullString
+	BirthDate        sql.NullTime
+	PhoneNumber      sql.NullString
+	IsActive         interface{}
+	DeletedAt        sql.NullTime
+	CreatedAt        time.Time
+	CreatedByAdminID sql.NullInt32
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
 }
 
 type CustomerPaymentMethod struct {
@@ -419,9 +428,9 @@ type CustomerPaymentMethod struct {
 	CardToken               sql.NullString
 	IsDefault               interface{}
 	CreatedAt               time.Time
-	CreatedBy               sql.NullInt32
+	CreatedByAdminID        sql.NullInt32
 	UpdatedAt               sql.NullTime
-	UpdatedBy               sql.NullInt32
+	UpdatedByAdminID        sql.NullInt32
 }
 
 type CustomerToken struct {
@@ -434,18 +443,18 @@ type CustomerToken struct {
 }
 
 type Discount struct {
-	DiscountID     int32
-	Code           string
-	DiscountType   DiscountDiscountType
-	DiscountValue  int32
-	Description    sql.NullString
-	MinOrderAmount int32
-	ExpirationDate sql.NullTime
-	IsActive       interface{}
-	CreatedAt      time.Time
-	CreatedBy      sql.NullInt32
-	UpdatedAt      sql.NullTime
-	UpdatedBy      sql.NullInt32
+	DiscountID       int32
+	Code             string
+	DiscountType     DiscountDiscountType
+	DiscountValue    int32
+	Description      sql.NullString
+	MinOrderAmount   int32
+	ExpirationDate   sql.NullTime
+	IsActive         interface{}
+	CreatedAt        time.Time
+	CreatedByAdminID sql.NullInt32
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
 }
 
 type District struct {
@@ -457,34 +466,34 @@ type District struct {
 }
 
 type Image struct {
-	ImageID       int64
-	ReferenceID   int32
-	ReferenceType string
-	FileName      string
-	ImageUrl      string
-	AltText       string
-	IsPrimary     interface{}
-	SortImage     int32
-	CreatedAt     time.Time
-	CreatedBy     sql.NullInt32
+	ImageID          int64
+	ReferenceID      int32
+	ReferenceType    string
+	FileName         string
+	ImageUrl         string
+	AltText          string
+	IsPrimary        interface{}
+	SortImage        int32
+	CreatedAt        time.Time
+	CreatedByAdminID sql.NullInt32
 }
 
 type Order struct {
-	OrderID             int64
-	OrderNumber         string
-	CustomerID          sql.NullInt32
-	Channel             OrderChannel
-	PlacedByAdminUserID sql.NullInt32
-	CartID              sql.NullInt32
-	Subtotal            int32
-	DiscountAmount      int32
-	ShippingFee         int32
-	TotalAmount         int32
-	DiscountID          sql.NullInt32
-	Status              OrderStatus
-	Remark              sql.NullString
-	CreatedAt           time.Time
-	UpdatedAt           sql.NullTime
+	OrderID         int64
+	OrderNumber     string
+	CustomerID      sql.NullInt32
+	Channel         OrderChannel
+	PlacedByAdminID sql.NullInt32
+	CartID          sql.NullInt32
+	Subtotal        int32
+	DiscountAmount  int32
+	ShippingFee     int32
+	TotalAmount     int32
+	DiscountID      sql.NullInt32
+	Status          OrderStatus
+	Remark          sql.NullString
+	CreatedAt       time.Time
+	UpdatedAt       sql.NullTime
 }
 
 type OrderItem struct {
@@ -512,33 +521,41 @@ type OrderShippingAddress struct {
 }
 
 type Part struct {
-	PartID      int32
-	PartBrandID int32
-	PartTypeID  int32
-	Name        string
-	Sku         string
-	Description sql.NullString
-	Price       int32
-	Quantity    int32
-	WeightG     sql.NullInt32
-	IsActive    interface{}
-	CreatedAt   time.Time
-	CreatedBy   sql.NullInt32
-	UpdatedAt   sql.NullTime
-	UpdatedBy   sql.NullInt32
+	PartID           int32
+	PartBrandID      int32
+	PartTypeID       int32
+	Name             string
+	Sku              string
+	Description      sql.NullString
+	Price            int32
+	Quantity         int32
+	WeightG          sql.NullInt32
+	IsActive         interface{}
+	CreatedAt        time.Time
+	CreatedByAdminID sql.NullInt32
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
 }
 
 type PartBrand struct {
-	PartBrandID int32
-	Name        string
-	Description sql.NullString
+	PartBrandID      int32
+	Name             string
+	Description      sql.NullString
+	CreatedAt        time.Time
+	CreatedByAdminID sql.NullInt32
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
 }
 
 type PartType struct {
-	PartTypeID  int32
-	ParentID    sql.NullInt32
-	Name        string
-	Description sql.NullString
+	PartTypeID       int32
+	ParentID         sql.NullInt32
+	Name             string
+	Description      sql.NullString
+	CreatedAt        time.Time
+	CreatedByAdminID sql.NullInt32
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
 }
 
 type Payment struct {
@@ -548,10 +565,13 @@ type Payment struct {
 	CustomerPaymentMethodID sql.NullInt32
 	PaymentMethodTypeID     int32
 	Status                  PaymentStatus
+	PaidAt                  sql.NullTime
+	GatewayRef              sql.NullString
+	ActiveOrderID           sql.NullInt64
 	CreatedAt               time.Time
-	CreatedBy               sql.NullInt32
+	CreatedByAdminID        sql.NullInt32
 	UpdatedAt               sql.NullTime
-	UpdatedBy               sql.NullInt32
+	UpdatedByAdminID        sql.NullInt32
 }
 
 type PaymentMethodType struct {
@@ -571,11 +591,11 @@ type Province struct {
 type ShippingRate struct {
 	ShippingRateID int32
 	Name           string
-	// จังหวัดที่ใช้ค่าส่งนี้; NULL = ใช้ได้ทุกจังหวัด
+	// NULL = ใช้ได้ทุกจังหวัด
 	ProvinceID sql.NullInt32
 	// รวมค่านี้ (>=)
 	MinWeightG int32
-	// ไม่รวมค่านี้ (<); NULL = ไม่จำกัด ไว้ใช้กำหนดค่าส่งตามช่วงน้ำหนัก เช่น 0–1,000 และ 1,000–5,000 กรัม
+	// ไม่รวมค่านี้ (<); NULL = ไม่จำกัด
 	MaxWeightG sql.NullInt32
 	// ค่าจัดส่ง
 	Fee int32
@@ -583,20 +603,22 @@ type ShippingRate struct {
 	FreeShippingMinSubtotal sql.NullInt32
 	IsActive                bool
 	CreatedAt               time.Time
+	CreatedByAdminID        sql.NullInt32
 	UpdatedAt               sql.NullTime
+	UpdatedByAdminID        sql.NullInt32
 }
 
 type StockMovement struct {
-	StockMovementID int64
-	PartID          int32
-	QuantityChange  int32
-	Price           int32
-	EventType       StockMovementEventType
-	Reason          StockMovementReason
-	OrderID         sql.NullInt64
-	Remark          sql.NullString
-	CreatedAt       time.Time
-	CreatedBy       sql.NullInt32
+	StockMovementID  int64
+	PartID           int32
+	QuantityChange   int32
+	Price            int32
+	EventType        StockMovementEventType
+	Reason           StockMovementReason
+	OrderID          sql.NullInt64
+	Remark           sql.NullString
+	CreatedAt        time.Time
+	CreatedByAdminID sql.NullInt32
 }
 
 type Subdistrict struct {

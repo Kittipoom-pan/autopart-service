@@ -4,26 +4,37 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database"
 	dberror "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/dberror"
 	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/entity"
+	"github.com/Kittipoom-pan/autopart-service/pkg/utils"
 	"github.com/rs/zerolog"
 )
 
 type customerRepository struct {
+	conn    *sql.DB
 	queries *db.Queries
 	logger  zerolog.Logger
 }
 
-func NewCustomerRepository(queries *db.Queries, logger zerolog.Logger) CustomerRepository {
+func NewCustomerRepository(conn *sql.DB, logger zerolog.Logger) CustomerRepository {
 	return &customerRepository{
-		queries: queries,
+		conn:    conn,
+		queries: db.New(conn),
 		logger:  logger,
 	}
 }
 
+func (r *customerRepository) getQueries(ctx context.Context) *db.Queries {
+	if tx, ok := database.GetTx(ctx); ok {
+		return r.queries.WithTx(tx)
+	}
+	return r.queries
+}
+
 func (r *customerRepository) GetCustomerByID(ctx context.Context, id int) (*entity.CustomerRes, error) {
-	customer, err := r.queries.GetCustomer(ctx, int32(id))
+	customer, err := r.getQueries(ctx).GetCustomer(ctx, int32(id))
 	if err != nil {
 		if err == sql.ErrNoRows {
 			r.logger.Warn().Int("customer_id", id).Msg("customer not found in database")
@@ -38,11 +49,11 @@ func (r *customerRepository) GetCustomerByID(ctx context.Context, id int) (*enti
 
 func (r *customerRepository) CreateCustomer(ctx context.Context, customer *entity.CustomerReq, createdBy *int) (int64, error) {
 	params := entity.MapCustomerToCustomerParam(customer, createdBy)
-	result, err := r.queries.CreateCustomer(ctx, params)
+	result, err := r.getQueries(ctx).CreateCustomer(ctx, params)
 	if err != nil {
 		dbErr := dberror.HandleMySQLError(err)
 		if dberror.IsDuplicateKey(dbErr) {
-			r.logger.Warn().Err(dbErr).Str("customer", params.Username).Msg("duplicate key error")
+			r.logger.Warn().Err(dbErr).Str("customer", params.Username.String).Msg("duplicate key error")
 			return 0, dbErr
 		}
 		r.logger.Error().Err(err).Msg("failed to create customer in database")
@@ -59,7 +70,7 @@ func (r *customerRepository) CreateCustomer(ctx context.Context, customer *entit
 }
 
 func (r *customerRepository) GetAllCustomers(ctx context.Context) ([]*entity.CustomerRes, error) {
-	customers, err := r.queries.ListCustomers(ctx)
+	customers, err := r.getQueries(ctx).ListCustomers(ctx)
 	if err != nil {
 		r.logger.Error().Err(err).Msg("failed to list customers from database")
 		return nil, dberror.NewDBError(dberror.ErrDatabaseInternal, err.Error())
@@ -74,11 +85,11 @@ func (r *customerRepository) GetAllCustomers(ctx context.Context) ([]*entity.Cus
 
 func (r *customerRepository) UpdateCustomer(ctx context.Context, customerID int, customer *entity.CustomerReq, updatedBy int) error {
 	params := entity.MapUpdateCustomerParams(customerID, customer, updatedBy)
-	result, err := r.queries.UpdateCustomer(ctx, params)
+	result, err := r.getQueries(ctx).UpdateCustomer(ctx, params)
 	if err != nil {
 		dbErr := dberror.HandleMySQLError(err)
 		if dberror.IsDuplicateKey(dbErr) {
-			r.logger.Warn().Err(dbErr).Str("customer", params.Username).Msg("duplicate key error")
+			r.logger.Warn().Err(dbErr).Str("customer", params.Username.String).Msg("duplicate key error")
 			return dbErr
 		}
 		r.logger.Error().Err(err).Int("customer_id", customerID).Msg("failed to update customer in database")
@@ -99,11 +110,26 @@ func (r *customerRepository) UpdateCustomer(ctx context.Context, customerID int,
 	return nil
 }
 
+// DeleteCustomer ลบบัญชีลูกค้าถาวร (anonymize): ล็อกแถว -> ล้างข้อมูลส่วนตัว + set deleted_at
+// -> ลบ address/token และล้างบัตรที่บันทึกไว้ ต้องเรียกภายใน transaction เท่านั้น
 func (r *customerRepository) DeleteCustomer(ctx context.Context, customerID int, updatedBy int) error {
-	params := entity.MapUpdateCustomerIsActiveParams(customerID, false, updatedBy)
-	result, err := r.queries.UpdateCustomerIsActive(ctx, params)
+	q := r.getQueries(ctx)
+
+	if _, err := q.LockCustomerForDelete(ctx, int32(customerID)); err != nil {
+		if err == sql.ErrNoRows {
+			r.logger.Warn().Int("customer_id", customerID).Msg("customer not found for delete")
+			return dberror.NewDBError(dberror.ErrRecordNotFound, "customer not found")
+		}
+		r.logger.Error().Err(err).Int("customer_id", customerID).Msg("failed to lock customer for delete")
+		return dberror.NewDBError(dberror.ErrDatabaseInternal, err.Error())
+	}
+
+	result, err := q.DeleteCustomer(ctx, db.DeleteCustomerParams{
+		UpdatedByAdminID: utils.IntToNullInt32(updatedBy),
+		CustomerID:       int32(customerID),
+	})
 	if err != nil {
-		r.logger.Error().Err(err).Int("customer_id", customerID).Msg("failed to delete customer in database")
+		r.logger.Error().Err(err).Int("customer_id", customerID).Msg("failed to anonymize customer")
 		return dberror.NewDBError(dberror.ErrDatabaseInternal, err.Error())
 	}
 
@@ -117,11 +143,27 @@ func (r *customerRepository) DeleteCustomer(ctx context.Context, customerID int,
 		r.logger.Warn().Int("customer_id", customerID).Msg("customer not found for delete")
 		return dberror.NewDBError(dberror.ErrRecordNotFound, "customer not found")
 	}
+
+	if err := q.DeleteCustomerAddresses(ctx, int32(customerID)); err != nil {
+		r.logger.Error().Err(err).Int("customer_id", customerID).Msg("failed to delete customer addresses")
+		return dberror.NewDBError(dberror.ErrDatabaseInternal, err.Error())
+	}
+
+	if err := q.DeleteCustomerPaymentMethods(ctx, int32(customerID)); err != nil {
+		r.logger.Error().Err(err).Int("customer_id", customerID).Msg("failed to anonymize customer payment methods")
+		return dberror.NewDBError(dberror.ErrDatabaseInternal, err.Error())
+	}
+
+	if err := q.DeleteCustomerTokens(ctx, int32(customerID)); err != nil {
+		r.logger.Error().Err(err).Int("customer_id", customerID).Msg("failed to delete customer tokens")
+		return dberror.NewDBError(dberror.ErrDatabaseInternal, err.Error())
+	}
+
 	return nil
 }
 
 func (r *customerRepository) GetCustomerByUsername(ctx context.Context, username string) (*entity.Customer, error) {
-	customer, err := r.queries.GetCustomerByUsername(ctx, username)
+	customer, err := r.getQueries(ctx).GetCustomerByUsername(ctx, utils.StringToNullString(username))
 	if err != nil {
 		if err == sql.ErrNoRows {
 			r.logger.Warn().Str("username", username).Msg("customer not found in database")

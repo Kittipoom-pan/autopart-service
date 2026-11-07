@@ -20,7 +20,7 @@ INSERT INTO image (
     is_primary,
     sort_image,
     created_at,
-    created_by
+    created_by_admin_id
 )
 VALUES (
     ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?
@@ -28,14 +28,14 @@ VALUES (
 `
 
 type AddImageParams struct {
-	ReferenceID   int32
-	ReferenceType string
-	FileName      string
-	ImageUrl      string
-	AltText       string
-	IsPrimary     interface{}
-	SortImage     int32
-	CreatedBy     sql.NullInt32
+	ReferenceID      int32
+	ReferenceType    string
+	FileName         string
+	ImageUrl         string
+	AltText          string
+	IsPrimary        interface{}
+	SortImage        int32
+	CreatedByAdminID sql.NullInt32
 }
 
 func (q *Queries) AddImage(ctx context.Context, arg AddImageParams) (sql.Result, error) {
@@ -47,7 +47,7 @@ func (q *Queries) AddImage(ctx context.Context, arg AddImageParams) (sql.Result,
 		arg.AltText,
 		arg.IsPrimary,
 		arg.SortImage,
-		arg.CreatedBy,
+		arg.CreatedByAdminID,
 	)
 }
 
@@ -70,7 +70,7 @@ SELECT
     is_primary,
     sort_image,
     created_at,
-    created_by
+    created_by_admin_id
 FROM image
 WHERE reference_type = ? AND reference_id = ? AND is_primary = 1
 LIMIT 1
@@ -94,7 +94,7 @@ func (q *Queries) GetPrimaryImageByReference(ctx context.Context, arg GetPrimary
 		&i.IsPrimary,
 		&i.SortImage,
 		&i.CreatedAt,
-		&i.CreatedBy,
+		&i.CreatedByAdminID,
 	)
 	return i, err
 }
@@ -110,7 +110,7 @@ SELECT
     is_primary,
     sort_image,
     created_at,
-    created_by
+    created_by_admin_id
 FROM image
 WHERE reference_type = ? AND reference_id = ?
 ORDER BY is_primary DESC, sort_image ASC, created_at ASC
@@ -140,7 +140,7 @@ func (q *Queries) ListImagesByReference(ctx context.Context, arg ListImagesByRef
 			&i.IsPrimary,
 			&i.SortImage,
 			&i.CreatedAt,
-			&i.CreatedBy,
+			&i.CreatedByAdminID,
 		); err != nil {
 			return nil, err
 		}
@@ -180,18 +180,18 @@ SET
     alt_text = ?,
     is_primary = ?,
     sort_image = ?,
-    created_by = ?
+    created_by_admin_id = ?
 WHERE image_id = ?
 `
 
 type UpdateImageParams struct {
-	FileName  string
-	ImageUrl  string
-	AltText   string
-	IsPrimary interface{}
-	SortImage int32
-	CreatedBy sql.NullInt32
-	ImageID   int64
+	FileName         string
+	ImageUrl         string
+	AltText          string
+	IsPrimary        interface{}
+	SortImage        int32
+	CreatedByAdminID sql.NullInt32
+	ImageID          int64
 }
 
 func (q *Queries) UpdateImage(ctx context.Context, arg UpdateImageParams) (sql.Result, error) {
@@ -201,7 +201,7 @@ func (q *Queries) UpdateImage(ctx context.Context, arg UpdateImageParams) (sql.R
 		arg.AltText,
 		arg.IsPrimary,
 		arg.SortImage,
-		arg.CreatedBy,
+		arg.CreatedByAdminID,
 		arg.ImageID,
 	)
 }

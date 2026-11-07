@@ -38,9 +38,15 @@ FROM car_brand
 WHERE car_brand_id = ?
 `
 
-func (q *Queries) GetCarBrand(ctx context.Context, carBrandID int32) (CarBrand, error) {
+type GetCarBrandRow struct {
+	CarBrandID  int32
+	Name        string
+	Description sql.NullString
+}
+
+func (q *Queries) GetCarBrand(ctx context.Context, carBrandID int32) (GetCarBrandRow, error) {
 	row := q.db.QueryRowContext(ctx, getCarBrand, carBrandID)
-	var i CarBrand
+	var i GetCarBrandRow
 	err := row.Scan(&i.CarBrandID, &i.Name, &i.Description)
 	return i, err
 }
@@ -51,15 +57,21 @@ FROM car_brand
 ORDER BY name
 `
 
-func (q *Queries) ListCarBrands(ctx context.Context) ([]CarBrand, error) {
+type ListCarBrandsRow struct {
+	CarBrandID  int32
+	Name        string
+	Description sql.NullString
+}
+
+func (q *Queries) ListCarBrands(ctx context.Context) ([]ListCarBrandsRow, error) {
 	rows, err := q.db.QueryContext(ctx, listCarBrands)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []CarBrand
+	var items []ListCarBrandsRow
 	for rows.Next() {
-		var i CarBrand
+		var i ListCarBrandsRow
 		if err := rows.Scan(&i.CarBrandID, &i.Name, &i.Description); err != nil {
 			return nil, err
 		}

@@ -31,11 +31,7 @@ definitions:
         type: string
       subdistrict:
         type: string
-      subdistrict_id:
-        type: integer
       title:
-        type: string
-      updated_at:
         type: string
       zip_code:
         type: string
@@ -135,6 +131,14 @@ definitions:
         type: string
       result:
         $ref: '#/definitions/AddressRes'
+    type: object
+  BaseResponse-AdminCreateOrderReq:
+    properties:
+      message:
+        example: success
+        type: string
+      result:
+        $ref: '#/definitions/AdminCreateOrderReq'
     type: object
   BaseResponse-AdminRes:
     properties:
@@ -283,22 +287,18 @@ definitions:
       result:
         $ref: '#/definitions/LoginResponse'
     type: object
-  BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_order_entity_OrderCreatedRes:
+  BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_image_entity_ImageRes:
     properties:
       message:
         example: success
         type: string
       result:
-        $ref: '#/definitions/OrderCreatedRes'
+        $ref: '#/definitions/ImageRes'
     type: object
   CartItemRes:
     properties:
-      cart_id:
-        type: integer
       cart_item_id:
         type: integer
-      created_at:
-        type: string
       part_id:
         type: integer
       part_name:
@@ -310,28 +310,19 @@ definitions:
       sku:
         type: string
       subtotal:
+        description: Price * Quantity
         type: integer
-      updated_at:
-        type: string
     type: object
   CartRes:
     properties:
-      amount:
-        type: integer
       cart_id:
         type: integer
-      created_at:
-        type: string
-      customer_id:
-        type: integer
-      is_checkout:
-        type: boolean
       items:
         items:
           $ref: '#/definitions/CartItemRes'
         type: array
-      updated_at:
-        type: string
+      subtotal:
+        type: integer
     type: object
   CheckoutPreviewItem:
     properties:
@@ -393,8 +384,6 @@ definitions:
       subdistrict_id:
         type: integer
       title:
-        type: string
-      zip_code:
         type: string
     type: object
   CreateCustomerPaymentMethodReq:
@@ -486,6 +475,35 @@ definitions:
         example: 1
         type: integer
     type: object
+  ImageRes:
+    properties:
+      alt_text:
+        example: brake pad front
+        type: string
+      created_at:
+        type: string
+      file_name:
+        example: b3c1f0e2-4a5d-4f2b-9c3a-1234567890ab.webp
+        type: string
+      image_id:
+        example: 1
+        type: integer
+      image_url:
+        example: /uploads/part/b3c1f0e2-4a5d-4f2b-9c3a-1234567890ab.webp
+        type: string
+      is_primary:
+        example: true
+        type: boolean
+      reference_id:
+        example: 10
+        type: integer
+      reference_type:
+        example: part
+        type: string
+      sort_image:
+        example: 0
+        type: integer
+    type: object
   LoginRequest:
     properties:
       password:
@@ -516,12 +534,6 @@ definitions:
     - OrderChannelLine
     - OrderChannelFacebook
     - OrderChannelWalkIn
-  OrderCreatedRes:
-    properties:
-      order_number:
-        example: ORD-20261102-0001
-        type: string
-    type: object
   OrderItemRes:
     properties:
       order_id:
@@ -557,7 +569,7 @@ definitions:
         type: integer
       order_number:
         type: string
-      placed_by_admin_user_id:
+      placed_by_admin_id:
         type: integer
       remark:
         type: string
@@ -600,6 +612,7 @@ definitions:
     - shipped
     - delivered
     - cancelled
+    - completed
     type: string
     x-enum-varnames:
     - OrderStatusPending
@@ -607,6 +620,7 @@ definitions:
     - OrderStatusShipped
     - OrderStatusDelivered
     - OrderStatusCancelled
+    - OrderStatusCompleted
   PartReq:
     properties:
       car_brand_id:
@@ -667,8 +681,6 @@ definitions:
         type: integer
       title:
         type: string
-      zip_code:
-        type: string
     type: object
   UpdateCartItemQuantityReq:
     properties:
@@ -686,7 +698,6 @@ definitions:
     type: object
 info:
   contact: {}
-  description: REST API Autopart Service
   title: Autopart Service API
   version: "1.0"
 paths:
@@ -1499,6 +1510,66 @@ paths:
       summary: Customer login
       tags:
       - customer
+  /v1/image:
+    post:
+      consumes:
+      - multipart/form-data
+      description: อัปโหลดรูปภาพ (multipart/form-data) รองรับ .jpg, .jpeg, .png, .webp
+        ขนาดไม่เกิน 5MB ระบบจะย่อความกว้างไม่เกิน 1200px และแปลงเป็น .webp
+      parameters:
+      - description: Image file (.jpg, .jpeg, .png, .webp) max 5MB
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Reference ID
+        in: formData
+        name: reference_id
+        required: true
+        type: integer
+      - description: Reference type (part, customer, order, car_brand, car_model,
+          part_brand, part_type)
+        in: formData
+        name: reference_type
+        required: true
+        type: string
+      - description: Alternative text
+        in: formData
+        name: alt_text
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_image_entity_ImageRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload image
+      tags:
+      - image
   /v1/order:
     get:
       description: ดึงรายการคำสั่งซื้อทั้งหมด
@@ -1624,7 +1695,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/BaseResponse-github_com_Kittipoom-pan_autopart-service_internal_module_order_entity_OrderCreatedRes'
+            $ref: '#/definitions/BaseResponse-AdminCreateOrderReq'
         "400":
           description: Bad Request
           schema:

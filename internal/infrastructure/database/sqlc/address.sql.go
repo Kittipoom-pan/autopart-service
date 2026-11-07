@@ -15,18 +15,18 @@ const clearDefaultAddress = `-- name: ClearDefaultAddress :execresult
 UPDATE address SET
     is_default = 0,
     updated_at = ?,
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE customer_id = ?
 `
 
 type ClearDefaultAddressParams struct {
-	UpdatedAt  sql.NullTime
-	UpdatedBy  sql.NullInt32
-	CustomerID int32
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
+	CustomerID       int32
 }
 
 func (q *Queries) ClearDefaultAddress(ctx context.Context, arg ClearDefaultAddressParams) (sql.Result, error) {
-	return q.db.ExecContext(ctx, clearDefaultAddress, arg.UpdatedAt, arg.UpdatedBy, arg.CustomerID)
+	return q.db.ExecContext(ctx, clearDefaultAddress, arg.UpdatedAt, arg.UpdatedByAdminID, arg.CustomerID)
 }
 
 const createAddress = `-- name: CreateAddress :execresult
@@ -39,21 +39,21 @@ INSERT INTO address (
     phone_number,
     is_default,
     created_at,
-    created_by
+    created_by_admin_id
 )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateAddressParams struct {
-	CustomerID    int32
-	Title         sql.NullString
-	RecipientName string
-	AddressLine   string
-	SubdistrictID int32
-	PhoneNumber   string
-	IsDefault     interface{}
-	CreatedAt     time.Time
-	CreatedBy     sql.NullInt32
+	CustomerID       int32
+	Title            sql.NullString
+	RecipientName    string
+	AddressLine      string
+	SubdistrictID    int32
+	PhoneNumber      string
+	IsDefault        interface{}
+	CreatedAt        time.Time
+	CreatedByAdminID sql.NullInt32
 }
 
 func (q *Queries) CreateAddress(ctx context.Context, arg CreateAddressParams) (sql.Result, error) {
@@ -66,7 +66,7 @@ func (q *Queries) CreateAddress(ctx context.Context, arg CreateAddressParams) (s
 		arg.PhoneNumber,
 		arg.IsDefault,
 		arg.CreatedAt,
-		arg.CreatedBy,
+		arg.CreatedByAdminID,
 	)
 }
 
@@ -96,9 +96,9 @@ SELECT
     a.phone_number,
     a.is_default,
     a.created_at,
-    a.created_by,
+    a.created_by_admin_id,
     a.updated_at,
-    a.updated_by,
+    a.updated_by_admin_id,
     s.name_in_thai AS subdistrict,
     d.name_in_thai AS district,
     d.province_id AS province_id,
@@ -116,23 +116,23 @@ type GetAddressByIDAndCustomerParams struct {
 }
 
 type GetAddressByIDAndCustomerRow struct {
-	AddressID     int32
-	CustomerID    int32
-	Title         sql.NullString
-	RecipientName string
-	AddressLine   string
-	SubdistrictID int32
-	ZipCode       string
-	PhoneNumber   string
-	IsDefault     interface{}
-	CreatedAt     time.Time
-	CreatedBy     sql.NullInt32
-	UpdatedAt     sql.NullTime
-	UpdatedBy     sql.NullInt32
-	Subdistrict   string
-	District      string
-	ProvinceID    int32
-	Province      string
+	AddressID        int32
+	CustomerID       int32
+	Title            sql.NullString
+	RecipientName    string
+	AddressLine      string
+	SubdistrictID    int32
+	ZipCode          string
+	PhoneNumber      string
+	IsDefault        interface{}
+	CreatedAt        time.Time
+	CreatedByAdminID sql.NullInt32
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
+	Subdistrict      string
+	District         string
+	ProvinceID       int32
+	Province         string
 }
 
 func (q *Queries) GetAddressByIDAndCustomer(ctx context.Context, arg GetAddressByIDAndCustomerParams) (GetAddressByIDAndCustomerRow, error) {
@@ -149,9 +149,9 @@ func (q *Queries) GetAddressByIDAndCustomer(ctx context.Context, arg GetAddressB
 		&i.PhoneNumber,
 		&i.IsDefault,
 		&i.CreatedAt,
-		&i.CreatedBy,
+		&i.CreatedByAdminID,
 		&i.UpdatedAt,
-		&i.UpdatedBy,
+		&i.UpdatedByAdminID,
 		&i.Subdistrict,
 		&i.District,
 		&i.ProvinceID,
@@ -172,9 +172,9 @@ SELECT
     a.phone_number,
     a.is_default,
     a.created_at,
-    a.created_by,
+    a.created_by_admin_id,
     a.updated_at,
-    a.updated_by
+    a.updated_by_admin_id
 FROM address a
 JOIN subdistrict s ON s.id = a.subdistrict_id
 WHERE a.customer_id = ? AND a.is_default = 1
@@ -182,19 +182,19 @@ LIMIT 1
 `
 
 type GetDefaultAddressByCustomerIDRow struct {
-	AddressID     int32
-	CustomerID    int32
-	Title         sql.NullString
-	RecipientName string
-	AddressLine   string
-	SubdistrictID int32
-	ZipCode       string
-	PhoneNumber   string
-	IsDefault     interface{}
-	CreatedAt     time.Time
-	CreatedBy     sql.NullInt32
-	UpdatedAt     sql.NullTime
-	UpdatedBy     sql.NullInt32
+	AddressID        int32
+	CustomerID       int32
+	Title            sql.NullString
+	RecipientName    string
+	AddressLine      string
+	SubdistrictID    int32
+	ZipCode          string
+	PhoneNumber      string
+	IsDefault        interface{}
+	CreatedAt        time.Time
+	CreatedByAdminID sql.NullInt32
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
 }
 
 func (q *Queries) GetDefaultAddressByCustomerID(ctx context.Context, customerID int32) (GetDefaultAddressByCustomerIDRow, error) {
@@ -211,9 +211,9 @@ func (q *Queries) GetDefaultAddressByCustomerID(ctx context.Context, customerID 
 		&i.PhoneNumber,
 		&i.IsDefault,
 		&i.CreatedAt,
-		&i.CreatedBy,
+		&i.CreatedByAdminID,
 		&i.UpdatedAt,
-		&i.UpdatedBy,
+		&i.UpdatedByAdminID,
 	)
 	return i, err
 }
@@ -267,9 +267,9 @@ SELECT
     a.phone_number,
     a.is_default,
     a.created_at,
-    a.created_by,
+    a.created_by_admin_id,
     a.updated_at,
-    a.updated_by
+    a.updated_by_admin_id
 FROM address a
 JOIN subdistrict s ON s.id = a.subdistrict_id
 WHERE a.customer_id = ?
@@ -277,19 +277,19 @@ ORDER BY a.is_default DESC, a.created_at DESC
 `
 
 type ListAddressesByCustomerIDRow struct {
-	AddressID     int32
-	CustomerID    int32
-	Title         sql.NullString
-	RecipientName string
-	AddressLine   string
-	SubdistrictID int32
-	ZipCode       string
-	PhoneNumber   string
-	IsDefault     interface{}
-	CreatedAt     time.Time
-	CreatedBy     sql.NullInt32
-	UpdatedAt     sql.NullTime
-	UpdatedBy     sql.NullInt32
+	AddressID        int32
+	CustomerID       int32
+	Title            sql.NullString
+	RecipientName    string
+	AddressLine      string
+	SubdistrictID    int32
+	ZipCode          string
+	PhoneNumber      string
+	IsDefault        interface{}
+	CreatedAt        time.Time
+	CreatedByAdminID sql.NullInt32
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
 }
 
 func (q *Queries) ListAddressesByCustomerID(ctx context.Context, customerID int32) ([]ListAddressesByCustomerIDRow, error) {
@@ -312,9 +312,9 @@ func (q *Queries) ListAddressesByCustomerID(ctx context.Context, customerID int3
 			&i.PhoneNumber,
 			&i.IsDefault,
 			&i.CreatedAt,
-			&i.CreatedBy,
+			&i.CreatedByAdminID,
 			&i.UpdatedAt,
-			&i.UpdatedBy,
+			&i.UpdatedByAdminID,
 		); err != nil {
 			return nil, err
 		}
@@ -333,21 +333,21 @@ const setDefaultAddress = `-- name: SetDefaultAddress :execresult
 UPDATE address SET
     is_default = 1,
     updated_at = ?,
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE address_id = ? AND customer_id = ?
 `
 
 type SetDefaultAddressParams struct {
-	UpdatedAt  sql.NullTime
-	UpdatedBy  sql.NullInt32
-	AddressID  int32
-	CustomerID int32
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
+	AddressID        int32
+	CustomerID       int32
 }
 
 func (q *Queries) SetDefaultAddress(ctx context.Context, arg SetDefaultAddressParams) (sql.Result, error) {
 	return q.db.ExecContext(ctx, setDefaultAddress,
 		arg.UpdatedAt,
-		arg.UpdatedBy,
+		arg.UpdatedByAdminID,
 		arg.AddressID,
 		arg.CustomerID,
 	)
@@ -362,21 +362,21 @@ UPDATE address SET
     phone_number = ?,
     is_default = ?,
     updated_at = ?,
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE address_id = ? AND customer_id = ?
 `
 
 type UpdateAddressParams struct {
-	Title         sql.NullString
-	RecipientName string
-	AddressLine   string
-	SubdistrictID int32
-	PhoneNumber   string
-	IsDefault     interface{}
-	UpdatedAt     sql.NullTime
-	UpdatedBy     sql.NullInt32
-	AddressID     int32
-	CustomerID    int32
+	Title            sql.NullString
+	RecipientName    string
+	AddressLine      string
+	SubdistrictID    int32
+	PhoneNumber      string
+	IsDefault        interface{}
+	UpdatedAt        sql.NullTime
+	UpdatedByAdminID sql.NullInt32
+	AddressID        int32
+	CustomerID       int32
 }
 
 func (q *Queries) UpdateAddress(ctx context.Context, arg UpdateAddressParams) (sql.Result, error) {
@@ -388,7 +388,7 @@ func (q *Queries) UpdateAddress(ctx context.Context, arg UpdateAddressParams) (s
 		arg.PhoneNumber,
 		arg.IsDefault,
 		arg.UpdatedAt,
-		arg.UpdatedBy,
+		arg.UpdatedByAdminID,
 		arg.AddressID,
 		arg.CustomerID,
 	)

@@ -25,12 +25,12 @@ func MapDbAdminToAdminEntity(dbAdmin db.GetAdminByUsernameRow) *Admin {
 
 func MapAdminToAdminParam(admin *AdminReq, createBy *int) db.CreateAdminParams {
 	return db.CreateAdminParams{
-		Username:  admin.Username,
-		Email:     utils.StringToNullString(admin.Email),
-		Role:      db.AdminUserRole(admin.Role),
-		Password:  admin.Password,
-		CreatedBy: utils.IntNullToNullInt32(createBy),
-		CreatedAt: utils.NowUTC(),
+		Username:         admin.Username,
+		Email:            utils.StringToNullString(admin.Email),
+		Role:             db.AdminUserRole(admin.Role),
+		Password:         admin.Password,
+		CreatedByAdminID: utils.IntNullToNullInt32(createBy),
+		CreatedAt:        utils.NowUTC(),
 	}
 }
 
@@ -43,24 +43,24 @@ func MapDbAdminsToAdminEntity(dbAdmin db.ListAdminUsersRow) *AdminRes {
 	}
 }
 
-func MapUpdateAdminParams(id int, admin *AdminReq, updatedBy *int) db.UpdateAdminParams {
+func MapUpdateAdminParams(id int, admin *AdminReq, UpdatedByAdminID *int) db.UpdateAdminParams {
 	return db.UpdateAdminParams{
-		AdminUserID: int32(id),
-		Username:    admin.Username,
-		Password:    admin.Password,
-		Role:        db.AdminUserRole(admin.Role),
-		Email:       utils.StringToNullString(admin.Email),
-		UpdatedBy:   utils.IntNullToNullInt32(updatedBy),
-		UpdatedAt:   utils.NullTimeNow(),
+		AdminUserID:      int32(id),
+		Username:         admin.Username,
+		Password:         admin.Password,
+		Role:             db.AdminUserRole(admin.Role),
+		Email:            utils.StringToNullString(admin.Email),
+		UpdatedByAdminID: utils.IntNullToNullInt32(UpdatedByAdminID),
+		UpdatedAt:        utils.NullTimeNow(),
 	}
 }
 
-func MapUpdateAdminIsActiveParams(id int, isActive bool, updatedBy *int) db.UpdateAdminIsActiveParams {
+func MapUpdateAdminIsActiveParams(id int, isActive bool, UpdatedByAdminID *int) db.UpdateAdminIsActiveParams {
 	return db.UpdateAdminIsActiveParams{
-		IsActive:    isActive,
-		UpdatedBy:   utils.IntNullToNullInt32(updatedBy),
-		UpdatedAt:   utils.NullTimeNow(),
-		AdminUserID: int32(id),
+		IsActive:         isActive,
+		UpdatedByAdminID: utils.IntNullToNullInt32(UpdatedByAdminID),
+		UpdatedAt:        utils.NullTimeNow(),
+		AdminUserID:      int32(id),
 	}
 }
 

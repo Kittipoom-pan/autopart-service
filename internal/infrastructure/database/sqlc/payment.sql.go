@@ -17,9 +17,10 @@ INSERT INTO payment (
     customer_payment_method_id,
     payment_method_type_id,
     status,
-    created_by
+    paid_at,
+    created_by_admin_id
 )
-VALUES (?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreatePaymentParams struct {
@@ -28,7 +29,8 @@ type CreatePaymentParams struct {
 	CustomerPaymentMethodID sql.NullInt32
 	PaymentMethodTypeID     int32
 	Status                  PaymentStatus
-	CreatedBy               sql.NullInt32
+	PaidAt                  sql.NullTime
+	CreatedByAdminID        sql.NullInt32
 }
 
 func (q *Queries) CreatePayment(ctx context.Context, arg CreatePaymentParams) (sql.Result, error) {
@@ -38,6 +40,7 @@ func (q *Queries) CreatePayment(ctx context.Context, arg CreatePaymentParams) (s
 		arg.CustomerPaymentMethodID,
 		arg.PaymentMethodTypeID,
 		arg.Status,
-		arg.CreatedBy,
+		arg.PaidAt,
+		arg.CreatedByAdminID,
 	)
 }

@@ -2,12 +2,15 @@ package usecase
 
 import (
 	"context"
+	"time"
 
 	"github.com/Kittipoom-pan/autopart-service/internal/helper"
+	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"
 	cpmRepository "github.com/Kittipoom-pan/autopart-service/internal/module/customer_payment_method/repository"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/payment/entity"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/payment/repository"
 	customerror "github.com/Kittipoom-pan/autopart-service/pkg/error"
+	"github.com/Kittipoom-pan/autopart-service/pkg/utils"
 	"github.com/rs/zerolog"
 )
 
@@ -56,10 +59,23 @@ func (u *paymentUsecase) validateSavedPaymentMethod(ctx context.Context, in *ent
 	return nil
 }
 
-func (u *paymentUsecase) CreatePendingPayment(ctx context.Context, in *entity.CreatePaymentInput) error {
+func (u *paymentUsecase) CreatePayment(ctx context.Context, in *entity.CreatePaymentInput, isCompletePayment bool) error {
 	if err := u.validateSavedPaymentMethod(ctx, in); err != nil {
 		return err
 	}
+
+	status := db.PaymentStatusPending
+	var paidAt *time.Time
+
+	if isCompletePayment {
+		status = db.PaymentStatusCompleted
+		now := utils.NowUTC()
+		paidAt = &now
+	}
+
+	in.Status = status
+	in.PaidAt = paidAt
+	u.logger.Info().Interface("payment_req", in).Msg("creating payment")
 
 	if err := u.repo.CreatePayment(ctx, in); err != nil {
 		return helper.MapDBErrorToAPIError(err, "Payment")

@@ -16,7 +16,7 @@ INSERT INTO ` + "`" + `order` + "`" + ` (
     order_number,
     customer_id,
     channel,
-    placed_by_admin_user_id,
+    placed_by_admin_id,
     cart_id,
     subtotal,
     discount_amount,
@@ -30,18 +30,18 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateOrderParams struct {
-	OrderNumber         string
-	CustomerID          sql.NullInt32
-	Channel             OrderChannel
-	PlacedByAdminUserID sql.NullInt32
-	CartID              sql.NullInt32
-	Subtotal            int32
-	DiscountAmount      int32
-	ShippingFee         int32
-	TotalAmount         int32
-	DiscountID          sql.NullInt32
-	Status              OrderStatus
-	Remark              sql.NullString
+	OrderNumber     string
+	CustomerID      sql.NullInt32
+	Channel         OrderChannel
+	PlacedByAdminID sql.NullInt32
+	CartID          sql.NullInt32
+	Subtotal        int32
+	DiscountAmount  int32
+	ShippingFee     int32
+	TotalAmount     int32
+	DiscountID      sql.NullInt32
+	Status          OrderStatus
+	Remark          sql.NullString
 }
 
 func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (sql.Result, error) {
@@ -49,7 +49,7 @@ func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (sql.R
 		arg.OrderNumber,
 		arg.CustomerID,
 		arg.Channel,
-		arg.PlacedByAdminUserID,
+		arg.PlacedByAdminID,
 		arg.CartID,
 		arg.Subtotal,
 		arg.DiscountAmount,
@@ -117,7 +117,7 @@ SELECT
     order_number,
     customer_id,
     channel,
-    placed_by_admin_user_id,
+    placed_by_admin_id,
     cart_id,
     subtotal,
     discount_amount,
@@ -140,7 +140,7 @@ func (q *Queries) GetOrderByID(ctx context.Context, orderID int64) (Order, error
 		&i.OrderNumber,
 		&i.CustomerID,
 		&i.Channel,
-		&i.PlacedByAdminUserID,
+		&i.PlacedByAdminID,
 		&i.CartID,
 		&i.Subtotal,
 		&i.DiscountAmount,
@@ -161,7 +161,7 @@ SELECT
     order_number,
     customer_id,
     channel,
-    placed_by_admin_user_id,
+    placed_by_admin_id,
     cart_id,
     subtotal,
     discount_amount,
@@ -184,7 +184,7 @@ func (q *Queries) GetOrderByOrderNumber(ctx context.Context, orderNumber string)
 		&i.OrderNumber,
 		&i.CustomerID,
 		&i.Channel,
-		&i.PlacedByAdminUserID,
+		&i.PlacedByAdminID,
 		&i.CartID,
 		&i.Subtotal,
 		&i.DiscountAmount,
@@ -205,7 +205,7 @@ SELECT
     order_number,
     customer_id,
     channel,
-    placed_by_admin_user_id,
+    placed_by_admin_id,
     cart_id,
     subtotal,
     discount_amount,
@@ -234,7 +234,7 @@ func (q *Queries) ListOrders(ctx context.Context) ([]Order, error) {
 			&i.OrderNumber,
 			&i.CustomerID,
 			&i.Channel,
-			&i.PlacedByAdminUserID,
+			&i.PlacedByAdminID,
 			&i.CartID,
 			&i.Subtotal,
 			&i.DiscountAmount,

@@ -45,9 +45,17 @@ FROM car_model
 WHERE car_model_id = ?
 `
 
-func (q *Queries) GetCarModel(ctx context.Context, carModelID int32) (CarModel, error) {
+type GetCarModelRow struct {
+	CarModelID int32
+	CarBrandID int32
+	Name       string
+	YearFrom   sql.NullInt16
+	YearTo     sql.NullInt16
+}
+
+func (q *Queries) GetCarModel(ctx context.Context, carModelID int32) (GetCarModelRow, error) {
 	row := q.db.QueryRowContext(ctx, getCarModel, carModelID)
-	var i CarModel
+	var i GetCarModelRow
 	err := row.Scan(
 		&i.CarModelID,
 		&i.CarBrandID,
@@ -65,15 +73,23 @@ WHERE car_brand_id = ?
 ORDER BY name, year_from
 `
 
-func (q *Queries) ListCarModelsByBrand(ctx context.Context, carBrandID int32) ([]CarModel, error) {
+type ListCarModelsByBrandRow struct {
+	CarModelID int32
+	CarBrandID int32
+	Name       string
+	YearFrom   sql.NullInt16
+	YearTo     sql.NullInt16
+}
+
+func (q *Queries) ListCarModelsByBrand(ctx context.Context, carBrandID int32) ([]ListCarModelsByBrandRow, error) {
 	rows, err := q.db.QueryContext(ctx, listCarModelsByBrand, carBrandID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []CarModel
+	var items []ListCarModelsByBrandRow
 	for rows.Next() {
-		var i CarModel
+		var i ListCarModelsByBrandRow
 		if err := rows.Scan(
 			&i.CarModelID,
 			&i.CarBrandID,

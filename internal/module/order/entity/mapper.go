@@ -7,21 +7,21 @@ import (
 
 func MapDbOrderToOrderRes(dbOrder db.Order) *OrderRes {
 	return &OrderRes{
-		OrderID:             dbOrder.OrderID,
-		OrderNumber:         dbOrder.OrderNumber,
-		CustomerID:          utils.NullInt32ToInt32Ptr(dbOrder.CustomerID),
-		Channel:             dbOrder.Channel,
-		PlacedByAdminUserID: utils.NullInt32ToInt32Ptr(dbOrder.PlacedByAdminUserID),
-		CartID:              utils.NullInt32ToInt32Ptr(dbOrder.CartID),
-		Subtotal:            dbOrder.Subtotal,
-		DiscountAmount:      dbOrder.DiscountAmount,
-		ShippingFee:         dbOrder.ShippingFee,
-		TotalAmount:         dbOrder.TotalAmount,
-		DiscountID:          utils.NullInt32ToInt32Ptr(dbOrder.DiscountID),
-		Status:              dbOrder.Status,
-		Remark:              utils.NullStringToStringPtr(dbOrder.Remark),
-		CreatedAt:           dbOrder.CreatedAt,
-		UpdatedAt:           utils.NullTimeToTimePtr(dbOrder.UpdatedAt),
+		OrderID:         dbOrder.OrderID,
+		OrderNumber:     dbOrder.OrderNumber,
+		CustomerID:      utils.NullInt32ToInt32Ptr(dbOrder.CustomerID),
+		Channel:         dbOrder.Channel,
+		PlacedByAdminID: utils.NullInt32ToInt32Ptr(dbOrder.PlacedByAdminID),
+		CartID:          utils.NullInt32ToInt32Ptr(dbOrder.CartID),
+		Subtotal:        dbOrder.Subtotal,
+		DiscountAmount:  dbOrder.DiscountAmount,
+		ShippingFee:     dbOrder.ShippingFee,
+		TotalAmount:     dbOrder.TotalAmount,
+		DiscountID:      utils.NullInt32ToInt32Ptr(dbOrder.DiscountID),
+		Status:          dbOrder.Status,
+		Remark:          utils.NullStringToStringPtr(dbOrder.Remark),
+		CreatedAt:       dbOrder.CreatedAt,
+		UpdatedAt:       utils.NullTimeToTimePtr(dbOrder.UpdatedAt),
 	}
 }
 
@@ -33,20 +33,20 @@ func MapDbOrdersToOrderRes(dbOrder db.Order) *OrderRes {
 	return MapDbOrderToOrderRes(dbOrder)
 }
 
-func MapCreateOrderInputToParams(in *CreateOrderInput, orderNumber string) db.CreateOrderParams {
+func MapCreateOrderInputToParams(in *CreateOrderInput, orderNumber string, orderStatus db.OrderStatus) db.CreateOrderParams {
 	return db.CreateOrderParams{
-		OrderNumber:         orderNumber,
-		CustomerID:          utils.Int32PtrToNullInt32(in.CustomerID),
-		Channel:             db.OrderChannel(in.Channel),
-		PlacedByAdminUserID: utils.Int32PtrToNullInt32(in.PlacedByAdminUserID),
-		CartID:              utils.Int32PtrToNullInt32(in.CartID),
-		Subtotal:            in.Subtotal,
-		DiscountAmount:      in.DiscountAmount,
-		ShippingFee:         in.ShippingFee,
-		TotalAmount:         in.TotalAmount,
-		DiscountID:          utils.Int32PtrToNullInt32(in.DiscountID),
-		Status:              db.OrderStatusPending,
-		Remark:              utils.StringPtrToNullString(in.Remark),
+		OrderNumber:     orderNumber,
+		CustomerID:      utils.Int32PtrToNullInt32(in.CustomerID),
+		Channel:         db.OrderChannel(in.Channel),
+		PlacedByAdminID: utils.Int32PtrToNullInt32(in.PlacedByAdminID),
+		CartID:          utils.Int32PtrToNullInt32(in.CartID),
+		Subtotal:        in.Subtotal,
+		DiscountAmount:  in.DiscountAmount,
+		ShippingFee:     in.ShippingFee,
+		TotalAmount:     in.TotalAmount,
+		DiscountID:      utils.Int32PtrToNullInt32(in.DiscountID),
+		Status:          orderStatus,
+		Remark:          utils.StringPtrToNullString(in.Remark),
 	}
 }
 

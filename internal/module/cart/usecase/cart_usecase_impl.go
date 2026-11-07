@@ -59,7 +59,6 @@ func (u *cartUsecase) AddItem(ctx context.Context, customerID int32, req *entity
 	err := u.txManager.WithinTransaction(ctx, func(ctx context.Context) error {
 		// หา active cart ของลูกค้า ถ้ายังไม่มี (ลูกค้าใหม่ หรือเพิ่ง checkout) ให้สร้างให้
 		// statement นี้ล็อกแถว cart ไว้จนจบ tx ด้วย: AddItem ของ cart เดียวกันจึงเข้าคิวทีละ request
-		// และชนกับ MarkCartCheckedOut ของ createOrder ได้อย่างปลอดภัย (ล็อกแถว cart เหมือนกัน)
 		id, err := u.repo.GetOrCreateActiveCartID(ctx, customerID)
 		if err != nil {
 			return helper.MapDBErrorToAPIError(err, "Cart")

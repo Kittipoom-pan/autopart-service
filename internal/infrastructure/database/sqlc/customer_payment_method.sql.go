@@ -14,18 +14,18 @@ const clearDefaultCustomerPaymentMethods = `-- name: ClearDefaultCustomerPayment
 UPDATE customer_payment_method
 SET
     is_default = 0,
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE customer_id = ?
   AND is_default = 1
 `
 
 type ClearDefaultCustomerPaymentMethodsParams struct {
-	UpdatedBy  sql.NullInt32
-	CustomerID int32
+	UpdatedByAdminID sql.NullInt32
+	CustomerID       int32
 }
 
 func (q *Queries) ClearDefaultCustomerPaymentMethods(ctx context.Context, arg ClearDefaultCustomerPaymentMethodsParams) error {
-	_, err := q.db.ExecContext(ctx, clearDefaultCustomerPaymentMethods, arg.UpdatedBy, arg.CustomerID)
+	_, err := q.db.ExecContext(ctx, clearDefaultCustomerPaymentMethods, arg.UpdatedByAdminID, arg.CustomerID)
 	return err
 }
 
@@ -36,7 +36,7 @@ INSERT INTO customer_payment_method (
     payment_method_type_id,
     card_token,
     is_default,
-    created_by
+    created_by_admin_id
 ) VALUES (
     ?, ?, ?, ?, ?, ?
 )
@@ -48,7 +48,7 @@ type CreateCustomerPaymentMethodParams struct {
 	PaymentMethodTypeID int32
 	CardToken           sql.NullString
 	IsDefault           interface{}
-	CreatedBy           sql.NullInt32
+	CreatedByAdminID    sql.NullInt32
 }
 
 func (q *Queries) CreateCustomerPaymentMethod(ctx context.Context, arg CreateCustomerPaymentMethodParams) (sql.Result, error) {
@@ -58,7 +58,7 @@ func (q *Queries) CreateCustomerPaymentMethod(ctx context.Context, arg CreateCus
 		arg.PaymentMethodTypeID,
 		arg.CardToken,
 		arg.IsDefault,
-		arg.CreatedBy,
+		arg.CreatedByAdminID,
 	)
 }
 
@@ -87,9 +87,9 @@ SELECT
     card_token,
     is_default,
     created_at,
-    created_by,
+    created_by_admin_id,
     updated_at,
-    updated_by
+    updated_by_admin_id
 FROM customer_payment_method
 WHERE customer_payment_method_id = ?
   AND customer_id = ?
@@ -112,9 +112,9 @@ func (q *Queries) GetCustomerPaymentMethodByID(ctx context.Context, arg GetCusto
 		&i.CardToken,
 		&i.IsDefault,
 		&i.CreatedAt,
-		&i.CreatedBy,
+		&i.CreatedByAdminID,
 		&i.UpdatedAt,
-		&i.UpdatedBy,
+		&i.UpdatedByAdminID,
 	)
 	return i, err
 }
@@ -128,9 +128,9 @@ SELECT
     card_token,
     is_default,
     created_at,
-    created_by,
+    created_by_admin_id,
     updated_at,
-    updated_by
+    updated_by_admin_id
 FROM customer_payment_method
 WHERE customer_id = ?
 ORDER BY is_default DESC, customer_payment_method_id DESC
@@ -153,9 +153,9 @@ func (q *Queries) GetCustomerPaymentMethods(ctx context.Context, customerID int3
 			&i.CardToken,
 			&i.IsDefault,
 			&i.CreatedAt,
-			&i.CreatedBy,
+			&i.CreatedByAdminID,
 			&i.UpdatedAt,
-			&i.UpdatedBy,
+			&i.UpdatedByAdminID,
 		); err != nil {
 			return nil, err
 		}
@@ -174,19 +174,19 @@ const setDefaultCustomerPaymentMethod = `-- name: SetDefaultCustomerPaymentMetho
 UPDATE customer_payment_method
 SET
     is_default = 1,
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE customer_payment_method_id = ?
   AND customer_id = ?
 `
 
 type SetDefaultCustomerPaymentMethodParams struct {
-	UpdatedBy               sql.NullInt32
+	UpdatedByAdminID        sql.NullInt32
 	CustomerPaymentMethodID int32
 	CustomerID              int32
 }
 
 func (q *Queries) SetDefaultCustomerPaymentMethod(ctx context.Context, arg SetDefaultCustomerPaymentMethodParams) error {
-	_, err := q.db.ExecContext(ctx, setDefaultCustomerPaymentMethod, arg.UpdatedBy, arg.CustomerPaymentMethodID, arg.CustomerID)
+	_, err := q.db.ExecContext(ctx, setDefaultCustomerPaymentMethod, arg.UpdatedByAdminID, arg.CustomerPaymentMethodID, arg.CustomerID)
 	return err
 }
 
@@ -196,7 +196,7 @@ SET
     account_name = ?,
     payment_method_type_id = ?,
     card_token = ?,
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE customer_payment_method_id = ?
   AND customer_id = ?
 `
@@ -205,7 +205,7 @@ type UpdateCustomerPaymentMethodParams struct {
 	AccountName             sql.NullString
 	PaymentMethodTypeID     int32
 	CardToken               sql.NullString
-	UpdatedBy               sql.NullInt32
+	UpdatedByAdminID        sql.NullInt32
 	CustomerPaymentMethodID int32
 	CustomerID              int32
 }
@@ -215,7 +215,7 @@ func (q *Queries) UpdateCustomerPaymentMethod(ctx context.Context, arg UpdateCus
 		arg.AccountName,
 		arg.PaymentMethodTypeID,
 		arg.CardToken,
-		arg.UpdatedBy,
+		arg.UpdatedByAdminID,
 		arg.CustomerPaymentMethodID,
 		arg.CustomerID,
 	)

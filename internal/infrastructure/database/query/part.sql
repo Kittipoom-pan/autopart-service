@@ -99,7 +99,7 @@ INSERT INTO part (
     weight_g,
     is_active,
     created_at,
-    created_by
+    created_by_admin_id
 )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?);
 
@@ -115,19 +115,19 @@ UPDATE part SET
     weight_g = ?,
     is_active = ?,
     updated_at = ?,
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE part_id = ? AND is_active = 1;
 
 -- name: UpdatePartStockByID :execresult
 UPDATE part SET
     quantity = ?,
     updated_at = ?,
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE part_id = ? AND is_active = 1;
 
 -- name: DeletePartByID :execresult
 UPDATE part SET
     is_active = 0,
     updated_at = ?,
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE part_id = ? AND is_active = 1;

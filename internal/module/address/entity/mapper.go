@@ -47,29 +47,29 @@ func MapDbAddressesToAddressResList(dbAddrs []db.ListAddressesByCustomerIDRow) [
 
 func MapCreateAddressReqToParams(req *CreateAddressReq, customerID int32, createdBy *int32) db.CreateAddressParams {
 	return db.CreateAddressParams{
-		CustomerID:    customerID,
-		Title:         utils.StringPtrToNullString(req.Title),
-		RecipientName: req.RecipientName,
-		AddressLine:   req.AddressLine,
-		SubdistrictID: req.SubdistrictID,
-		PhoneNumber:   req.PhoneNumber,
-		IsDefault:     req.IsDefault,
-		CreatedAt:     utils.NowUTC(),
-		CreatedBy:     utils.Int32PtrToNullInt32(createdBy),
+		CustomerID:       customerID,
+		Title:            utils.StringPtrToNullString(req.Title),
+		RecipientName:    req.RecipientName,
+		AddressLine:      req.AddressLine,
+		SubdistrictID:    req.SubdistrictID,
+		PhoneNumber:      req.PhoneNumber,
+		IsDefault:        req.IsDefault,
+		CreatedAt:        utils.NowUTC(),
+		CreatedByAdminID: utils.Int32PtrToNullInt32(createdBy),
 	}
 }
 
 func MapUpdateAddressReqToParams(req *UpdateAddressReq, addressID int32, customerID int32, updatedBy *int32) db.UpdateAddressParams {
 	return db.UpdateAddressParams{
-		Title:         utils.StringPtrToNullString(req.Title),
-		RecipientName: req.RecipientName,
-		AddressLine:   req.AddressLine,
-		SubdistrictID: req.SubdistrictID,
-		PhoneNumber:   req.PhoneNumber,
-		IsDefault:     false,
-		UpdatedAt:     utils.NullTimeNow(),
-		UpdatedBy:     utils.Int32PtrToNullInt32(updatedBy),
-		AddressID:     addressID,
-		CustomerID:    customerID,
+		Title:            utils.StringPtrToNullString(req.Title),
+		RecipientName:    req.RecipientName,
+		AddressLine:      req.AddressLine,
+		SubdistrictID:    req.SubdistrictID,
+		PhoneNumber:      req.PhoneNumber,
+		IsDefault:        false,
+		UpdatedAt:        utils.NullTimeNow(),
+		UpdatedByAdminID: utils.Int32PtrToNullInt32(updatedBy),
+		AddressID:        addressID,
+		CustomerID:       customerID,
 	}
 }

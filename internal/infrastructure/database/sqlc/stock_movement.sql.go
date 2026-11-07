@@ -19,20 +19,20 @@ INSERT INTO stock_movement (
     reason,
     order_id,
     remark,
-    created_by
+    created_by_admin_id
 )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateStockMovementParams struct {
-	PartID         int32
-	QuantityChange int32
-	Price          int32
-	EventType      StockMovementEventType
-	Reason         StockMovementReason
-	OrderID        sql.NullInt64
-	Remark         sql.NullString
-	CreatedBy      sql.NullInt32
+	PartID           int32
+	QuantityChange   int32
+	Price            int32
+	EventType        StockMovementEventType
+	Reason           StockMovementReason
+	OrderID          sql.NullInt64
+	Remark           sql.NullString
+	CreatedByAdminID sql.NullInt32
 }
 
 func (q *Queries) CreateStockMovement(ctx context.Context, arg CreateStockMovementParams) (sql.Result, error) {
@@ -44,7 +44,7 @@ func (q *Queries) CreateStockMovement(ctx context.Context, arg CreateStockMoveme
 		arg.Reason,
 		arg.OrderID,
 		arg.Remark,
-		arg.CreatedBy,
+		arg.CreatedByAdminID,
 	)
 }
 
@@ -53,22 +53,22 @@ UPDATE part
 SET
     quantity = quantity - ?,
     updated_at = NOW(),
-    updated_by = ?
+    updated_by_admin_id = ?
 WHERE part_id = ?
   AND is_active = 1
   AND quantity >= ?
 `
 
 type DeductPartStockParams struct {
-	Quantity  int32
-	UpdatedBy sql.NullInt32
-	PartID    int32
+	Quantity         int32
+	UpdatedByAdminID sql.NullInt32
+	PartID           int32
 }
 
 func (q *Queries) DeductPartStock(ctx context.Context, arg DeductPartStockParams) (sql.Result, error) {
 	return q.db.ExecContext(ctx, deductPartStock,
 		arg.Quantity,
-		arg.UpdatedBy,
+		arg.UpdatedByAdminID,
 		arg.PartID,
 		arg.Quantity,
 	)

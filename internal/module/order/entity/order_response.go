@@ -7,23 +7,23 @@ import (
 )
 
 type OrderRes struct {
-	OrderID             int64                    `json:"order_id"`
-	OrderNumber         string                   `json:"order_number"`
-	CustomerID          *int32                   `json:"customer_id,omitempty"`
-	Channel             db.OrderChannel          `json:"channel"`
-	PlacedByAdminUserID *int32                   `json:"placed_by_admin_user_id,omitempty"`
-	CartID              *int32                   `json:"cart_id,omitempty"`
-	Subtotal            int32                    `json:"subtotal"`
-	DiscountAmount      int32                    `json:"discount_amount"`
-	ShippingFee         int32                    `json:"shipping_fee"`
-	TotalAmount         int32                    `json:"total_amount"`
-	DiscountID          *int32                   `json:"discount_id,omitempty"`
-	Status              db.OrderStatus           `json:"status"`
-	Remark              *string                  `json:"remark,omitempty"`
-	CreatedAt           time.Time                `json:"created_at"`
-	UpdatedAt           *time.Time               `json:"updated_at,omitempty"`
-	Items               []OrderItemRes           `json:"items,omitempty"`
-	ShippingAddress     *OrderShippingAddressRes `json:"shipping_address,omitempty"`
+	OrderID         int64                    `json:"order_id"`
+	OrderNumber     string                   `json:"order_number"`
+	CustomerID      *int32                   `json:"customer_id,omitempty"`
+	Channel         db.OrderChannel          `json:"channel"`
+	PlacedByAdminID *int32                   `json:"placed_by_admin_id,omitempty"`
+	CartID          *int32                   `json:"cart_id,omitempty"`
+	Subtotal        int32                    `json:"subtotal"`
+	DiscountAmount  int32                    `json:"discount_amount"`
+	ShippingFee     int32                    `json:"shipping_fee"`
+	TotalAmount     int32                    `json:"total_amount"`
+	DiscountID      *int32                   `json:"discount_id,omitempty"`
+	Status          db.OrderStatus           `json:"status"`
+	Remark          *string                  `json:"remark,omitempty"`
+	CreatedAt       time.Time                `json:"created_at"`
+	UpdatedAt       *time.Time               `json:"updated_at,omitempty"`
+	Items           []OrderItemRes           `json:"items,omitempty"`
+	ShippingAddress *OrderShippingAddressRes `json:"shipping_address,omitempty"`
 }
 
 type OrderItemRes struct {

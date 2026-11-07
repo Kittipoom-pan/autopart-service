@@ -6,6 +6,7 @@ import (
 	"github.com/Kittipoom-pan/autopart-service/internal/auth"
 	"github.com/Kittipoom-pan/autopart-service/internal/common"
 	"github.com/Kittipoom-pan/autopart-service/internal/helper"
+	"github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/entity"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/repository"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer/usecase/validation"
@@ -14,14 +15,16 @@ import (
 )
 
 type customerUsecase struct {
-	repo   repository.CustomerRepository
-	logger zerolog.Logger
+	repo      repository.CustomerRepository
+	txManager database.TxManager
+	logger    zerolog.Logger
 }
 
-func NewCustomerUsecase(repo repository.CustomerRepository, logger zerolog.Logger) CustomerUsecase {
+func NewCustomerUsecase(repo repository.CustomerRepository, txManager database.TxManager, logger zerolog.Logger) CustomerUsecase {
 	return &customerUsecase{
-		repo:   repo,
-		logger: logger,
+		repo:      repo,
+		txManager: txManager,
+		logger:    logger,
 	}
 }
 
@@ -82,7 +85,10 @@ func (u *customerUsecase) UpdateCustomer(ctx context.Context, customerID int, cu
 }
 
 func (u *customerUsecase) DeleteCustomer(ctx context.Context, id int, userId int) error {
-	if err := u.repo.DeleteCustomer(ctx, id, userId); err != nil {
+	err := u.txManager.WithinTransaction(ctx, func(ctx context.Context) error {
+		return u.repo.DeleteCustomer(ctx, id, userId)
+	})
+	if err != nil {
 		return helper.MapDBErrorToAPIError(err, "Customer")
 	}
 

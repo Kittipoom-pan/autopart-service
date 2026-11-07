@@ -10,6 +10,7 @@ import (
 	"github.com/Kittipoom-pan/autopart-service/internal/common"
 	"github.com/Kittipoom-pan/autopart-service/internal/helper"
 	"github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database"
+	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"
 	addressRepository "github.com/Kittipoom-pan/autopart-service/internal/module/address/repository"
 	cartRepository "github.com/Kittipoom-pan/autopart-service/internal/module/cart/repository"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/order/entity"
@@ -160,8 +161,13 @@ func (u *orderUsecase) CreateOrderByCustomer(ctx context.Context, req *entity.Cu
 }
 
 func (u *orderUsecase) CreateOrderByAdmin(ctx context.Context, req *entity.AdminCreateOrderReq, adminID int32) (string, error) {
-	if !entity.OrderChannel(req.Channel).IsValidOrderChannel() {
+	channel := entity.OrderChannel(req.Channel)
+	if !channel.IsValidOrderChannel() {
 		return "", customerror.InvalidRequestData(map[string]string{"channel": "invalid channel"})
+	}
+	// ทุกช่องทางต้องระบุลูกค้า ยกเว้นหน้าร้าน
+	if channel != entity.OrderChannelWalkIn && req.CustomerID == nil {
+		return "", customerror.InvalidRequestData(map[string]string{"customer_id": "required for this channel"})
 	}
 	if req.ShippingAddress == nil {
 		return "", customerror.InvalidRequestData(map[string]string{"shipping_address": "required"})
@@ -172,7 +178,6 @@ func (u *orderUsecase) CreateOrderByAdmin(ctx context.Context, req *entity.Admin
 		items[i] = entity.CreateOrderItemInput{PartID: it.PartID, Quantity: it.Quantity}
 	}
 
-	// หน้าบ้านส่งแค่ subdistrict_id ส่วนชื่อ/zip/province ระบบดึงจาก master table เอง
 	detail, err := u.addressRepo.GetSubdistrictDetailByID(ctx, req.ShippingAddress.SubdistrictID)
 	if err != nil {
 		return "", helper.MapDBErrorToAPIError(err, "Subdistrict")
@@ -181,7 +186,7 @@ func (u *orderUsecase) CreateOrderByAdmin(ctx context.Context, req *entity.Admin
 	return u.createOrder(ctx, &entity.CreateOrderInput{
 		CustomerID:              req.CustomerID,
 		Channel:                 req.Channel,
-		PlacedByAdminUserID:     &adminID,
+		PlacedByAdminID:         &adminID,
 		PaymentMethodTypeID:     req.PaymentMethodTypeID,
 		CustomerPaymentMethodID: req.CustomerPaymentMethodID,
 		DiscountID:              req.DiscountID,
@@ -321,6 +326,18 @@ func (u *orderUsecase) createOrder(
 		orderID int64
 	)
 
+	isWalkIn := order.Channel == entity.OrderChannelWalkIn.String()
+	isCash := order.PaymentMethodTypeID == common.MethodTypeIDCash
+
+	// ถ้าเป็น Walk-in หรือจ่ายเงินสด ให้ order เป็น completed
+	orderStatus := db.OrderStatusPending
+	if isWalkIn || isCash {
+		orderStatus = db.OrderStatusCompleted
+	}
+
+	// 3. ส่งธงบอก payment ว่าเคสนี้ต้อง completed ทันทีไหม
+	isCompletePayment := isWalkIn || isCash
+
 	err = u.txManager.WithinTransaction(ctx, func(ctx context.Context) error {
 		// ปิด cart เป็นขั้นแรก: UPDATE ... WHERE is_checkout = 0 จะล็อกแถว cart
 		// request ที่ซ้อนกันจะได้ 0 แถวและ fail ทันที ก่อนไปแตะสต็อกหรือสร้าง order
@@ -347,12 +364,12 @@ func (u *orderUsecase) createOrder(
 		order.ShippingFee = pricing.ShippingFee
 		order.TotalAmount = pricing.TotalAmount
 
-		no, err := u.generateOrderNo(ctx, utils.NowUTC())
+		orderNumber, err := u.generateOrderNo(ctx, utils.NowUTC())
 		if err != nil {
 			return err
 		}
 
-		id, err := u.repo.CreateOrder(ctx, order, no)
+		id, err := u.repo.CreateOrder(ctx, order, orderNumber, orderStatus)
 		if err != nil {
 			return helper.MapDBErrorToAPIError(err, "Order")
 		}
@@ -380,22 +397,22 @@ func (u *orderUsecase) createOrder(
 			}
 		}
 
-		if err := u.stockUsecase.DeductStockForOrder(ctx, id, stockItems, order.PlacedByAdminUserID); err != nil {
+		if err := u.stockUsecase.DeductStockForOrder(ctx, id, stockItems, order.PlacedByAdminID); err != nil {
 			return err
 		}
 
-		if err := u.paymentUsecase.CreatePendingPayment(ctx, &paymentEntity.CreatePaymentInput{
+		if err := u.paymentUsecase.CreatePayment(ctx, &paymentEntity.CreatePaymentInput{
 			OrderID:                 id,
 			Amount:                  order.TotalAmount,
 			CustomerID:              order.CustomerID,
 			PaymentMethodTypeID:     order.PaymentMethodTypeID,
 			CustomerPaymentMethodID: order.CustomerPaymentMethodID,
-			CreatedBy:               order.PlacedByAdminUserID,
-		}); err != nil {
+			CreatedBy:               order.PlacedByAdminID,
+		}, isCompletePayment); err != nil {
 			return err
 		}
 
-		orderNo = no
+		orderNo = orderNumber
 		orderID = id
 		return nil
 	})
