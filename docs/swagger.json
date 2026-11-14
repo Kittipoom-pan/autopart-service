@@ -1359,6 +1359,104 @@
                 }
             }
         },
+        "/v1/image/multiple": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "อัปโหลดรูปภาพหลายรูปในคำขอเดียว (multipart/form-data) ใช้ field \"files\" ซ้ำได้ รองรับ .jpg, .jpeg, .png, .webp รูปละไม่เกิน 5MB ระบบจะย่อความกว้างไม่เกิน 1200px และแปลงเป็น .webp",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "image"
+                ],
+                "summary": "Upload multiple images",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "file"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Image files (.jpg, .jpeg, .png, .webp) max 5MB each",
+                        "name": "files",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Reference ID",
+                        "name": "reference_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Reference type (part, customer, order, car_brand, car_model, part_brand, part_type)",
+                        "name": "reference_type",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Alternative text",
+                        "name": "alt_text",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/BaseResponse-array_ImageRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "413": {
+                        "description": "Request Entity Too Large",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/BaseErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/order": {
             "get": {
                 "security": [
@@ -1685,9 +1783,9 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "สร้างอะไหล่ใหม่ ต้องใช้ JWT",
+                "description": "สร้างอะไหล่ใหม่ พร้อมอัปโหลดรูปได้ ต้องใช้ JWT ส่งข้อมูล part เป็น JSON string ในฟิลด์ \"part\" และไฟล์รูปในฟิลด์ \"images\" (multipart/form-data)",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -1698,13 +1796,21 @@
                 "summary": "Create part",
                 "parameters": [
                     {
-                        "description": "Part data",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/PartReq"
-                        }
+                        "type": "string",
+                        "description": "Part data as JSON string",
+                        "name": "part",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "file"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Part images (.jpg, .jpeg, .png, .webp) max 5MB each",
+                        "name": "images",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -1792,8 +1898,9 @@
                         "BearerAuth": []
                     }
                 ],
+                "description": "อัปเดตอะไหล่ พร้อมอัปโหลดรูปได้ ต้องใช้ JWT ส่งข้อมูล part เป็น JSON string ในฟิลด์ \"part\" และไฟล์รูปในฟิลด์ \"images\" (multipart/form-data) หากส่งรูปมาจะแทนที่รูปเดิมทั้งหมด",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -1811,13 +1918,21 @@
                         "required": true
                     },
                     {
-                        "description": "Part data",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/PartReq"
-                        }
+                        "type": "string",
+                        "description": "Part data as JSON string",
+                        "name": "part",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "file"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Part images (.jpg, .jpeg, .png, .webp) max 5MB each",
+                        "name": "images",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -2523,6 +2638,21 @@
                 "result": {}
             }
         },
+        "BaseResponse-array_ImageRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "result": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ImageRes"
+                    }
+                }
+            }
+        },
         "BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_address_entity_AddressRes": {
             "type": "object",
             "properties": {
@@ -3167,44 +3297,6 @@
                 "OrderStatusCompleted"
             ]
         },
-        "PartReq": {
-            "type": "object",
-            "properties": {
-                "car_brand_id": {
-                    "type": "integer"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "part_brand_id": {
-                    "type": "integer"
-                },
-                "part_id": {
-                    "type": "integer"
-                },
-                "part_type_id": {
-                    "type": "integer"
-                },
-                "price": {
-                    "type": "integer"
-                },
-                "quantity": {
-                    "type": "integer"
-                },
-                "sku": {
-                    "type": "string"
-                },
-                "weight_g": {
-                    "type": "integer"
-                }
-            }
-        },
         "PartRes": {
             "type": "object",
             "properties": {
@@ -3215,6 +3307,9 @@
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "oem_number": {
                     "type": "string"
                 },
                 "part_brand_id": {

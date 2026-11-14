@@ -526,6 +526,7 @@ type Part struct {
 	PartTypeID       int32
 	Name             string
 	Sku              string
+	OemNumber        sql.NullString
 	Description      sql.NullString
 	Price            int32
 	Quantity         int32
@@ -549,7 +550,8 @@ type PartBrand struct {
 
 type PartType struct {
 	PartTypeID       int32
-	ParentID         sql.NullInt32
+	ParentCode       sql.NullString
+	Code             string
 	Name             string
 	Description      sql.NullString
 	CreatedAt        time.Time
@@ -606,6 +608,11 @@ type ShippingRate struct {
 	CreatedByAdminID        sql.NullInt32
 	UpdatedAt               sql.NullTime
 	UpdatedByAdminID        sql.NullInt32
+}
+
+type SkuSequence struct {
+	Prefix     string
+	LastNumber uint32
 }
 
 type StockMovement struct {

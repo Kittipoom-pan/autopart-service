@@ -1,11 +1,12 @@
 package controller
 
 import (
+	"encoding/json"
+	"mime/multipart"
 	"strconv"
 
 	"github.com/Kittipoom-pan/autopart-service/internal/auth"
 	"github.com/Kittipoom-pan/autopart-service/internal/common"
-	_ "github.com/Kittipoom-pan/autopart-service/internal/common"
 	"github.com/Kittipoom-pan/autopart-service/internal/helper"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/part/entity"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/part/usecase"
@@ -96,12 +97,13 @@ func (h *PartController) GetPartBySKU(c *fiber.Ctx) error {
 
 // CreatePart godoc
 // @Summary      Create part
-// @Description  สร้างอะไหล่ใหม่ ต้องใช้ JWT
+// @Description  สร้างอะไหล่ใหม่ พร้อมอัปโหลดรูปได้ ต้องใช้ JWT ส่งข้อมูล part เป็น JSON string ในฟิลด์ "part" และไฟล์รูปในฟิลด์ "images" (multipart/form-data)
 // @Tags         part
-// @Accept       json
+// @Accept       multipart/form-data
 // @Produce      json
 // @Security     BearerAuth
-// @Param        body  body      entity.PartReq  true  "Part data"
+// @Param        part    formData  string  true   "Part data as JSON string"
+// @Param        images  formData  []file  false  "Part images (.jpg, .jpeg, .png, .webp) max 5MB each" collectionFormat(multi)
 // @Success 201 {object} common.BaseResponse[common.IDResponse]
 // @Failure      400   {object}  common.BaseErrorResponse
 // @Failure      401   {object}  common.BaseErrorResponse
@@ -114,13 +116,19 @@ func (h *PartController) CreatePart(c *fiber.Ctx) error {
 		return helper.RespondError(c, err)
 	}
 
-	partReq := &entity.PartReq{}
-	if err := c.BodyParser(partReq); err != nil {
-		h.logger.Warn().Err(err).Msg("Failed to parse request body")
-		return helper.RespondError(c, parterror.InvalidRequestData(map[string]string{"body": "failed to parse request body"}))
+	partReq, err := parsePartForm(c)
+	if err != nil {
+		h.logger.Warn().Err(err).Msg("Failed to parse part data")
+		return helper.RespondError(c, err)
 	}
 
-	partID, err := h.usecase.CreatePart(c.UserContext(), partReq, &userID)
+	images, err := parsePartImages(c)
+	if err != nil {
+		h.logger.Warn().Err(err).Msg("Failed to parse part images")
+		return helper.RespondError(c, err)
+	}
+
+	partID, err := h.usecase.CreatePart(c.UserContext(), partReq, &userID, images)
 	if err != nil {
 		h.logger.Error().Err(err).Str("sku", partReq.SKU).Msg("Failed to create part")
 		return helper.RespondError(c, err)
@@ -132,12 +140,14 @@ func (h *PartController) CreatePart(c *fiber.Ctx) error {
 
 // UpdatePart godoc
 // @Summary      Update part
+// @Description  อัปเดตอะไหล่ พร้อมอัปโหลดรูปได้ ต้องใช้ JWT ส่งข้อมูล part เป็น JSON string ในฟิลด์ "part" และไฟล์รูปในฟิลด์ "images" (multipart/form-data) หากส่งรูปมาจะแทนที่รูปเดิมทั้งหมด
 // @Tags         part
-// @Accept       json
+// @Accept       multipart/form-data
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id    path      int             true  "Part ID"
-// @Param        body  body      entity.PartReq  true  "Part data"
+// @Param        id      path      int     true   "Part ID"
+// @Param        part    formData  string  true   "Part data as JSON string"
+// @Param        images  formData  []file  false  "Part images (.jpg, .jpeg, .png, .webp) max 5MB each" collectionFormat(multi)
 // @Success      200   {object}  common.BaseResponse[any]
 // @Failure      400   {object}  common.BaseErrorResponse
 // @Failure      401   {object}  common.BaseErrorResponse
@@ -157,13 +167,19 @@ func (h *PartController) UpdatePart(c *fiber.Ctx) error {
 		return helper.RespondError(c, parterror.InvalidRequestData(map[string]string{"id": "invalid part ID format"}))
 	}
 
-	partReq := &entity.PartReq{}
-	if err := c.BodyParser(partReq); err != nil {
-		h.logger.Warn().Err(err).Msg("Failed to parse request body")
-		return helper.RespondError(c, parterror.InvalidRequestData(map[string]string{"body": "failed to parse request body"}))
+	partReq, err := parsePartForm(c)
+	if err != nil {
+		h.logger.Warn().Err(err).Msg("Failed to parse part data")
+		return helper.RespondError(c, err)
 	}
 
-	if err := h.usecase.UpdatePart(c.UserContext(), id, partReq, userID); err != nil {
+	images, err := parsePartImages(c)
+	if err != nil {
+		h.logger.Warn().Err(err).Msg("Failed to parse part images")
+		return helper.RespondError(c, err)
+	}
+
+	if err := h.usecase.UpdatePart(c.UserContext(), id, partReq, userID, images); err != nil {
 		h.logger.Error().Err(err).Int("part_id", id).Msg("Failed to update part")
 		return helper.RespondError(c, err)
 	}
@@ -204,4 +220,27 @@ func (h *PartController) DeletePart(c *fiber.Ctx) error {
 
 	h.logger.Info().Int("part_id", id).Msg("Part deleted successfully")
 	return helper.RespondSuccess[any](c, fiber.StatusOK, nil, "Part deleted successfully")
+}
+
+func parsePartForm(c *fiber.Ctx) (*entity.PartReq, error) {
+	raw := c.FormValue("part")
+	if raw == "" {
+		return nil, parterror.InvalidRequestData(map[string]string{"part": "part data is required"})
+	}
+
+	partReq := &entity.PartReq{}
+	if err := json.Unmarshal([]byte(raw), partReq); err != nil {
+		return nil, parterror.InvalidRequestData(map[string]string{"part": "invalid part data"})
+	}
+
+	return partReq, nil
+}
+
+func parsePartImages(c *fiber.Ctx) ([]*multipart.FileHeader, error) {
+	form, err := c.MultipartForm()
+	if err != nil {
+		return nil, parterror.InvalidRequestData(map[string]string{"images": "invalid multipart form data"})
+	}
+
+	return form.File["images"], nil
 }

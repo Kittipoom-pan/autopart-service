@@ -51,6 +51,17 @@ func (q *Queries) GetCarBrand(ctx context.Context, carBrandID int32) (GetCarBran
 	return i, err
 }
 
+const getCarBrandName = `-- name: GetCarBrandName :one
+SELECT name FROM car_brand WHERE car_brand_id = ?
+`
+
+func (q *Queries) GetCarBrandName(ctx context.Context, carBrandID int32) (string, error) {
+	row := q.db.QueryRowContext(ctx, getCarBrandName, carBrandID)
+	var name string
+	err := row.Scan(&name)
+	return name, err
+}
+
 const listCarBrands = `-- name: ListCarBrands :many
 SELECT car_brand_id, name, description
 FROM car_brand

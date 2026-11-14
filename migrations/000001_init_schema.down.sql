@@ -1,6 +1,5 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
-
 -- 1. Image
 DROP TABLE IF EXISTS image;
 
@@ -37,6 +36,7 @@ DROP TABLE IF EXISTS customer_token;
 DROP TABLE IF EXISTS admin_token;
 
 -- 9. Part
+DROP TABLE IF EXISTS sku_sequence;
 DROP TABLE IF EXISTS part;
 
 -- 10. Car model

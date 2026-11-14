@@ -79,7 +79,7 @@ SET first_name = NULL,
     phone_number = NULL,
     birth_date = NULL,
     is_active = 0,
-    deleted_at = CURRENT_TIMESTAMP,
+    deleted_at = ?,
     updated_by_admin_id = ?
 WHERE customer_id = ? AND is_active = 1;
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database"
 	dberr "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/dberror"
 	db "github.com/Kittipoom-pan/autopart-service/internal/infrastructure/database/sqlc"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/part/entity"
@@ -22,8 +23,17 @@ func NewPartRepository(queries *db.Queries, logger zerolog.Logger) PartRepositor
 	}
 }
 
+// getQueries คืน Queries ที่ผูกกับ transaction ใน ctx (ถ้ามี) เพื่อให้ทุก operation
+// ทำงานภายใต้ transaction เดียวกันที่ usecase เป็นผู้เปิด
+func (r *partRepository) getQueries(ctx context.Context) *db.Queries {
+	if tx, ok := database.GetTx(ctx); ok {
+		return r.queries.WithTx(tx)
+	}
+	return r.queries
+}
+
 func (r *partRepository) GetPartByID(ctx context.Context, id int) (*entity.PartRes, error) {
-	part, err := r.queries.GetPartByID(ctx, int32(id))
+	part, err := r.getQueries(ctx).GetPartByID(ctx, int32(id))
 	if err != nil {
 		if err == sql.ErrNoRows {
 			r.logger.Warn().Int("part_id", id).Msg("part not found in database")
@@ -52,7 +62,7 @@ func (r *partRepository) GetPartsByIDs(ctx context.Context, ids []int32) (map[in
 		}
 	}
 
-	rows, err := r.queries.GetPartsByIDs(ctx, unique)
+	rows, err := r.getQueries(ctx).GetPartsByIDs(ctx, unique)
 	if err != nil {
 		r.logger.Error().Err(err).Int("count", len(unique)).Msg("failed to get parts by ids")
 		return nil, dberr.NewDBError(dberr.ErrDatabaseInternal, err.Error())
@@ -65,7 +75,7 @@ func (r *partRepository) GetPartsByIDs(ctx context.Context, ids []int32) (map[in
 }
 
 func (r *partRepository) GetPartBySKU(ctx context.Context, sku string) (*entity.PartRes, error) {
-	part, err := r.queries.GetPartBySKU(ctx, sku)
+	part, err := r.getQueries(ctx).GetPartBySKU(ctx, sku)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			r.logger.Warn().Str("sku", sku).Msg("part not found in database")
@@ -80,7 +90,7 @@ func (r *partRepository) GetPartBySKU(ctx context.Context, sku string) (*entity.
 
 func (r *partRepository) CreatePart(ctx context.Context, part *entity.PartReq, createdBy *int) (int64, error) {
 	params := entity.MapPartToPartParam(part, createdBy)
-	result, err := r.queries.CreatePart(ctx, params)
+	result, err := r.getQueries(ctx).CreatePart(ctx, params)
 	if err != nil {
 		dbErr := dberr.HandleMySQLError(err)
 		if dberr.IsDuplicateKey(dbErr) {
@@ -108,7 +118,7 @@ func (r *partRepository) CreatePart(ctx context.Context, part *entity.PartReq, c
 }
 
 func (r *partRepository) GetAllParts(ctx context.Context) ([]*entity.PartRes, error) {
-	parts, err := r.queries.ListParts(ctx)
+	parts, err := r.getQueries(ctx).ListParts(ctx)
 	if err != nil {
 		r.logger.Error().Err(err).Msg("failed to list parts from database")
 		return nil, dberr.NewDBError(dberr.ErrDatabaseInternal, err.Error())
@@ -123,7 +133,7 @@ func (r *partRepository) GetAllParts(ctx context.Context) ([]*entity.PartRes, er
 
 func (r *partRepository) UpdatePart(ctx context.Context, id int, part *entity.PartReq, updatedBy int) error {
 	params := entity.MapUpdatePartParams(id, part, updatedBy)
-	result, err := r.queries.UpdatePartByID(ctx, params)
+	result, err := r.getQueries(ctx).UpdatePartByID(ctx, params)
 	if err != nil {
 		dbErr := dberr.HandleMySQLError(err)
 		if dberr.IsDuplicateKey(dbErr) {
@@ -157,7 +167,7 @@ func (r *partRepository) UpdatePart(ctx context.Context, id int, part *entity.Pa
 
 func (r *partRepository) DeletePart(ctx context.Context, id int, updatedBy int) error {
 	params := entity.MapUpdatePartIsActiveParams(id, false, updatedBy)
-	result, err := r.queries.DeletePartByID(ctx, params)
+	result, err := r.getQueries(ctx).DeletePartByID(ctx, params)
 	if err != nil {
 		r.logger.Error().Err(err).Int("part_id", id).Msg("failed to delete part in database")
 		return dberr.NewDBError(dberr.ErrDatabaseInternal, err.Error())
@@ -174,4 +184,58 @@ func (r *partRepository) DeletePart(ctx context.Context, id int, updatedBy int) 
 		return dberr.NewDBError(dberr.ErrRecordNotFound, "part not found")
 	}
 	return nil
+}
+
+func (r *partRepository) GetPartTypeCode(ctx context.Context, id int32) (string, error) {
+	code, err := r.getQueries(ctx).GetPartTypeCode(ctx, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", dberr.NewDBError(dberr.ErrRecordNotFound, "part type not found")
+		}
+		r.logger.Error().Err(err).Int32("part_type_id", id).Msg("failed to get part type code")
+		return "", dberr.NewDBError(dberr.ErrDatabaseInternal, err.Error())
+	}
+	return code, nil
+}
+
+func (r *partRepository) GetPartBrandName(ctx context.Context, id int32) (string, error) {
+	name, err := r.getQueries(ctx).GetPartBrandName(ctx, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", dberr.NewDBError(dberr.ErrRecordNotFound, "part brand not found")
+		}
+		r.logger.Error().Err(err).Int32("part_brand_id", id).Msg("failed to get part brand name")
+		return "", dberr.NewDBError(dberr.ErrDatabaseInternal, err.Error())
+	}
+	return name, nil
+}
+
+func (r *partRepository) GetCarBrandName(ctx context.Context, id int32) (string, error) {
+	name, err := r.getQueries(ctx).GetCarBrandName(ctx, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", dberr.NewDBError(dberr.ErrRecordNotFound, "car brand not found")
+		}
+		r.logger.Error().Err(err).Int32("car_brand_id", id).Msg("failed to get car brand name")
+		return "", dberr.NewDBError(dberr.ErrDatabaseInternal, err.Error())
+	}
+	return name, nil
+}
+
+func (r *partRepository) NextSKUNumber(ctx context.Context, prefix string) (uint32, error) {
+	q := r.getQueries(ctx)
+
+	res, err := q.NextSkuSequence(ctx, prefix)
+	if err != nil {
+		r.logger.Error().Err(err).Str("prefix", prefix).Msg("failed to upsert sku sequence")
+		return 0, dberr.HandleMySQLError(err)
+	}
+
+	id, err := res.LastInsertId()
+	if err != nil {
+		r.logger.Error().Err(err).Str("prefix", prefix).Msg("failed to read sku sequence")
+		return 0, dberr.NewDBError(dberr.ErrDatabaseInternal, err.Error())
+	}
+
+	return uint32(id), nil
 }

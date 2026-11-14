@@ -1,6 +1,8 @@
 package server
 
 import (
+	"os"
+
 	"github.com/Kittipoom-pan/autopart-service/internal/middleware"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/address"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/admin"
@@ -8,6 +10,7 @@ import (
 	"github.com/Kittipoom-pan/autopart-service/internal/module/checkout"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/customer_payment_method"
+	"github.com/Kittipoom-pan/autopart-service/internal/module/image"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/order"
 	"github.com/Kittipoom-pan/autopart-service/internal/module/part"
 	"github.com/gofiber/fiber/v2"
@@ -15,6 +18,12 @@ import (
 )
 
 func (s *Server) MapHandlers() error {
+	if err := os.MkdirAll(s.Cfg.Upload.Dir, 0o755); err != nil {
+		s.Logger.Error().Err(err).Str("dir", s.Cfg.Upload.Dir).Msg("Failed to create upload directory")
+		return err
+	}
+	s.App.Static(s.Cfg.Upload.BaseURL, s.Cfg.Upload.Dir)
+
 	v1 := s.App.Group("/v1")
 
 	customerPublic := v1.Group("/customer")
@@ -40,7 +49,7 @@ func (s *Server) MapHandlers() error {
 
 	partPrivate := v1.Group("/part")
 	part.SetupPrivateRoutes(
-		partPrivate, s.Db, s.Cfg,
+		partPrivate, s.Conn, s.Cfg,
 		middleware.JWTMiddleware(s.Cfg), s.Logger,
 	)
 
@@ -82,6 +91,12 @@ func (s *Server) MapHandlers() error {
 	checkoutPrivate := v1.Group("/checkout")
 	checkout.SetupPrivateRoutes(
 		checkoutPrivate, s.Conn, s.Db, s.Cfg,
+		middleware.JWTMiddleware(s.Cfg), s.Logger,
+	)
+
+	imagePrivate := v1.Group("/image")
+	image.SetupPrivateRoutes(
+		imagePrivate, s.Conn, s.Cfg,
 		middleware.JWTMiddleware(s.Cfg), s.Logger,
 	)
 

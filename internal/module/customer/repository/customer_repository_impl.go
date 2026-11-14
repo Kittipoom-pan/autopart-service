@@ -125,9 +125,11 @@ func (r *customerRepository) DeleteCustomer(ctx context.Context, customerID int,
 	}
 
 	result, err := q.DeleteCustomer(ctx, db.DeleteCustomerParams{
+		DeletedAt:        utils.TimeToNullTime(utils.NowUTC()),
 		UpdatedByAdminID: utils.IntToNullInt32(updatedBy),
 		CustomerID:       int32(customerID),
 	})
+
 	if err != nil {
 		r.logger.Error().Err(err).Int("customer_id", customerID).Msg("failed to anonymize customer")
 		return dberror.NewDBError(dberror.ErrDatabaseInternal, err.Error())

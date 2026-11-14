@@ -7,6 +7,7 @@ type PartRes struct {
 	PartTypeID  int32   `json:"part_type_id" db:"part_type_id"`
 	Name        string  `json:"name" db:"name"`
 	SKU         string  `json:"sku" db:"sku"`
+	OemNumber   *string `json:"oem_number,omitempty" db:"oem_number"`
 	Description *string `json:"description,omitempty" db:"description"`
 	Price       int32   `json:"price" db:"price"`
 	Quantity    int32   `json:"quantity" db:"quantity"`

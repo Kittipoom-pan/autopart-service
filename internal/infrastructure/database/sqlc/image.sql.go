@@ -8,6 +8,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const addImage = `-- name: AddImage :execresult
@@ -23,7 +24,7 @@ INSERT INTO image (
     created_by_admin_id
 )
 VALUES (
-    ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?
 )
 `
 
@@ -35,6 +36,7 @@ type AddImageParams struct {
 	AltText          string
 	IsPrimary        interface{}
 	SortImage        int32
+	CreatedAt        time.Time
 	CreatedByAdminID sql.NullInt32
 }
 
@@ -47,6 +49,7 @@ func (q *Queries) AddImage(ctx context.Context, arg AddImageParams) (sql.Result,
 		arg.AltText,
 		arg.IsPrimary,
 		arg.SortImage,
+		arg.CreatedAt,
 		arg.CreatedByAdminID,
 	)
 }

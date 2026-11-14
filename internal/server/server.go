@@ -26,12 +26,21 @@ func NewServer(
 	queries *db.Queries,
 ) *Server {
 	return &Server{
-		App:    fiber.New(),
+		App: fiber.New(fiber.Config{
+			BodyLimit: uploadBodyLimit(cfg),
+		}),
 		Cfg:    cfg,
 		Db:     queries,
 		Conn:   conn,
 		Logger: log.Logger,
 	}
+}
+
+// uploadBodyLimit allows a full batch of uploads plus multipart overhead.
+func uploadBodyLimit(cfg *config.Config) int {
+	const overheadBytes = 1 * 1024 * 1024
+
+	return int(cfg.Upload.MaxSizeBytes)*cfg.Upload.MaxFiles + overheadBytes
 }
 
 func (s *Server) Start() {

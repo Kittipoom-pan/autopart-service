@@ -4,6 +4,7 @@ SELECT
     part_brand_id,
     part_type_id,
     sku,
+    oem_number,
     name,
     description,
     price,
@@ -20,6 +21,7 @@ SELECT
     part_brand_id,
     part_type_id,
     sku,
+    oem_number,
     name,
     description,
     price,
@@ -36,6 +38,7 @@ SELECT
     part_brand_id,
     part_type_id,
     sku,
+    oem_number,
     name,
     description,
     price,
@@ -52,6 +55,7 @@ SELECT
     part_brand_id,
     part_type_id,
     sku,
+    oem_number,
     name,
     description,
     price,
@@ -92,6 +96,7 @@ INSERT INTO part (
     part_brand_id,
     part_type_id,
     sku,
+    oem_number,
     name,
     description,
     price,
@@ -101,11 +106,12 @@ INSERT INTO part (
     created_at,
     created_by_admin_id
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?);
 
 -- name: UpdatePartByID :execresult
 UPDATE part SET
     sku = ?,
+    oem_number = ?,
     name = ?,
     description = ?,
     part_type_id = ?,

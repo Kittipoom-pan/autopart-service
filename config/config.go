@@ -40,6 +40,7 @@ type Upload struct {
 	BaseURL      string
 	MaxSizeBytes int64
 	MaxWidth     int
+	MaxFiles     int
 }
 
 var (
@@ -76,6 +77,7 @@ func LoadConfigs() (*Config, error) {
 				BaseURL:      utils.GetEnv("UPLOAD_BASE_URL", "/uploads"),
 				MaxSizeBytes: int64(utils.GetEnvAsInt("UPLOAD_MAX_SIZE_MB", 5)) * 1024 * 1024,
 				MaxWidth:     utils.GetEnvAsInt("UPLOAD_MAX_WIDTH", 1200),
+				MaxFiles:     utils.GetEnvAsInt("UPLOAD_MAX_FILES", 10),
 			},
 		}
 

@@ -43,7 +43,7 @@ INSERT INTO image (
     created_by_admin_id
 )
 VALUES (
-    ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?
 );
 
 -- name: UpdateImage :execresult

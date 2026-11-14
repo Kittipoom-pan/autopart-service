@@ -17,6 +17,7 @@ INSERT INTO part (
     part_brand_id,
     part_type_id,
     sku,
+    oem_number,
     name,
     description,
     price,
@@ -26,13 +27,14 @@ INSERT INTO part (
     created_at,
     created_by_admin_id
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
 `
 
 type CreatePartParams struct {
 	PartBrandID      int32
 	PartTypeID       int32
 	Sku              string
+	OemNumber        sql.NullString
 	Name             string
 	Description      sql.NullString
 	Price            int32
@@ -47,6 +49,7 @@ func (q *Queries) CreatePart(ctx context.Context, arg CreatePartParams) (sql.Res
 		arg.PartBrandID,
 		arg.PartTypeID,
 		arg.Sku,
+		arg.OemNumber,
 		arg.Name,
 		arg.Description,
 		arg.Price,
@@ -81,6 +84,7 @@ SELECT
     part_brand_id,
     part_type_id,
     sku,
+    oem_number,
     name,
     description,
     price,
@@ -97,6 +101,7 @@ type GetPartByIDRow struct {
 	PartBrandID int32
 	PartTypeID  int32
 	Sku         string
+	OemNumber   sql.NullString
 	Name        string
 	Description sql.NullString
 	Price       int32
@@ -114,6 +119,7 @@ func (q *Queries) GetPartByID(ctx context.Context, partID int32) (GetPartByIDRow
 		&i.PartBrandID,
 		&i.PartTypeID,
 		&i.Sku,
+		&i.OemNumber,
 		&i.Name,
 		&i.Description,
 		&i.Price,
@@ -131,6 +137,7 @@ SELECT
     part_brand_id,
     part_type_id,
     sku,
+    oem_number,
     name,
     description,
     price,
@@ -147,6 +154,7 @@ type GetPartBySKURow struct {
 	PartBrandID int32
 	PartTypeID  int32
 	Sku         string
+	OemNumber   sql.NullString
 	Name        string
 	Description sql.NullString
 	Price       int32
@@ -164,6 +172,7 @@ func (q *Queries) GetPartBySKU(ctx context.Context, sku string) (GetPartBySKURow
 		&i.PartBrandID,
 		&i.PartTypeID,
 		&i.Sku,
+		&i.OemNumber,
 		&i.Name,
 		&i.Description,
 		&i.Price,
@@ -263,6 +272,7 @@ SELECT
     part_brand_id,
     part_type_id,
     sku,
+    oem_number,
     name,
     description,
     price,
@@ -279,6 +289,7 @@ type GetPartsByIDsRow struct {
 	PartBrandID int32
 	PartTypeID  int32
 	Sku         string
+	OemNumber   sql.NullString
 	Name        string
 	Description sql.NullString
 	Price       int32
@@ -312,6 +323,7 @@ func (q *Queries) GetPartsByIDs(ctx context.Context, partIds []int32) ([]GetPart
 			&i.PartBrandID,
 			&i.PartTypeID,
 			&i.Sku,
+			&i.OemNumber,
 			&i.Name,
 			&i.Description,
 			&i.Price,
@@ -339,6 +351,7 @@ SELECT
     part_brand_id,
     part_type_id,
     sku,
+    oem_number,
     name,
     description,
     price,
@@ -356,6 +369,7 @@ type ListPartsRow struct {
 	PartBrandID int32
 	PartTypeID  int32
 	Sku         string
+	OemNumber   sql.NullString
 	Name        string
 	Description sql.NullString
 	Price       int32
@@ -379,6 +393,7 @@ func (q *Queries) ListParts(ctx context.Context) ([]ListPartsRow, error) {
 			&i.PartBrandID,
 			&i.PartTypeID,
 			&i.Sku,
+			&i.OemNumber,
 			&i.Name,
 			&i.Description,
 			&i.Price,
@@ -403,6 +418,7 @@ func (q *Queries) ListParts(ctx context.Context) ([]ListPartsRow, error) {
 const updatePartByID = `-- name: UpdatePartByID :execresult
 UPDATE part SET
     sku = ?,
+    oem_number = ?,
     name = ?,
     description = ?,
     part_type_id = ?,
@@ -418,6 +434,7 @@ WHERE part_id = ? AND is_active = 1
 
 type UpdatePartByIDParams struct {
 	Sku              string
+	OemNumber        sql.NullString
 	Name             string
 	Description      sql.NullString
 	PartTypeID       int32
@@ -434,6 +451,7 @@ type UpdatePartByIDParams struct {
 func (q *Queries) UpdatePartByID(ctx context.Context, arg UpdatePartByIDParams) (sql.Result, error) {
 	return q.db.ExecContext(ctx, updatePartByID,
 		arg.Sku,
+		arg.OemNumber,
 		arg.Name,
 		arg.Description,
 		arg.PartTypeID,

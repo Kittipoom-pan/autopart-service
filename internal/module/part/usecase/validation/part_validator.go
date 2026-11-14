@@ -11,10 +11,6 @@ func ValidatePartRequest(req *entity.PartReq, isUpdate bool) error {
 		return parterror.NewAPIError(common.StatusBadRequest, "part name cannot be empty")
 	}
 
-	if req.SKU == "" {
-		return parterror.NewAPIError(common.StatusBadRequest, "SKU is required")
-	}
-
 	if req.Price <= 0 {
 		return parterror.NewAPIError(common.StatusBadRequest, "price must be greater than zero")
 	}

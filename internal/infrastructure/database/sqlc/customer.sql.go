@@ -138,18 +138,19 @@ SET first_name = NULL,
     phone_number = NULL,
     birth_date = NULL,
     is_active = 0,
-    deleted_at = CURRENT_TIMESTAMP,
+    deleted_at = ?,
     updated_by_admin_id = ?
 WHERE customer_id = ? AND is_active = 1
 `
 
 type DeleteCustomerParams struct {
+	DeletedAt        sql.NullTime
 	UpdatedByAdminID sql.NullInt32
 	CustomerID       int32
 }
 
 func (q *Queries) DeleteCustomer(ctx context.Context, arg DeleteCustomerParams) (sql.Result, error) {
-	return q.db.ExecContext(ctx, deleteCustomer, arg.UpdatedByAdminID, arg.CustomerID)
+	return q.db.ExecContext(ctx, deleteCustomer, arg.DeletedAt, arg.UpdatedByAdminID, arg.CustomerID)
 }
 
 const deleteCustomerAddresses = `-- name: DeleteCustomerAddresses :exec

@@ -187,6 +187,16 @@ definitions:
         type: string
       result: {}
     type: object
+  BaseResponse-array_ImageRes:
+    properties:
+      message:
+        example: success
+        type: string
+      result:
+        items:
+          $ref: '#/definitions/ImageRes'
+        type: array
+    type: object
   BaseResponse-array_github_com_Kittipoom-pan_autopart-service_internal_module_address_entity_AddressRes:
     properties:
       message:
@@ -621,31 +631,6 @@ definitions:
     - OrderStatusDelivered
     - OrderStatusCancelled
     - OrderStatusCompleted
-  PartReq:
-    properties:
-      car_brand_id:
-        type: integer
-      description:
-        type: string
-      is_active:
-        type: boolean
-      name:
-        type: string
-      part_brand_id:
-        type: integer
-      part_id:
-        type: integer
-      part_type_id:
-        type: integer
-      price:
-        type: integer
-      quantity:
-        type: integer
-      sku:
-        type: string
-      weight_g:
-        type: integer
-    type: object
   PartRes:
     properties:
       car_brand_id:
@@ -653,6 +638,8 @@ definitions:
       description:
         type: string
       name:
+        type: string
+      oem_number:
         type: string
       part_brand_id:
         type: integer
@@ -1570,6 +1557,74 @@ paths:
       summary: Upload image
       tags:
       - image
+  /v1/image/multiple:
+    post:
+      consumes:
+      - multipart/form-data
+      description: อัปโหลดรูปภาพหลายรูปในคำขอเดียว (multipart/form-data) ใช้ field
+        "files" ซ้ำได้ รองรับ .jpg, .jpeg, .png, .webp รูปละไม่เกิน 5MB ระบบจะย่อความกว้างไม่เกิน
+        1200px และแปลงเป็น .webp
+      parameters:
+      - collectionFormat: multi
+        description: Image files (.jpg, .jpeg, .png, .webp) max 5MB each
+        in: formData
+        items:
+          type: file
+        name: files
+        required: true
+        type: array
+      - description: Reference ID
+        in: formData
+        name: reference_id
+        required: true
+        type: integer
+      - description: Reference type (part, customer, order, car_brand, car_model,
+          part_brand, part_type)
+        in: formData
+        name: reference_type
+        required: true
+        type: string
+      - description: Alternative text
+        in: formData
+        name: alt_text
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/BaseResponse-array_ImageRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "413":
+          description: Request Entity Too Large
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload multiple images
+      tags:
+      - image
   /v1/order:
     get:
       description: ดึงรายการคำสั่งซื้อทั้งหมด
@@ -1777,15 +1832,22 @@ paths:
       - part
     post:
       consumes:
-      - application/json
-      description: สร้างอะไหล่ใหม่ ต้องใช้ JWT
+      - multipart/form-data
+      description: สร้างอะไหล่ใหม่ พร้อมอัปโหลดรูปได้ ต้องใช้ JWT ส่งข้อมูล part เป็น
+        JSON string ในฟิลด์ "part" และไฟล์รูปในฟิลด์ "images" (multipart/form-data)
       parameters:
-      - description: Part data
-        in: body
-        name: body
+      - description: Part data as JSON string
+        in: formData
+        name: part
         required: true
-        schema:
-          $ref: '#/definitions/PartReq'
+        type: string
+      - collectionFormat: multi
+        description: Part images (.jpg, .jpeg, .png, .webp) max 5MB each
+        in: formData
+        items:
+          type: file
+        name: images
+        type: array
       produces:
       - application/json
       responses:
@@ -1885,19 +1947,28 @@ paths:
       - part
     put:
       consumes:
-      - application/json
+      - multipart/form-data
+      description: อัปเดตอะไหล่ พร้อมอัปโหลดรูปได้ ต้องใช้ JWT ส่งข้อมูล part เป็น
+        JSON string ในฟิลด์ "part" และไฟล์รูปในฟิลด์ "images" (multipart/form-data)
+        หากส่งรูปมาจะแทนที่รูปเดิมทั้งหมด
       parameters:
       - description: Part ID
         in: path
         name: id
         required: true
         type: integer
-      - description: Part data
-        in: body
-        name: body
+      - description: Part data as JSON string
+        in: formData
+        name: part
         required: true
-        schema:
-          $ref: '#/definitions/PartReq'
+        type: string
+      - collectionFormat: multi
+        description: Part images (.jpg, .jpeg, .png, .webp) max 5MB each
+        in: formData
+        items:
+          type: file
+        name: images
+        type: array
       produces:
       - application/json
       responses:

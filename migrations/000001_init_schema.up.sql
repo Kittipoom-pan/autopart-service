@@ -40,14 +40,15 @@ CREATE TABLE admin_user (
 -- แอดมินแก้ master data ได้ จึงเก็บ audit
 CREATE TABLE part_type (
   part_type_id INT AUTO_INCREMENT PRIMARY KEY,
-  parent_id INT NULL,
+  parent_code VARCHAR(8) NULL,
+  code VARCHAR(8) NOT NULL UNIQUE,
   name VARCHAR(50) NOT NULL UNIQUE,
   description VARCHAR(255) NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   created_by_admin_id INT NULL,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   updated_by_admin_id INT NULL,
-  CONSTRAINT fk_part_type_parent FOREIGN KEY (parent_id) REFERENCES part_type(part_type_id) ON DELETE SET NULL,
+  CONSTRAINT fk_part_type_parent FOREIGN KEY (parent_code) REFERENCES part_type(code) ON DELETE SET NULL,
   CONSTRAINT fk_part_type_created_by_admin_id FOREIGN KEY (created_by_admin_id) REFERENCES admin_user(admin_user_id),
   CONSTRAINT fk_part_type_updated_by_admin_id FOREIGN KEY (updated_by_admin_id) REFERENCES admin_user(admin_user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -97,6 +98,7 @@ CREATE TABLE part (
   part_type_id INT NOT NULL,
   name VARCHAR(100) NOT NULL UNIQUE,
   sku VARCHAR(50) NOT NULL UNIQUE,
+  oem_number VARCHAR(50) NULL UNIQUE,
   description TEXT NULL,
   price INT NOT NULL DEFAULT 0,
   quantity INT NOT NULL DEFAULT 0,                    -- ต้องตรงกับผลรวมของ stock_movement
@@ -314,6 +316,11 @@ CREATE TABLE customer_token (
   CONSTRAINT fk_token_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE sku_sequence (
+    prefix VARCHAR(20) PRIMARY KEY,
+    last_number INT UNSIGNED NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- ================================
 -- 5. Order
 -- ================================
@@ -474,7 +481,7 @@ CREATE TABLE image (
   reference_type VARCHAR(20) NOT NULL,                
   file_name VARCHAR(100) NOT NULL,
   image_url VARCHAR(500) NOT NULL,
-  alt_text VARCHAR(50) NOT NULL,
+  alt_text VARCHAR(150) NOT NULL,
   is_primary BIT(1) NOT NULL DEFAULT 0,
   sort_image INT NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

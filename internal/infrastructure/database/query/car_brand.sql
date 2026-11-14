@@ -20,3 +20,6 @@ WHERE car_brand_id = ?;
 
 -- name: DeleteCarBrand :execresult
 DELETE FROM car_brand WHERE car_brand_id = ?;
+
+-- name: GetCarBrandName :one
+SELECT name FROM car_brand WHERE car_brand_id = ?;
